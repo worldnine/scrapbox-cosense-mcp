@@ -1,7 +1,27 @@
 /** 雑な型を使っている */
 import { fetch } from "@whatwg-node/fetch";
-
 const API_DOMAIN = process.env.API_DOMAIN || "cosense.ce";
+
+// /api/pages/:projectname/search/query の型定義
+type SearchQueryResponse = {
+  projectName: string; // data取得先のproject名
+  searchQuery: string; // 検索語句
+  query: {
+    words: string[]; // AND検索に使った語句
+    excludes: string[]; // NOT検索に使った語句
+  };
+  limit: number; // 検索件数の上限
+  count: number; // 検索件数
+  existsExactTitleMatch: boolean;
+  backend: 'elasticsearch';
+  pages: {
+    id: string;
+    title: string;
+    image: string;
+    words: string[];
+    lines: string[];
+  }[];
+};
 
 // /api/pages/:projectname/:pagetitle
 type GetPageResponse = {
@@ -140,4 +160,45 @@ function createPageUrl(projectName: string, title: string, body?: string): strin
   return body ? `${baseUrl}?body=${encodeScrapboxBody(body)}` : baseUrl;
 }
 
-export { getPage, listPages, toReadablePage, createPageUrl };
+/**
+ * プロジェクト内のページを全文検索します
+ * @param projectName プロジェクト名
+ * @param query 検索クエリ
+ * @param sid セッションID（オプション）
+ * @returns 検索結果
+ * 
+ * 使用例:
+ * - 基本的な検索: searchPages("projectname", "検索語句")
+ * - 複数語句での検索: searchPages("projectname", "word1 word2")
+ * - 除外検索: searchPages("projectname", "word1 -word2")
+ * - フレーズ検索: searchPages("projectname", '"exact phrase"')
+ */
+async function searchPages(
+  projectName: string,
+  query: string,
+  sid?: string,
+): Promise<SearchQueryResponse | null> {
+  try {
+    const encodedQuery = encodeURIComponent(query);
+    const url = `https://${API_DOMAIN}/api/pages/${projectName}/search/query?q=${encodedQuery}`;
+    
+    const response = sid
+      ? await fetch(url, {
+          headers: { Cookie: `connect.sid=${sid}` },
+        })
+      : await fetch(url);
+
+    if (!response.ok) {
+      console.error(`Search API error: ${response.status} ${response.statusText}`);
+      return null;
+    }
+
+    const result = await response.json();
+    return result as SearchQueryResponse;
+  } catch (error) {
+    console.error('Error searching pages:', error);
+    return null;
+  }
+}
+
+export { getPage, listPages, toReadablePage, createPageUrl, searchPages };
