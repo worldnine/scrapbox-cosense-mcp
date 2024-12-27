@@ -8,7 +8,43 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { listPages, getPage, toReadablePage } from "./cosense.js";
+import { listPages, getPage, toReadablePage, createPageUrl } from "./cosense.js";
+import { convertMarkdownToScrapbox } from './utils/markdown-converter.js';
+
+export enum ScrapboxNotation {
+  LINK = '[]',           // [リンク]
+  CODE_BLOCK = '```',    // コードブロック
+  BULLET = ' ', // 行頭スペースでインデント
+  DECORATION = '*/_-', // 装飾(*太字* _斜体_ -取消線-)
+  HASHTAG = '#',      // #タグ
+}
+
+export class ScrapboxConverter {
+  static convertToScrapbox(content: string): string {
+    return content
+      .split('\n')
+      .map(line => {
+        // Markdownの#見出しをScrapbox記法に変換
+        if (line.startsWith('#')) {
+          return line.replace(/^#+\s/, '');
+        }
+        // Markdownのリンクを[]形式に変換
+        line = line.replace(/\[(.+?)\]\(.+?\)/g, '[$1]');
+        return line;
+      })
+      .join('\n');
+  }
+
+  static validateScrapboxNotation(content: string): boolean {
+    // Scrapbox記法のバリデーション
+    const validLinkPattern = /\[([^\[\]]+)\]/;
+    const validCodeBlockPattern = /^```[\s\S]*?```$/m;
+    
+    // 基本的なバリデーションチェック
+    return validLinkPattern.test(content) || 
+           validCodeBlockPattern.test(content);
+  }
+}
 
 const cosenseSid: string | undefined = process.env.COSENSE_SID;
 const projectName: string | undefined = process.env.COSENSE_PROJECT_NAME;
@@ -25,7 +61,7 @@ const resources = await listPages(projectName, cosenseSid).then((pages) =>
   })),
 );
 
-console.info(`Found ${resources.length} resources`);
+
 
 const server = new Server(
   {
@@ -49,33 +85,21 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
 
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   const url = new URL(request.params.uri);
-  const title = url.pathname.replace(/^\//, "");
-  let page = resources.find((resource) => resource.uri === request.params.uri);
-  if (!page) {
-    const getPageResult = await getPage(projectName, title, cosenseSid);
-    if (!getPageResult) {
-      throw new Error(`Page ${title} not found`);
-    }
-    const readablePage = toReadablePage(getPageResult);
-    page = {
-      uri: request.params.uri,
-      mimeType: "text/plain",
-      name: readablePage.title,
-      description: readablePage.description,
-    };
-    resources.push(page);
-  }
-
-  if (!page) {
+  // URLデコードを追加
+  const title = decodeURIComponent(url.pathname.replace(/^\//, ""));
+  
+  const getPageResult = await getPage(projectName, title, cosenseSid);
+  if (!getPageResult) {
     throw new Error(`Page ${title} not found`);
   }
+  const readablePage = toReadablePage(getPageResult);
 
   return {
     contents: [
       {
         uri: request.params.uri,
         mimeType: "text/plain",
-        text: page.description,
+        text: readablePage.description, // 完全なページ内容を返す
       },
     ],
   };
@@ -85,9 +109,37 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
+        name: "create_page",
+        description: `
+        Create a new page in ${projectName} project on scrapbox.io
+        
+        Creates a new page with the specified title and optional body text.
+        The page will be opened in your default browser.
+        `,
+        inputSchema: {
+          type: "object",
+          properties: {
+            title: {
+              type: "string",
+              description: "Title of the new page",
+            },
+            body: {
+              type: "string",
+              description: `Content of the page in Scrapbox notation:
+            - Use [brackets] for links
+            - Start code blocks with \`\`\`
+            - Use space for indentation
+            - Use #hashtag for tags
+            - Use * for bold, _ for italic`,
+            },
+          },
+          required: ["title"],
+        },
+      },
+      {
         name: "get_page",
         description: `
-        Get a page from ${projectName} project on cosen.se
+        Get a page from ${projectName} project on scrapbox.io
 
         In cosense, a page is a cosense-style document with a title and a description.
         Bracket Notation makes links between pages.
@@ -110,7 +162,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "list_pages",
-        description: `List known cosense pages from ${projectName} project on cosen.se`,
+        description: `List known cosense pages from ${projectName} project on scrapbox.io`,
         inputSchema: {
           type: "object",
           properties: {},
@@ -124,21 +176,43 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   switch (request.params.name) {
     case "get_page": {
-      const pageTitle = String(request.params.arguments?.pageTitle);
-      const page = await getPage(projectName, pageTitle, cosenseSid);
-      if (!page) {
-        throw new Error(`Page ${pageTitle} not found`);
-      }
-      const readablePage = toReadablePage(page);
+      try {
+        const pageTitle = String(request.params.arguments?.pageTitle);
+        const page = await getPage(projectName, pageTitle, cosenseSid);
+        
+        if (!page) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `ページ「${pageTitle}」が見つかりませんでした。\nプロジェクト: ${projectName}`,
+              },
+            ],
+            isError: true,
+          };
+        }
 
-      return {
-        content: [
-          {
-            type: "text",
-            text: readablePage.description,
-          },
-        ],
-      };
+        const readablePage = toReadablePage(page);
+        return {
+          content: [
+            {
+              type: "text",
+              text: readablePage.description,
+            },
+          ],
+        };
+      } catch (error) {
+        console.error('Error in get_page:', error);
+        return {
+          content: [
+            {
+              type: "text",
+              text: `ページの取得中にエラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`,
+            },
+          ],
+          isError: true,
+        };
+      }
     }
 
     case "list_pages": {
@@ -147,6 +221,28 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           {
             type: "text",
             text: resources.map((resource) => resource.name).join("\n"),
+          },
+        ],
+      };
+    }
+
+    case "create_page": {
+      const title = String(request.params.arguments?.title);
+      const body = request.params.arguments?.body as string | undefined;
+      
+      // Markdownテキストを変換
+      const convertedBody = body ? await convertMarkdownToScrapbox(body) : undefined;
+      const url = createPageUrl(projectName, title, convertedBody);
+      
+      // ブラウザでURLを開く
+      const { exec } = await import("child_process");
+      exec(`open "${url}"`);
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Opening new page: ${title}\nURL: ${url}`,
           },
         ],
       };

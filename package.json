@@ -18,7 +18,9 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "0.6.0",
-    "@whatwg-node/fetch": "^0.10.1"
+    "@whatwg-node/fetch": "^0.10.1",
+    "md2sb": "^5.1.2",
+    "node-fetch": "2"
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
