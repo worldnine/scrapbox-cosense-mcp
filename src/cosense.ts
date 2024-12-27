@@ -28,8 +28,14 @@ type GetPageResponse = {
   id: string;
   title: string;
   lines: {
+    id: string;
     text: string;
+    userId: string;
+    created: number;
+    updated: number;
   }[];
+  created: number;
+  updated: number;
   links: string[];
   relatedPages: {
     links1hop: {
@@ -37,6 +43,12 @@ type GetPageResponse = {
       descriptions: string[];
     }[];
   };
+  collaborators: {
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
+  }[];
 };
 
 async function getPage(
@@ -81,25 +93,28 @@ async function getPage(
 
 function toReadablePage(page: GetPageResponse): {
   title: string;
-  description: string;
+  lines: {
+    id: string;
+    text: string;
+    userId: string;
+    created: number;
+    updated: number;
+  }[];
+  created: number;
+  updated: number;
+  collaborators: {
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
+  }[];
 } {
-  const lines = Array.isArray(page.lines) ? page.lines.map(line => line.text).join("\n") : '';
-  const titleAndDescription = `
-${page.title}
----
-
-${lines}
-`;
-
-  const relatedPages =
-    page.links.length > 0
-      ? `## 関連するページのタイトル
-${page.links.join("\n")}
-`
-      : "";
   return {
     title: page.title,
-    description: titleAndDescription + "\n" + relatedPages,
+    lines: page.lines,
+    created: page.created,
+    updated: page.updated,
+    collaborators: page.collaborators,
   };
 }
 
