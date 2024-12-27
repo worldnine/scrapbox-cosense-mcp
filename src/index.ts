@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const API_DOMAIN = process.env.API_DOMAIN || "cosense.ce";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -74,7 +75,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: "create_page",
         description: `
-        Create a new page in ${projectName} project on scrapbox.io
+        Create a new page in ${projectName} project on ${API_DOMAIN}
         
         Creates a new page with the specified title and optional body text.
         The page will be opened in your default browser.
@@ -97,15 +98,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: "get_page",
         description: `
-        Get a page from ${projectName} project on scrapbox.io
-
-        In cosense, a page is a cosense-style document with a title and a description.
-        Bracket Notation makes links between pages.
-        Example: [Page Title]
-        -> "/${projectName}/Page Title"
-
-        A page may have links to other pages.
-        Links are rendered at the bottom of the page.
+        Get a page from ${projectName} project on ${API_DOMAIN}
+        Returns page content and its linked pages.
+        Page content includes title and description in plain text format.
         `,
         inputSchema: {
           type: "object",
@@ -120,7 +115,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "list_pages",
-        description: `List known cosense pages from ${projectName} project on scrapbox.io`,
+        description: `List known cosense pages from ${projectName} project on ${API_DOMAIN}`,
         inputSchema: {
           type: "object",
           properties: {},
