@@ -1,4 +1,7 @@
 /** 雑な型を使っている */
+import { fetch } from '@whatwg-node/fetch';
+
+const API_DOMAIN = process.env.API_DOMAIN || 'cosense.ce';
 
 // /api/pages/:projectname/:pagetitle
 type GetPageResponse = {
@@ -22,11 +25,11 @@ async function getPage(
   sid?: string,
 ): Promise<GetPageResponse | null> {
   const response = sid
-    ? await fetch(`https://cosen.se/api/pages/${projectName}/${pageName}`, {
+    ? await fetch(`https://${API_DOMAIN}/api/pages/${projectName}/${pageName}`, {
         headers: { Cookie: `connect.sid=${sid}` },
       }).catch(() => null)
     : await fetch(
-        `https://cosen.se/api/pages/${projectName}/${pageName}`,
+        `https://${API_DOMAIN}/api/pages/${projectName}/${pageName}`,
       ).catch(() => null);
 
   if (!response) {
@@ -75,10 +78,10 @@ async function listPages(
   sid?: string,
 ): Promise<ListPagesResponse> {
   const response = sid
-    ? await fetch(`https://cosen.se/api/pages/${projectName}`, {
+    ? await fetch(`https://${API_DOMAIN}/api/pages/${projectName}`, {
         headers: { Cookie: `connect.sid=${sid}` },
       })
-    : await fetch(`https://cosen.se/api/pages/${projectName}`);
+    : await fetch(`https://${API_DOMAIN}/api/pages/${projectName}`);
   const pages = await response.json();
   return pages as ListPagesResponse;
 }

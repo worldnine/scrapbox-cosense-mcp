@@ -48,7 +48,8 @@ On Windows: `%APPDATA%/Claude/claude_desktop_config.json`
       "args": ["/path/to/cosense-mcp-server/build/index.js"],
       "env": {
         "COSENSE_PROJECT_NAME": "your_project_name",
-        "COSENSE_SID": "your_sid"
+        "COSENSE_SID": "your_sid",
+        "API_DOMAIN"="cosense.ce"
       }
     }
   }
