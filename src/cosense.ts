@@ -128,19 +128,28 @@ type ListPagesResponse = {
   projectName: string;
   pages: {
     title: string;
+    // updatedbyMeソートの場合に追加される
+    lastAccessed?: number;
   }[];
 };
 
 async function listPages(
   projectName: string,
   sid?: string,
+  options: { limit?: number; skip?: number; sort?: string } = {}
 ): Promise<ListPagesResponse> {
   try {
+    const params = new URLSearchParams({
+      limit: (options.limit || 20).toString(),
+      skip: (options.skip || 0).toString(),
+      sort: options.sort || 'updatedbyMe'
+    });
+
     const response = sid
-      ? await fetch(`https://${API_DOMAIN}/api/pages/${projectName}`, {
+      ? await fetch(`https://${API_DOMAIN}/api/pages/${projectName}?${params}`, {
           headers: { Cookie: `connect.sid=${sid}` },
         })
-      : await fetch(`https://${API_DOMAIN}/api/pages/${projectName}`);
+      : await fetch(`https://${API_DOMAIN}/api/pages/${projectName}?${params}`);
     
     if (!response.ok) {
       console.error(`API error: ${response.status} ${response.statusText}`);
