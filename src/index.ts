@@ -88,12 +88,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             body: {
               type: "string",
-              description: `Content of the page in Scrapbox notation:
-            - Use [brackets] for links
-            - Start code blocks with \`\`\`
-            - Use space for indentation
-            - Use #hashtag for tags
-            - Use * for bold, _ for italic`,
+              description: "Content in markdown format that will be converted to Scrapbox format. Supports standard markdown syntax including links, code blocks, lists, and emphasis.",
             },
           },
           required: ["title"],
