@@ -108,6 +108,7 @@ function toReadablePage(page: GetPageResponse): {
     displayName: string;
     photo: string;
   }[];
+  links: string[];
 } {
   return {
     title: page.title,
@@ -115,6 +116,7 @@ function toReadablePage(page: GetPageResponse): {
     created: page.created,
     updated: page.updated,
     collaborators: page.collaborators,
+    links: page.links,
   };
 }
 

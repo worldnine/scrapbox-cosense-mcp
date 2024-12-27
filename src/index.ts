@@ -64,6 +64,9 @@ ${readablePage.title}
 
 ${readablePage.lines.map(line => line.text).join('\n')}
 
+リンク:
+${getPageResult.links.length > 0 ? getPageResult.links.map((link: string) => `- ${link}`).join('\n') : '(なし)'}
+
 編集者:
 ${readablePage.collaborators.map(user => `- ${user.displayName}`).join('\n')}
 `;
@@ -184,6 +187,9 @@ ${readablePage.title}
 更新日時: ${new Date(readablePage.updated * 1000).toLocaleString()}
 
 ${readablePage.lines.map(line => line.text).join('\n')}
+
+リンク:
+${readablePage.links.length > 0 ? readablePage.links.map((link: string) => `- ${link}`).join('\n') : '(なし)'}
 
 編集者:
 ${readablePage.collaborators.map(user => `- ${user.displayName}`).join('\n')}
