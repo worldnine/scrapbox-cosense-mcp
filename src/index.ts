@@ -29,7 +29,7 @@ const resources = await listPages(projectName, cosenseSid).then((pages) =>
 
 const server = new Server(
   {
-    name: "cosense-mcp-server",
+    name: "scrapbox-cosense-mcp",
     version: "0.1.0",
   },
   {
