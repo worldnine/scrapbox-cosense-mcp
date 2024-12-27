@@ -9,7 +9,7 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { listPages, getPage, toReadablePage, createPageUrl } from "./cosense.js";
+import { listPages, getPage, toReadablePage, createPageUrl, searchPages } from "./cosense.js";
 import { convertMarkdownToScrapbox } from './utils/markdown-converter.js';
 
 const cosenseSid: string | undefined = process.env.COSENSE_SID;
@@ -122,6 +122,28 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: [],
         },
       },
+      {
+        name: "search_pages",
+        description: `
+        Search pages in ${projectName} project on ${API_DOMAIN}
+        
+        Supports various search features:
+        - Basic search: "keyword"
+        - Multiple keywords: "word1 word2" (AND search)
+        - Exclude words: "word1 -word2"
+        - Exact phrase: "\\"exact phrase\\""
+        `,
+        inputSchema: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string",
+              description: "Search query string",
+            },
+          },
+          required: ["query"],
+        },
+      },
     ],
   };
 });
@@ -177,6 +199,53 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           },
         ],
       };
+    }
+
+    case "search_pages": {
+      try {
+        const query = String(request.params.arguments?.query);
+        const results = await searchPages(projectName, query, cosenseSid);
+        
+        if (!results) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `検索中にエラーが発生しました。\nプロジェクト: ${projectName}\nクエリ: ${query}`,
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                query: results.searchQuery,
+                total_count: results.count,
+                pages: results.pages.map(page => ({
+                  title: page.title,
+                  content: page.lines.join('\n'),
+                  matched_words: page.words
+                }))
+              }, null, 2)
+            }
+          ],
+        };
+      } catch (error) {
+        console.error('Error in search_pages:', error);
+        return {
+          content: [
+            {
+              type: "text",
+              text: `検索中にエラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`,
+            },
+          ],
+          isError: true,
+        };
+      }
     }
 
     case "create_page": {
