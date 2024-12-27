@@ -11,41 +11,6 @@ import {
 import { listPages, getPage, toReadablePage, createPageUrl } from "./cosense.js";
 import { convertMarkdownToScrapbox } from './utils/markdown-converter.js';
 
-export enum ScrapboxNotation {
-  LINK = '[]',           // [リンク]
-  CODE_BLOCK = '```',    // コードブロック
-  BULLET = ' ', // 行頭スペースでインデント
-  DECORATION = '*/_-', // 装飾(*太字* _斜体_ -取消線-)
-  HASHTAG = '#',      // #タグ
-}
-
-export class ScrapboxConverter {
-  static convertToScrapbox(content: string): string {
-    return content
-      .split('\n')
-      .map(line => {
-        // Markdownの#見出しをScrapbox記法に変換
-        if (line.startsWith('#')) {
-          return line.replace(/^#+\s/, '');
-        }
-        // Markdownのリンクを[]形式に変換
-        line = line.replace(/\[(.+?)\]\(.+?\)/g, '[$1]');
-        return line;
-      })
-      .join('\n');
-  }
-
-  static validateScrapboxNotation(content: string): boolean {
-    // Scrapbox記法のバリデーション
-    const validLinkPattern = /\[([^\[\]]+)\]/;
-    const validCodeBlockPattern = /^```[\s\S]*?```$/m;
-    
-    // 基本的なバリデーションチェック
-    return validLinkPattern.test(content) || 
-           validCodeBlockPattern.test(content);
-  }
-}
-
 const cosenseSid: string | undefined = process.env.COSENSE_SID;
 const projectName: string | undefined = process.env.COSENSE_PROJECT_NAME;
 if (!projectName) {
@@ -60,8 +25,6 @@ const resources = await listPages(projectName, cosenseSid).then((pages) =>
     description: `A text page: ${page.title}`,
   })),
 );
-
-
 
 const server = new Server(
   {
