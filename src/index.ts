@@ -57,13 +57,23 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
     throw new Error(`Page ${title} not found`);
   }
   const readablePage = toReadablePage(getPageResult);
+  const formattedText = `
+${readablePage.title}
+作成日時: ${new Date(readablePage.created * 1000).toLocaleString()}
+更新日時: ${new Date(readablePage.updated * 1000).toLocaleString()}
+
+${readablePage.lines.map(line => line.text).join('\n')}
+
+編集者:
+${readablePage.collaborators.map(user => `- ${user.displayName}`).join('\n')}
+`;
 
   return {
     contents: [
       {
         uri: request.params.uri,
         mimeType: "text/plain",
-        text: readablePage.description, // 完全なページ内容を返す
+        text: formattedText,
       },
     ],
   };
@@ -168,11 +178,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         }
 
         const readablePage = toReadablePage(page);
+        const formattedText = `
+${readablePage.title}
+作成日時: ${new Date(readablePage.created * 1000).toLocaleString()}
+更新日時: ${new Date(readablePage.updated * 1000).toLocaleString()}
+
+${readablePage.lines.map(line => line.text).join('\n')}
+
+編集者:
+${readablePage.collaborators.map(user => `- ${user.displayName}`).join('\n')}
+`;
         return {
           content: [
             {
               type: "text",
-              text: readablePage.description,
+              text: formattedText,
             },
           ],
         };
