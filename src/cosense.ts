@@ -159,7 +159,7 @@ async function listPages(
 ): Promise<ListPagesResponse> {
   try {
     const params = new URLSearchParams({
-      limit: (options.limit || 100).toString(),
+      limit: (options.limit || 1000).toString(),
       skip: (options.skip || 0).toString(),
       sort: options.sort || 'created'
     });
