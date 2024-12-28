@@ -67,8 +67,14 @@ ${readablePage.lines.map(line => line.text).join('\n')}
 リンク:
 ${getPageResult.links.length > 0 ? getPageResult.links.map((link: string) => `- ${link}`).join('\n') : '(なし)'}
 
-編集者:
-${readablePage.collaborators.map(user => `- ${user.displayName}`).join('\n')}
+最新の編集者:
+- ${readablePage.user.displayName}
+
+その他の編集者:
+${readablePage.collaborators
+  .filter(collab => collab.id !== readablePage.user.id)
+  .map(user => `- ${user.displayName}`)
+  .join('\n')}
 `;
 
   return {
@@ -191,8 +197,14 @@ ${readablePage.lines.map(line => line.text).join('\n')}
 リンク:
 ${readablePage.links.length > 0 ? readablePage.links.map((link: string) => `- ${link}`).join('\n') : '(なし)'}
 
-編集者:
-${readablePage.collaborators.map(user => `- ${user.displayName}`).join('\n')}
+最新の編集者:
+- ${readablePage.user.displayName}
+
+その他の編集者:
+${readablePage.collaborators
+  .filter(collab => collab.id !== readablePage.user.id)
+  .map(user => `- ${user.displayName}`)
+  .join('\n')}
 `;
         return {
           content: [

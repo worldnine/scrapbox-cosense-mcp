@@ -43,6 +43,12 @@ type GetPageResponse = {
       descriptions: string[];
     }[];
   };
+  user: {              // 追加: 最新の編集者情報
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
+  };
   collaborators: {
     id: string;
     name: string;
@@ -102,6 +108,12 @@ function toReadablePage(page: GetPageResponse): {
   }[];
   created: number;
   updated: number;
+  user: {
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
+  };
   collaborators: {
     id: string;
     name: string;
@@ -115,6 +127,7 @@ function toReadablePage(page: GetPageResponse): {
     lines: page.lines,
     created: page.created,
     updated: page.updated,
+    user: page.user,
     collaborators: page.collaborators,
     links: page.links,
   };
