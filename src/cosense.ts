@@ -141,8 +141,14 @@ type ListPagesResponse = {
   projectName: string;
   pages: {
     title: string;
-    // updatedbyMeソートの場合に追加される
     lastAccessed?: number;
+    // 以下のプロパティを追加
+    created?: number;
+    updated?: number;
+    accessed?: number;
+    views?: number;
+    linked?: number;
+    pin?: number;
   }[];
 };
 

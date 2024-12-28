@@ -134,10 +134,38 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "list_pages",
-        description: `List known cosense pages from ${projectName} project on ${API_DOMAIN}`,
+        description: `
+        List pages from ${projectName} project on ${API_DOMAIN} with flexible sorting options.
+        
+        Available sorting methods:
+        - updated: Sort by last update time
+        - created: Sort by creation time
+        - accessed: Sort by access time
+        - linked: Sort by number of incoming links
+        - views: Sort by view count
+        - title: Sort by page title
+        - updatedbyMe: Sort by your last update time (requires login)
+        `,
         inputSchema: {
           type: "object",
-          properties: {},
+          properties: {
+            sort: {
+              type: "string",
+              enum: ["updated", "created", "accessed", "linked", "views", "title", "updatedbyMe"],
+              description: "Sort method for the page list",
+            },
+            limit: {
+              type: "number",
+              minimum: 1,
+              maximum: 1000,
+              description: "Maximum number of pages to return (1-1000)",
+            },
+            skip: {
+              type: "number",
+              minimum: 0,
+              description: "Number of pages to skip",
+            },
+          },
           required: [],
         },
       },
@@ -229,14 +257,64 @@ ${readablePage.collaborators
     }
 
     case "list_pages": {
-      return {
-        content: [
-          {
-            type: "text",
-            text: resources.map((resource) => resource.name).join("\n"),
-          },
-        ],
-      };
+      try {
+        const sort = request.params.arguments?.sort as string | undefined;
+        const limit = request.params.arguments?.limit as number | undefined;
+        const skip = request.params.arguments?.skip as number | undefined;
+
+        const pages = await listPages(projectName, cosenseSid, { sort, limit, skip });
+        
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                project: projectName,
+                metadata: {
+                  total_count: pages.count,
+                  limit: pages.limit,
+                  skip: pages.skip,
+                  sort: sort || 'created'
+                },
+                pages: pages.pages.map((page, index) => ({
+                  index: skip ? skip + index + 1 : index + 1,
+                  title: page.title,
+                  created: page.created && {
+                    timestamp: page.created,
+                    formatted: new Date(page.created * 1000).toLocaleString()
+                  },
+                  updated: page.updated && {
+                    timestamp: page.updated,
+                    formatted: new Date(page.updated * 1000).toLocaleString()
+                  },
+                  accessed: page.accessed && {
+                    timestamp: page.accessed,
+                    formatted: new Date(page.accessed * 1000).toLocaleString()
+                  },
+                  lastAccessed: page.lastAccessed && {
+                    timestamp: page.lastAccessed,
+                    formatted: new Date(page.lastAccessed * 1000).toLocaleString()
+                  },
+                  views: page.views,
+                  linked: page.linked,
+                  pin: page.pin
+                }))
+              }, null, 2)
+            }
+          ],
+        };
+      } catch (error) {
+        console.error('Error in list_pages:', error);
+        return {
+          content: [
+            {
+              type: "text",
+              text: `ページ一覧の取得中にエラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`,
+            },
+          ],
+          isError: true,
+        };
+      }
     }
 
     case "search_pages": {
