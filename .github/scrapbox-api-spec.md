@@ -33,8 +33,7 @@ https://scrapbox.io/api
 ##### クエリパラメータ
 | パラメータ | 型 | 必須 | 説明 |
 |------------|-----|------|------|
-| limit | number | 任意 | 取得するページ情報の最大数（1-1000） |
-| skip | number | 任意 | 何番目のページから取得するかを指定 |
+| limit | number | 任意 | 取得するページ情報の最大数（1-1000） | skip | number | 任意 | 何番目のページから取得するかを指定 |
 | sort | string | 任意 | ソート方法（以下のいずれか）:<br>- `updated`: 更新日時<br>- `created`: 作成日時<br>- `accessed`: アクセス日時<br>- `linked`: リンク数<br>- `views`: 閲覧数<br>- `title`: タイトル<br>- `updatedbyMe`: 自分の更新（`lastAccessed`が追加されます） |
 
 ##### レスポンス

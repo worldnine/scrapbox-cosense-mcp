@@ -144,7 +144,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         - linked: Sort by number of incoming links
         - views: Sort by view count
         - title: Sort by page title
-        - updatedbyMe: Sort by your last update time (requires login)
+        - updatedbyMe: Sort by your last update time
         `,
         inputSchema: {
           type: "object",
