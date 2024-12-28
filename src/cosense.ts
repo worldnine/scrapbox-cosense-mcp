@@ -153,9 +153,9 @@ async function listPages(
 ): Promise<ListPagesResponse> {
   try {
     const params = new URLSearchParams({
-      limit: (options.limit || 20).toString(),
+      limit: (options.limit || 100).toString(),
       skip: (options.skip || 0).toString(),
-      sort: options.sort || 'updatedbyMe'
+      sort: options.sort || 'created'
     });
 
     const response = sid
