@@ -245,42 +245,30 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           }
         };
 
+        // シンプルなKEY: value形式の出力を構築
+        let output = `プロジェクト名: ${projectName}\n`;
+        output += `総件数: ${pages.count}\n`;
+        output += `取得件数: ${pages.limit}\n`;
+        output += `スキップ件数: ${pages.skip}\n`;
+        output += `ソート方法: ${getSortDescription(sort)}\n`;
+        output += `注意: APIの仕様により、ピン留めページは常に優先表示されます\n`;
+        output += '---\n';
+        
+        // 各ページの情報
+        pages.pages.forEach((page, index) => {
+          const sortValue = getSortValue(page, sort);
+          output += `ページ番号: ${skip ? skip + index + 1 : index + 1}\n`;
+          output += `タイトル: ${page.title}\n`;
+          output += `ソート値: ${sortValue.formatted}\n`;
+          output += `ピン留め: ${page.pin ? 'あり' : 'なし'}\n`;
+          output += '---\n';
+        });
+
         return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                project: projectName,
-                metadata: {
-                  total_count: pages.count,
-                  limit: pages.limit,
-                  skip: pages.skip,
-                  sort: sort,
-                  sort_info: {
-                    method: getSortDescription(sort),
-                    field: sort,
-                    warning: "APIの仕様により、ピン留めページは常に優先表示されます"
-                  },
-                  request_debug: pages.debug
-                },
-                pages: pages.pages.map((page, index) => {
-                  const sortValue = getSortValue(page, sort);
-                  return {
-                    index: skip ? skip + index + 1 : index + 1,
-                    title: page.title,
-                    sort_value: {
-                      field: sort || 'default',
-                      ...sortValue
-                    },
-                    pin_status: {
-                      is_pinned: Boolean(page.pin),
-                      pin_value: page.pin || 0
-                    }
-                  };
-                })
-              }, null, 2)
-            }
-          ]
+          content: [{
+            type: "text",
+            text: output
+          }]
         };
       } catch (error) {
         return {
