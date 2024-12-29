@@ -66,18 +66,18 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   const readablePage = toReadablePage(getPageResult);
   const formattedText = `
 ${readablePage.title}
-作成日時: ${formatYmd(new Date(readablePage.created * 1000))}
-更新日時: ${formatYmd(new Date(readablePage.updated * 1000))}
+Created: ${formatYmd(new Date(readablePage.created * 1000))}
+Updated: ${formatYmd(new Date(readablePage.updated * 1000))}
 
 ${readablePage.lines.map(line => line.text).join('\n')}
 
-リンク:
-${getPageResult.links.length > 0 ? getPageResult.links.map((link: string) => `- ${link}`).join('\n') : '(なし)'}
+Links:
+${getPageResult.links.length > 0 ? getPageResult.links.map((link: string) => `- ${link}`).join('\n') : '(None)'}
 
-最新の編集者:
+Last editor:
 - ${readablePage.user.displayName}
 
-その他の編集者:
+Other editors:
 ${readablePage.collaborators
   .filter(collab => collab.id !== readablePage.user.id)
   .map(user => `- ${user.displayName}`)
@@ -214,15 +214,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         // ソート方法に応じた説明を生成する関数を先に定義
         const getSortDescription = (sortMethod: string | undefined) => {
           const base = {
-            updated: "更新日時順",
-            created: "作成日時順",
-            accessed: "アクセス日時順",
-            linked: "被リンク数順",
-            views: "閲覧数順",
-            title: "タイトル順"
-          }[sortMethod || ''] || "デフォルト順";
+            updated: "Sorted by last updated",
+            created: "Sorted by creation date",
+            accessed: "Sorted by last accessed",
+            linked: "Sorted by number of incoming links",
+            views: "Sorted by view count",
+            title: "Sorted by title"
+          }[sortMethod || ''] || "Default order";
 
-          return `${base}（ピン留めページが優先表示されます）`;
+          return `${base} (Pinned pages are shown first)`;
         };
 
         // ソート方法に応じた値を取得する関数
@@ -241,26 +241,26 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             case 'title':
               return { value: page.title, formatted: page.title };
             default:
-              return { value: null, formatted: '未指定' };
+              return { value: null, formatted: 'Not specified' };
           }
         };
 
         // シンプルなKEY: value形式の出力を構築
-        let output = `プロジェクト名: ${projectName}\n`;
-        output += `総件数: ${pages.count}\n`;
-        output += `取得件数: ${pages.limit}\n`;
-        output += `スキップ件数: ${pages.skip}\n`;
-        output += `ソート方法: ${getSortDescription(sort)}\n`;
-        output += `注意: APIの仕様により、ピン留めページは常に優先表示されます\n`;
+        let output = `Project: ${projectName}\n`;
+        output += `Total pages: ${pages.count}\n`;
+        output += `Pages fetched: ${pages.limit}\n`;
+        output += `Pages skipped: ${pages.skip}\n`;
+        output += `Sort method: ${getSortDescription(sort)}\n`;
+        output += `Note: Pinned pages are always shown first due to API specifications\n`;
         output += '---\n';
         
-        // 各ページの情報
+        // Page information
         pages.pages.forEach((page, index) => {
           const sortValue = getSortValue(page, sort);
-          output += `ページ番号: ${skip ? skip + index + 1 : index + 1}\n`;
-          output += `タイトル: ${page.title}\n`;
-          output += `ソート値: ${sortValue.formatted}\n`;
-          output += `ピン留め: ${page.pin ? 'あり' : 'なし'}\n`;
+          output += `Page number: ${skip ? skip + index + 1 : index + 1}\n`;
+          output += `Title: ${page.title}\n`;
+          output += `Sort value: ${sortValue.formatted}\n`;
+          output += `Pinned: ${page.pin ? 'Yes' : 'No'}\n`;
           output += '---\n';
         });
 
@@ -277,7 +277,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               type: "text",
               text: JSON.stringify({
                 error: {
-                  message: error instanceof Error ? error.message : '不明なエラー',
+                  message: error instanceof Error ? error.message : 'Unknown error',
                   type: error instanceof Error ? error.constructor.name : 'Unknown',
                   timestamp: new Date().toISOString()
                 }
@@ -299,7 +299,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             content: [
               {
                 type: "text",
-                text: `ページ「${pageTitle}」が見つかりませんでした。\nプロジェクト: ${projectName}`,
+                text: `Page "${pageTitle}" not found.\nProject: ${projectName}`,
               },
             ],
             isError: true,
@@ -309,18 +309,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const readablePage = toReadablePage(page);
         const formattedText = `
 ${readablePage.title}
-作成日時: ${formatYmd(new Date(readablePage.created * 1000))}
-更新日時: ${formatYmd(new Date(readablePage.updated * 1000))}
+Created: ${formatYmd(new Date(readablePage.created * 1000))}
+Updated: ${formatYmd(new Date(readablePage.updated * 1000))}
 
 ${readablePage.lines.map(line => line.text).join('\n')}
 
-リンク:
-${readablePage.links.length > 0 ? readablePage.links.map((link: string) => `- ${link}`).join('\n') : '(なし)'}
+Links:
+${readablePage.links.length > 0 ? readablePage.links.map((link: string) => `- ${link}`).join('\n') : '(None)'}
 
-最新の編集者:
+Last editor:
 - ${readablePage.user.displayName}
 
-その他の編集者:
+Other editors:
 ${readablePage.collaborators
   .filter(collab => collab.id !== readablePage.user.id)
   .map(user => `- ${user.displayName}`)
@@ -340,7 +340,7 @@ ${readablePage.collaborators
           content: [
             {
               type: "text",
-              text: `ページの取得中にエラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`,
+              text: `Error occurred while fetching page: ${error instanceof Error ? error.message : 'Unknown error'}`,
             },
           ],
           isError: true,
@@ -358,7 +358,7 @@ ${readablePage.collaborators
             content: [
               {
                 type: "text",
-                text: `検索中にエラーが発生しました。\nプロジェクト: ${projectName}\nクエリ: ${query}`,
+                text: `An error occurred while searching.\nProject: ${projectName}\nQuery: ${query}`,
               },
             ],
             isError: true,
@@ -387,7 +387,7 @@ ${readablePage.collaborators
           content: [
             {
               type: "text",
-              text: `検索中にエラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`,
+              text: `Error occurred while searching: ${error instanceof Error ? error.message : 'Unknown error'}`,
             },
           ],
           isError: true,
