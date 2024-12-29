@@ -1,6 +1,6 @@
 # Scrapbox REST API 仕様書
 
-> **重要**: これは内部APIであり、予告なく変更される可能性があります。本仕様書は参考情報として提供されています。
+> **重要**: この仕様書はインターネット上で公開されている情報の断片を寄せ集めて作成されたものであり、正確性を保証するものではないので注意すること。
 
 ## 目次
 
@@ -13,11 +13,14 @@
    - [ユーザー関連 API](#ユーザー関連-api)
 
 ## 概要
+
 このドキュメントはScrapbox REST APIの仕様を定義したものです。
 
 ## 共通仕様
+
 ### ベースURL
-```
+
+``` txt
 https://scrapbox.io/api
 ```
 
@@ -26,15 +29,16 @@ https://scrapbox.io/api
 ### ページ関連 API
 
 #### ページ一覧の取得
+
 `GET /pages/:projectname`
 
 プロジェクト内のページ情報を取得します。本文は取得できませんが、冒頭5行が`descriptions`として取得されます。
-
 ##### クエリパラメータ
 | パラメータ | 型 | 必須 | 説明 |
 |------------|-----|------|------|
-| limit | number | 任意 | 取得するページ情報の最大数（1-1000） | skip | number | 任意 | 何番目のページから取得するかを指定 |
-| sort | string | 任意 | ソート方法（以下のいずれか）:<br>- `updated`: 更新日時<br>- `created`: 作成日時<br>- `accessed`: アクセス日時<br>- `linked`: リンク数<br>- `views`: 閲覧数<br>- `title`: タイトル<br>- `updatedbyMe`: 自分の更新（`lastAccessed`が追加されます） |
+| limit | number | 任意 | 取得するページ情報の最大数（1-1000） |
+| skip | number | 任意 | 何番目のページから取得するかを指定 |
+| sort | string | 任意 | ソート方法（以下のいずれか）:<br>- `updated`: 更新日時<br>- `created`: 作成日時<br>- `accessed`: アクセス日時<br>- `linked`: リンク数<br>- `views`: 閲覧数<br>- `title`: タイトル |
 
 ##### レスポンス
 ```typescript
@@ -58,7 +62,6 @@ interface ProjectResponse {
     created: number;
     updated: number;
     accessed: number;
-    lastAccessed?: number;  // sort=updatedbyMeの場合のみ
     snapshotCreated: number | null;
     pageRank: number;
   }[];

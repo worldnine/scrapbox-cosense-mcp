@@ -142,7 +142,6 @@ type ListPagesResponse = {
   pages: {
     title: string;
     lastAccessed?: number;
-    // 以下のプロパティを追加
     created?: number;
     updated?: number;
     accessed?: number;
@@ -152,45 +151,70 @@ type ListPagesResponse = {
   }[];
 };
 
+// デバッグ情報の型を定義
+type DebugInfo = {  // 'b' が誤って入力されていたのを修正
+  request_url?: string;
+  params?: Record<string, string>;
+  error?: string;
+};
+
 async function listPages(
   projectName: string,
   sid?: string,
   options: { limit?: number; skip?: number; sort?: string } = {}
-): Promise<ListPagesResponse> {
+): Promise<ListPagesResponse & { debug?: DebugInfo }> {
   try {
+    // クエリパラメータの構築
+    const sortValue = options.sort || 'created';
     const params = new URLSearchParams({
       limit: (options.limit || 1000).toString(),
       skip: (options.skip || 0).toString(),
-      sort: options.sort || 'created'
+      sort: sortValue
     });
 
+    const url = `https://${API_DOMAIN}/api/pages/${projectName}?${params}`;
+    
+    // デバッグ情報を含めるための変数
+    const debugInfo: DebugInfo = {
+      request_url: url,
+      params: Object.fromEntries(params.entries())
+    };
+
     const response = sid
-      ? await fetch(`https://${API_DOMAIN}/api/pages/${projectName}?${params}`, {
+      ? await fetch(url, {
           headers: { Cookie: `connect.sid=${sid}` },
         })
-      : await fetch(`https://${API_DOMAIN}/api/pages/${projectName}?${params}`);
+      : await fetch(url);
     
     if (!response.ok) {
-      console.error(`API error: ${response.status} ${response.statusText}`);
       return {
         limit: 0,
         count: 0,
         skip: 0,
         projectName: projectName,
-        pages: []
+        pages: [],
+        debug: {
+          ...debugInfo,
+          error: `API error: ${response.status} ${response.statusText}`
+        }
       };
     }
 
     const pages = await response.json();
-    return pages as ListPagesResponse;
+    return {
+      ...(pages as ListPagesResponse),
+      debug: debugInfo
+    };
   } catch (error) {
-    console.error('Error fetching pages:', error);
     return {
       limit: 0,
       count: 0,
       skip: 0,
       projectName: projectName,
-      pages: []
+      pages: [],
+      debug: {
+        error: error instanceof Error ? error.message : '不明なエラー'
+      }
     };
   }
 }

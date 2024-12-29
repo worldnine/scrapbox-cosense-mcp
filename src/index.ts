@@ -41,6 +41,13 @@ const server = new Server(
   },
 );
 
+function formatYmd(date: Date): string {
+  const y = date.getFullYear();
+  const m = date.getMonth() + 1;
+  const d = date.getDate();
+  return `${y}/${m}/${d}`;
+}
+
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
   return {
     resources,
@@ -59,8 +66,8 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   const readablePage = toReadablePage(getPageResult);
   const formattedText = `
 ${readablePage.title}
-作成日時: ${new Date(readablePage.created * 1000).toLocaleString()}
-更新日時: ${new Date(readablePage.updated * 1000).toLocaleString()}
+作成日時: ${formatYmd(new Date(readablePage.created * 1000))}
+更新日時: ${formatYmd(new Date(readablePage.updated * 1000))}
 
 ${readablePage.lines.map(line => line.text).join('\n')}
 
@@ -144,14 +151,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         - linked: Sort by number of incoming links
         - views: Sort by view count
         - title: Sort by page title
-        - updatedbyMe: Sort by your last update time
         `,
         inputSchema: {
           type: "object",
           properties: {
             sort: {
               type: "string",
-              enum: ["updated", "created", "accessed", "linked", "views", "title", "updatedbyMe"],
+              enum: ["updated", "created", "accessed", "linked", "views", "title"],
               description: "Sort method for the page list",
             },
             limit: {
@@ -197,6 +203,104 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   switch (request.params.name) {
+    case "list_pages": {
+      try {
+        const sort = request.params.arguments?.sort as string | undefined;
+        const limit = request.params.arguments?.limit as number | undefined;
+        const skip = request.params.arguments?.skip as number | undefined;
+
+        const pages = await listPages(projectName, cosenseSid, { sort, limit, skip });
+        
+        // ソート方法に応じた説明を生成する関数を先に定義
+        const getSortDescription = (sortMethod: string | undefined) => {
+          const base = {
+            updated: "更新日時順",
+            created: "作成日時順",
+            accessed: "アクセス日時順",
+            linked: "被リンク数順",
+            views: "閲覧数順",
+            title: "タイトル順"
+          }[sortMethod || ''] || "デフォルト順";
+
+          return `${base}（ピン留めページが優先表示されます）`;
+        };
+
+        // ソート方法に応じた値を取得する関数
+        const getSortValue = (page: any, sortMethod: string | undefined) => {
+          switch (sortMethod) {
+            case 'updated':
+              return { value: page.updated, formatted: formatYmd(new Date(page.updated * 1000)) };
+            case 'created':
+              return { value: page.created, formatted: formatYmd(new Date(page.created * 1000)) };
+            case 'accessed':
+              return { value: page.accessed || page.lastAccessed, formatted: formatYmd(new Date((page.accessed || page.lastAccessed) * 1000)) };
+            case 'linked':
+              return { value: page.linked, formatted: String(page.linked) };
+            case 'views':
+              return { value: page.views, formatted: String(page.views) };
+            case 'title':
+              return { value: page.title, formatted: page.title };
+            default:
+              return { value: null, formatted: '未指定' };
+          }
+        };
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                project: projectName,
+                metadata: {
+                  total_count: pages.count,
+                  limit: pages.limit,
+                  skip: pages.skip,
+                  sort: sort,
+                  sort_info: {
+                    method: getSortDescription(sort),
+                    field: sort,
+                    warning: "APIの仕様により、ピン留めページは常に優先表示されます"
+                  },
+                  request_debug: pages.debug
+                },
+                pages: pages.pages.map((page, index) => {
+                  const sortValue = getSortValue(page, sort);
+                  return {
+                    index: skip ? skip + index + 1 : index + 1,
+                    title: page.title,
+                    sort_value: {
+                      field: sort || 'default',
+                      ...sortValue
+                    },
+                    pin_status: {
+                      is_pinned: Boolean(page.pin),
+                      pin_value: page.pin || 0
+                    }
+                  };
+                })
+              }, null, 2)
+            }
+          ]
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                error: {
+                  message: error instanceof Error ? error.message : '不明なエラー',
+                  type: error instanceof Error ? error.constructor.name : 'Unknown',
+                  timestamp: new Date().toISOString()
+                }
+              }, null, 2)
+            }
+          ],
+          isError: true,
+        };
+      }
+    }
+
     case "get_page": {
       try {
         const pageTitle = String(request.params.arguments?.pageTitle);
@@ -217,8 +321,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const readablePage = toReadablePage(page);
         const formattedText = `
 ${readablePage.title}
-作成日時: ${new Date(readablePage.created * 1000).toLocaleString()}
-更新日時: ${new Date(readablePage.updated * 1000).toLocaleString()}
+作成日時: ${formatYmd(new Date(readablePage.created * 1000))}
+更新日時: ${formatYmd(new Date(readablePage.updated * 1000))}
 
 ${readablePage.lines.map(line => line.text).join('\n')}
 
@@ -249,67 +353,6 @@ ${readablePage.collaborators
             {
               type: "text",
               text: `ページの取得中にエラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`,
-            },
-          ],
-          isError: true,
-        };
-      }
-    }
-
-    case "list_pages": {
-      try {
-        const sort = request.params.arguments?.sort as string | undefined;
-        const limit = request.params.arguments?.limit as number | undefined;
-        const skip = request.params.arguments?.skip as number | undefined;
-
-        const pages = await listPages(projectName, cosenseSid, { sort, limit, skip });
-        
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                project: projectName,
-                metadata: {
-                  total_count: pages.count,
-                  limit: pages.limit,
-                  skip: pages.skip,
-                  sort: sort || 'created'
-                },
-                pages: pages.pages.map((page, index) => ({
-                  index: skip ? skip + index + 1 : index + 1,
-                  title: page.title,
-                  created: page.created && {
-                    timestamp: page.created,
-                    formatted: new Date(page.created * 1000).toLocaleString()
-                  },
-                  updated: page.updated && {
-                    timestamp: page.updated,
-                    formatted: new Date(page.updated * 1000).toLocaleString()
-                  },
-                  accessed: page.accessed && {
-                    timestamp: page.accessed,
-                    formatted: new Date(page.accessed * 1000).toLocaleString()
-                  },
-                  lastAccessed: page.lastAccessed && {
-                    timestamp: page.lastAccessed,
-                    formatted: new Date(page.lastAccessed * 1000).toLocaleString()
-                  },
-                  views: page.views,
-                  linked: page.linked,
-                  pin: page.pin
-                }))
-              }, null, 2)
-            }
-          ],
-        };
-      } catch (error) {
-        console.error('Error in list_pages:', error);
-        return {
-          content: [
-            {
-              type: "text",
-              text: `ページ一覧の取得中にエラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`,
             },
           ],
           isError: true,
