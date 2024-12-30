@@ -28,6 +28,12 @@ type SearchQueryResponse = {
       displayName: string;
       photo: string;
     };
+    lastUpdateUser?: {
+      id: string;
+      name: string;
+      displayName: string;
+      photo: string;
+    };
     collaborators?: {
       id: string;
       name: string;
@@ -63,12 +69,22 @@ type GetPageResponse = {
     displayName: string;
     photo: string;
   };
+  lastUpdateUser?: {
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
+  };
   collaborators: {
     id: string;
     name: string;
     displayName: string;
     photo: string;
   }[];
+  debug?: {
+    error?: string;
+    warning?: string;
+  };
 };
 
 async function getPage(
@@ -100,8 +116,22 @@ async function getPage(
 
     const typedPage = page as GetPageResponse;
     if (!Array.isArray(typedPage.lines)) {
-      console.error('Invalid page response format: lines is not an array');
-      return null;
+      return {
+        ...typedPage,
+        debug: {
+          error: 'Invalid page response format: lines is not an array'
+        }
+      };
+    }
+
+    // 編集者情報が存在しない場合にデバッグ情報を追加
+    if (!typedPage.user) {
+      return {
+        ...typedPage,
+        debug: {
+          warning: `Missing user information for page: ${typedPage.title}`
+        }
+      };
     }
 
     return typedPage;
@@ -128,6 +158,12 @@ function toReadablePage(page: GetPageResponse): {
     displayName: string;
     photo: string;
   };
+  lastUpdateUser?: {
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
+  };
   collaborators: {
     id: string;
     name: string;
@@ -142,6 +178,7 @@ function toReadablePage(page: GetPageResponse): {
     created: page.created,
     updated: page.updated,
     user: page.user,
+    lastUpdateUser: page.lastUpdateUser,
     collaborators: page.collaborators,
     links: page.links,
   };
@@ -162,6 +199,18 @@ type ListPagesResponse = {
     views?: number;
     linked?: number;
     pin?: number;
+    user?: {
+      id: string;
+      name: string;
+      displayName: string;
+      photo: string;
+    };
+    lastUpdateUser?: {
+      id: string;
+      name: string;
+      displayName: string;
+      photo: string;
+    };
   }[];
 };
 
@@ -215,8 +264,25 @@ async function listPages(
     }
 
     const pages = await response.json();
+    
+    // 各ページの詳細情報を取得
+    const pagesWithDetails = await Promise.all(
+      (pages as ListPagesResponse).pages.map(async (page) => {
+        const pageDetails = await getPage(projectName, page.title, sid);
+        if (pageDetails) {
+          return {
+            ...page,
+            user: pageDetails.user,
+            lastUpdateUser: pageDetails.lastUpdateUser
+          };
+        }
+        return page;
+      })
+    );
+
     return {
       ...(pages as ListPagesResponse),
+      pages: pagesWithDetails,
       debug: debugInfo
     };
   } catch (error) {
@@ -285,6 +351,7 @@ async function searchPages(
         page.created = pageDetails.created;
         page.updated = pageDetails.updated;
         page.user = pageDetails.user;
+        page.lastUpdateUser = pageDetails.lastUpdateUser;
         page.collaborators = pageDetails.collaborators;
       }
     }

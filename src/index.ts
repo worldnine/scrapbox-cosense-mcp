@@ -211,25 +211,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
         if (excludePinned) {
           const targetLimit = limit || 10;
-          let fetchedPages = await listPages(projectName, cosenseSid, {
-            sort,
-            limit: targetLimit * 2, // ピン留めページを考慮して多めに取得
-            skip: skip || 0
-          });
+          let unpinnedPages: typeof pages.pages = [];
+          let currentSkip = skip || 0;
           
-          // ピン留めページを除外
-          let unpinnedPages = fetchedPages.pages.filter(page => !page.pin);
-          
-          // 必要な数のページが取得できない場合、追加で取得
-          if (unpinnedPages.length < targetLimit) {
-            const additionalPages = await listPages(projectName, cosenseSid, {
+          while (unpinnedPages.length < targetLimit) {
+            const fetchedPages = await listPages(projectName, cosenseSid, {
               sort,
-              limit: targetLimit,
-              skip: (skip || 0) + fetchedPages.pages.length
+              limit: targetLimit * 3, // ピン留めページが多い場合を考慮してさらに多めに取得
+              skip: currentSkip
             });
-            unpinnedPages = unpinnedPages.concat(
-              additionalPages.pages.filter(page => !page.pin)
-            );
+            
+            // ピン留めページを正しく判定して除外
+            const newUnpinned = fetchedPages.pages.filter(page => !page.pin || page.pin === 0);
+            unpinnedPages = unpinnedPages.concat(newUnpinned);
+            
+            if (fetchedPages.pages.length === 0) break; // これ以上ページがない場合
+            currentSkip += fetchedPages.pages.length;
           }
           
           pages.pages = unpinnedPages.slice(0, targetLimit);

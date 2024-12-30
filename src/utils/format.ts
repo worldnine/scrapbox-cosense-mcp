@@ -5,7 +5,15 @@ export interface PageMetadata {
   pin?: number | boolean;
   user?: {
     id: string;
+    name: string;
     displayName: string;
+    photo: string;
+  };
+  lastUpdateUser?: {
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
   };
   collaborators?: Array<{
     id: string;
@@ -13,6 +21,10 @@ export interface PageMetadata {
   }>;
   words?: string[];
   lines?: string[];
+  debug?: {
+    warning?: string;
+    error?: string;
+  };
 }
 
 export interface FormatPageOptions {
@@ -124,8 +136,15 @@ export function formatPageOutput(
     lines.push(`Matched words: ${page.words.join(', ')}`);
   }
 
-  if (page.user) {
-    lines.push(`Last editor: ${page.user.displayName}`);
+  lines.push(`Last editor: ${page.lastUpdateUser?.displayName || page.user?.displayName || 'Unknown'}`);
+  lines.push(`Last editor details: ${JSON.stringify(page.lastUpdateUser ?? page.user ?? {})}`);
+  if (page.debug) {
+    if (page.debug.warning) {
+      lines.push(`Debug Warning: ${page.debug.warning}`);
+    }
+    if (page.debug.error) {
+      lines.push(`Debug Error: ${page.debug.error}`);
+    }
   }
 
   if (page.collaborators?.length) {
