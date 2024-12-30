@@ -205,22 +205,36 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const sort = request.params.arguments?.sort as string | undefined;
         const limit = request.params.arguments?.limit as number | undefined;
         const skip = request.params.arguments?.skip as number | undefined;
-        const excludePinned = request.params.arguments?.excludePinned as boolean | undefined;
+        const excludePinned = request.params.arguments?.excludePinned ?? true;
 
         let pages = await listPages(projectName, cosenseSid, { sort, limit, skip });
 
         if (excludePinned) {
-          let unpinnedPages = pages.pages.filter(page => !page.pin);
-          if (unpinnedPages.length < (limit || 10)) {
+          const targetLimit = limit || 10;
+          let fetchedPages = await listPages(projectName, cosenseSid, {
+            sort,
+            limit: targetLimit * 2, // ピン留めページを考慮して多めに取得
+            skip: skip || 0
+          });
+          
+          // ピン留めページを除外
+          let unpinnedPages = fetchedPages.pages.filter(page => !page.pin);
+          
+          // 必要な数のページが取得できない場合、追加で取得
+          if (unpinnedPages.length < targetLimit) {
             const additionalPages = await listPages(projectName, cosenseSid, {
               sort,
-              limit: (limit || 10) - unpinnedPages.length,
-              skip: (skip || 0) + (limit || 10)
+              limit: targetLimit,
+              skip: (skip || 0) + fetchedPages.pages.length
             });
-            unpinnedPages = unpinnedPages.concat(additionalPages.pages.filter(page => !page.pin));
+            unpinnedPages = unpinnedPages.concat(
+              additionalPages.pages.filter(page => !page.pin)
+            );
           }
-          pages.pages = unpinnedPages.slice(0, limit || 10);
+          
+          pages.pages = unpinnedPages.slice(0, targetLimit);
           pages.limit = pages.pages.length;
+          pages.skip = skip || 0;
         }
 
         let output = [
