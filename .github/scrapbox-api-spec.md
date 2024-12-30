@@ -5,18 +5,23 @@
 ## 目次
 
 1. [概要](#概要)
-2. [共通仕様](#共通仕様)
-3. [エンドポイント一覧](#エンドポイント一覧)
+2. [基本仕様](#基本仕様)
+3. [APIリファレンス](#apiリファレンス)
    - [ページ関連 API](#ページ関連-api)
+     - [ページ一覧の取得](#ページ一覧の取得)
+     - [ページ情報の取得](#ページ情報の取得)
    - [検索 API](#検索-api)
+     - [タイトル検索](#タイトル検索)
+     - [全文検索](#全文検索)
    - [プロジェクト関連 API](#プロジェクト関連-api)
    - [ユーザー関連 API](#ユーザー関連-api)
+4. [便利なURLパターン](#便利なurlパターン)
 
 ## 概要
 
 このドキュメントはScrapbox REST APIの仕様を定義したものです。
 
-## 共通仕様
+## 基本仕様
 
 ### ベースURL
 
@@ -24,7 +29,7 @@
 https://scrapbox.io/api
 ```
 
-## エンドポイント一覧
+## APIリファレンス
 
 ### ページ関連 API
 
@@ -33,8 +38,8 @@ https://scrapbox.io/api
 `GET /pages/:projectname`
 
 プロジェクト内のページ情報を取得します。本文は取得できませんが、冒頭5行が`descriptions`として取得されます。
-##### クエリパラメータ
-| パラメータ | 型 | 必須 | 説明 |
+##### クエリパラメーター
+| パラメーター | 型 | 必須 | 説明 |
 |------------|-----|------|------|
 | limit | number | 任意 | 取得するページ情報の最大数（1-1000） |
 | skip | number | 任意 | 何番目のページから取得するかを指定 |
@@ -73,8 +78,8 @@ interface ProjectResponse {
 
 特定のページの詳細情報を取得します。
 
-##### クエリパラメータ
-| パラメータ | 型 | 必須 | 説明 |
+##### クエリパラメーター
+| パラメーター | 型 | 必須 | 説明 |
 |------------|-----|------|------|
 | followRename | boolean | 任意 | ページが存在しない場合、アクセス履歴から変更先のタイトルを探してリダイレクトする機能を有効にします |
 | projects | string[] | 任意 | External linksを有効にするプロジェクトIDのリスト。複数指定可能です。※ログインが必要です |
@@ -82,7 +87,7 @@ interface ProjectResponse {
 | filterValue | string | 任意 | フィルター値 |
 
 ##### 制限事項
-- `projects`パラメータは上限はありませんが、URLの長さ制限により約200個程度が実用的な上限となります
+- `projects`パラメーターは上限はありませんが、URLの長さ制限により約200個程度が実用的な上限となります
 - 制限を超えた場合、`414 URI Too Long`エラーが発生します
 
 ##### レスポンス
@@ -171,7 +176,207 @@ interface PageResponse {
 }
 ```
 
-## URLスキーマ
+### 検索 API
+
+#### タイトル検索
+`GET /pages/:projectname/search/titles`
+
+プロジェクト内のページ一覧とリンク情報を取得します。
+
+##### 特記事項
+- 作成日時が古い順に1000件ずつ取得できます
+- ページネーションは応答ヘッダーの`X-Following-Id`を使用します
+
+##### ページネーション
+- 続きのデータを取得する場合: `GET /pages/:projectname/search/titles?followingId=xxxx`
+  - `xxxx`は前回のレスポンスヘッダー`X-Following-Id`の値
+
+##### レスポンス
+```typescript
+type SearchTitlesResponse = {
+  id: string;      // ページid
+  title: string;   // ページタイトル
+  hasIcon: boolean; // 画像の存在フラグ
+  updated:
+# Scrapbox REST API 仕様書
+
+> **重要**: この仕様書はインターネット上で有志が公開されている情報の断片を寄せ集めて作成されたものであり、正確性を保証するものではないので注意すること。
+
+## 目次
+
+1. [概要](#概要)
+2. [基本仕様](#基本仕様)
+3. [APIリファレンス](#apiリファレンス)
+   - [ページ関連 API](#ページ関連-api)
+     - [ページ一覧の取得](#ページ一覧の取得)
+     - [ページ情報の取得](#ページ情報の取得)
+   - [検索 API](#検索-api)
+     - [タイトル検索](#タイトル検索)
+     - [全文検索](#全文検索)
+   - [プロジェクト関連 API](#プロジェクト関連-api)
+   - [ユーザー関連 API](#ユーザー関連-api)
+4. [便利なURLパターン](#便利なurlパターン)
+
+## 概要
+
+このドキュメントはScrapbox REST APIの仕様を定義したものです。
+
+## 基本仕様
+
+### ベースURL
+
+``` txt
+https://scrapbox.io/api
+```
+
+## APIリファレンス
+
+### ページ関連 API
+
+#### ページ一覧の取得
+
+`GET /pages/:projectname`
+
+プロジェクト内のページ情報を取得します。本文は取得できませんが、冒頭5行が`descriptions`として取得されます。
+##### クエリパラメーター
+| パラメーター | 型 | 必須 | 説明 |
+|------------|-----|------|------|
+| limit | number | 任意 | 取得するページ情報の最大数（1-1000） |
+| skip | number | 任意 | 何番目のページから取得するかを指定 |
+| sort | string | 任意 | ソート方法（以下のいずれか）:<br>- `updated`: 更新日時<br>- `created`: 作成日時<br>- `accessed`: アクセス日時<br>- `linked`: リンク数<br>- `views`: 閲覧数<br>- `title`: タイトル |
+
+##### レスポンス
+```typescript
+interface ProjectResponse {
+  projectName: string;     // データ取得先のプロジェクト名
+  skip: number;           // パラメータに渡したskipと同じ
+  limit: number;          // パラメータに渡したlimitと同じ
+  count: number;          // プロジェクトの全ページ数（中身のないページを除く）
+  pages: {
+    id: string;
+    title: string;
+    image: string | null;
+    descriptions: string[];  // 冒頭5行
+    user: {
+      id: string;
+    };
+    pin: number;           // ピン留めされていない場合は0
+    views: number;
+    linked: number;
+    commitId: string;
+    created: number;
+    updated: number;
+    accessed: number;
+    snapshotCreated: number | null;
+    pageRank: number;
+  }[];
+}
+
+```
+#### ページ情報の取得
+`GET /pages/:projectname/:pagetitle`
+
+特定のページの詳細情報を取得します。
+
+##### クエリパラメーター
+| パラメーター | 型 | 必須 | 説明 |
+|------------|-----|------|------|
+| followRename | boolean | 任意 | ページが存在しない場合、アクセス履歴から変更先のタイトルを探してリダイレクトする機能を有効にします |
+| projects | string[] | 任意 | External linksを有効にするプロジェクトIDのリスト。複数指定可能です。※ログインが必要です |
+| filterType | string | 任意 | フィルタータイプ（例: "icon"） |
+| filterValue | string | 任意 | フィルター値 |
+
+##### 制限事項
+- `projects`パラメーターは上限はありませんが、URLの長さ制限により約200個程度が実用的な上限となります
+- 制限を超えた場合、`414 URI Too Long`エラーが発生します
+
+##### レスポンス
+```typescript
+interface PageResponse {
+  // 基本情報
+  id: string;                    // ページのid
+  title: string;                 // ページのタイトル
+  image: string;                 // ページのサムネイル画像
+  descriptions: string[];        // ページのサムネイル本文（最大5行）
+  
+  // ステータス情報
+  pin: 0 | 1;                   // ピン留め状態（0: なし、1: あり）
+  views: number;                 // ページの閲覧回数
+  linked: number;               // 被リンク数
+  commitId?: string;            // 最新の編集コミットid
+  
+  // 日時情報
+  created: number;              // ページの作成日時
+  updated: number;              // ページの最終更新日時
+  accessed: number;             // 最終アクセス日時
+  lastAccessed: number | null;  // APIを実行したユーザーの最終アクセス日時
+  
+  // スナップショット情報
+  snapshotCreated: number | null; // Page history最終生成日時
+  snapshotCount: number;        // 生成されたPage history数
+  
+  // その他のメタデータ
+  pageRank: number;             // ページランク
+  persistent: boolean;          // ページの永続性フラグ
+  
+  // コンテンツ
+  lines: {                      // 本文（行単位）
+    id: string;                 // 行のid
+    text: string;               // 行のテキスト
+    userId: string;             // 最終編集者のid
+    created: number;            // 行の作成日時
+    updated: number;            // 行の最終更新日時
+  }[];
+  
+  // 関連情報
+  links: string[];              // ページ内のリンク
+  icons: string[];              // ページアイコン
+  files: string[];              // アップロードされたファイルへのリンク
+  
+  // 関連ページ情報
+  relatedPages: {
+    links1hop: {               // 直接リンクされているページ
+      id: string;              
+      title: string;
+      titleLc: string;
+      image: string;
+      descriptions: string[];
+      linksLc: string[];
+      linked: number;
+      updated: number;
+      accessed: number;
+    }[];
+    links2hop: {               // 間接的にリンクされているページ
+      id: string;
+      title: string;
+      titleLc: string;
+      image: string;
+      descriptions: string[];
+      linksLc: string[];
+      linked: number;
+      updated: number;
+      accessed: number;
+    }[];
+    hasBackLinksOrIcons: boolean;
+  };
+  
+  // ユーザー情報
+  user: {                      // 最終編集者
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
+  };
+  collaborators: {             // その他の編集者
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
+  }[];
+}
+```
+
+## 便利なURLパターン
 
 ### ページ作成/編集
 
@@ -189,7 +394,7 @@ https://scrapbox.io/プロジェクト名/ページタイトル?body=本文
 - 改行文字（`\n`）が使用可能
 
 ##### 使用上の注意
-- `body`パラメータの値はURLエンコードが必要
+- `body`パラメーターの値はURLエンコードが必要
 - 長文の場合はURLの長さ制限に注意
 
 ##### 使用例
@@ -215,11 +420,11 @@ https://scrapbox.io/myproject/リンク例?body=[リンク]を含む本文%0A引
 
 ##### 特記事項
 - 作成日時が古い順に1000件ずつ取得できます
-- ページネーションは応答ヘッダの`X-Following-Id`を使用します
+- ページネーションは応答ヘッダーの`X-Following-Id`を使用します
 
 ##### ページネーション
 - 続きのデータを取得する場合: `GET /pages/:projectname/search/titles?followingId=xxxx`
-  - `xxxx`は前回のレスポンスヘッダ`X-Following-Id`の値
+  - `xxxx`は前回のレスポンスヘッダー`X-Following-Id`の値
 
 ##### レスポンス
 ```typescript
@@ -237,8 +442,8 @@ type SearchTitlesResponse = {
 
 プロジェクト内のページを全文検索します。
 
-##### クエリパラメータ
-| パラメータ | 型 | 必須 | 説明 |
+##### クエリパラメーター
+| パラメーター | 型 | 必須 | 説明 |
 |------------|-----|------|------|
 | q | string | 必須 | 検索語句 |
 
