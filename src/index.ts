@@ -365,31 +365,53 @@ ${readablePage.collaborators
           };
         }
 
+        let output = `Project: ${projectName}\n`;
+        output += `Search query: ${results.searchQuery}\n`;
+        output += `Total results: ${results.count}\n`;
+        output += '---\n';
+        
+        results.pages.forEach((page, index) => {
+          output += `Page number: ${index + 1}\n`;
+          output += `Title: ${page.title}\n`;
+          if (page.created) {
+            output += `Created: ${formatYmd(new Date(page.created * 1000))}\n`;
+          }
+          if (page.updated) {
+            output += `Updated: ${formatYmd(new Date(page.updated * 1000))}\n`;
+          }
+          output += `Matched words: ${page.words.join(', ')}\n`;
+          if (page.user) {
+            output += `Last editor: ${page.user.displayName}\n`;
+          }
+          if (page.collaborators && page.collaborators.length > 0) {
+            output += `Other editors:\n`;
+            output += page.collaborators
+              .filter(collab => collab.id !== page.user?.id)
+              .map(user => `- ${user.displayName}`)
+              .join('\n') + '\n';
+          }
+          output += 'Snippet:\n';
+          output += page.lines.join('\n');
+          output += '\n---\n';
+        });
+
         return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                query: results.searchQuery,
-                total_count: results.count,
-                pages: results.pages.map(page => ({
-                  title: page.title,
-                  content: page.lines.join('\n'),
-                  matched_words: page.words
-                }))
-              }, null, 2)
-            }
-          ],
+          content: [{
+            type: "text",
+            text: output
+          }]
         };
       } catch (error) {
         console.error('Error in search_pages:', error);
         return {
-          content: [
-            {
-              type: "text",
-              text: `Error occurred while searching: ${error instanceof Error ? error.message : 'Unknown error'}`,
-            },
-          ],
+          content: [{
+            type: "text",
+            text: [
+            `Project: ${projectName}`,
+            `Search query: ${request.params.arguments?.query}`,
+            `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+            ].join('\n')
+          }],
           isError: true,
         };
       }

@@ -20,6 +20,20 @@ type SearchQueryResponse = {
     image: string;
     words: string[];
     lines: string[];
+    created?: number;
+    updated?: number;
+    user?: {
+      id: string;
+      name: string;
+      displayName: string;
+      photo: string;
+    };
+    collaborators?: {
+      id: string;
+      name: string;
+      displayName: string;
+      photo: string;
+    }[];
   }[];
 };
 
@@ -262,8 +276,20 @@ async function searchPages(
       return null;
     }
 
-    const result = await response.json();
-    return result as SearchQueryResponse;
+    const result = await response.json() as SearchQueryResponse;
+    
+    // 各ページのメタ情報を取得
+    for (const page of result.pages) {
+      const pageDetails = await getPage(projectName, page.title, sid);
+      if (pageDetails) {
+        page.created = pageDetails.created;
+        page.updated = pageDetails.updated;
+        page.user = pageDetails.user;
+        page.collaborators = pageDetails.collaborators;
+      }
+    }
+    
+    return result;
   } catch (error) {
     console.error('Error searching pages:', error);
     return null;
