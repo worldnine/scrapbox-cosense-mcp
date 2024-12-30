@@ -11,6 +11,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { listPages, getPage, toReadablePage, createPageUrl, searchPages } from "./cosense.js";
 import { convertMarkdownToScrapbox } from './utils/markdown-converter.js';
+import { formatYmd, formatPageOutput, getSortDescription, getSortValue } from './utils/format.js';
 
 const cosenseSid: string | undefined = process.env.COSENSE_SID;
 const projectName: string | undefined = process.env.COSENSE_PROJECT_NAME;
@@ -41,13 +42,6 @@ const server = new Server(
   },
 );
 
-function formatYmd(date: Date): string {
-  const y = date.getFullYear();
-  const m = date.getMonth() + 1;
-  const d = date.getDate();
-  return `${y}/${m}/${d}`;
-}
-
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
   return {
     resources,
@@ -56,7 +50,6 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
 
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   const url = new URL(request.params.uri);
-  // URLデコードを追加
   const title = decodeURIComponent(url.pathname.replace(/^\//, ""));
   
   const getPageResult = await getPage(projectName, title, cosenseSid);
@@ -115,7 +108,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             body: {
               type: "string",
-              description: "Content in markdown format that will be converted to Scrapbox format. Supports standard markdown syntax including links, code blocks, lists, and emphasis.",f
+              description: "Content in markdown format that will be converted to Scrapbox format. Supports standard markdown syntax including links, code blocks, lists, and emphasis.",
             },
           },
           required: ["title"],
@@ -171,6 +164,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               minimum: 0,
               description: "Number of pages to skip",
             },
+            excludePinned: {
+              type: "boolean",
+              description: "Whether to exclude pinned pages from the results",
+            },
           },
           required: [],
         },
@@ -208,61 +205,42 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const sort = request.params.arguments?.sort as string | undefined;
         const limit = request.params.arguments?.limit as number | undefined;
         const skip = request.params.arguments?.skip as number | undefined;
+        const excludePinned = request.params.arguments?.excludePinned as boolean | undefined;
 
-        const pages = await listPages(projectName, cosenseSid, { sort, limit, skip });
-        
-        // ソート方法に応じた説明を生成する関数を先に定義
-        const getSortDescription = (sortMethod: string | undefined) => {
-          const base = {
-            updated: "Sorted by last updated",
-            created: "Sorted by creation date",
-            accessed: "Sorted by last accessed",
-            linked: "Sorted by number of incoming links",
-            views: "Sorted by view count",
-            title: "Sorted by title"
-          }[sortMethod || ''] || "Default order";
+        let pages = await listPages(projectName, cosenseSid, { sort, limit, skip });
 
-          return `${base} (Pinned pages are shown first)`;
-        };
-
-        // ソート方法に応じた値を取得する関数
-        const getSortValue = (page: any, sortMethod: string | undefined) => {
-          switch (sortMethod) {
-            case 'updated':
-              return { value: page.updated, formatted: formatYmd(new Date(page.updated * 1000)) };
-            case 'created':
-              return { value: page.created, formatted: formatYmd(new Date(page.created * 1000)) };
-            case 'accessed':
-              return { value: page.accessed || page.lastAccessed, formatted: formatYmd(new Date((page.accessed || page.lastAccessed) * 1000)) };
-            case 'linked':
-              return { value: page.linked, formatted: String(page.linked) };
-            case 'views':
-              return { value: page.views, formatted: String(page.views) };
-            case 'title':
-              return { value: page.title, formatted: page.title };
-            default:
-              return { value: null, formatted: 'Not specified' };
+        if (excludePinned) {
+          let unpinnedPages = pages.pages.filter(page => !page.pin);
+          if (unpinnedPages.length < (limit || 10)) {
+            const additionalPages = await listPages(projectName, cosenseSid, {
+              sort,
+              limit: (limit || 10) - unpinnedPages.length,
+              skip: (skip || 0) + (limit || 10)
+            });
+            unpinnedPages = unpinnedPages.concat(additionalPages.pages.filter(page => !page.pin));
           }
-        };
+          pages.pages = unpinnedPages.slice(0, limit || 10);
+          pages.limit = pages.pages.length;
+        }
 
-        // シンプルなKEY: value形式の出力を構築
-        let output = `Project: ${projectName}\n`;
-        output += `Total pages: ${pages.count}\n`;
-        output += `Pages fetched: ${pages.limit}\n`;
-        output += `Pages skipped: ${pages.skip}\n`;
-        output += `Sort method: ${getSortDescription(sort)}\n`;
-        output += `Note: Pinned pages are always shown first due to API specifications\n`;
-        output += '---\n';
-        
-        // Page information
-        pages.pages.forEach((page, index) => {
+        let output = [
+          `Project: ${projectName}`,
+          `Total pages: ${pages.count}`,
+          `Pages fetched: ${pages.limit}`,
+          `Pages skipped: ${pages.skip}`,
+          `Sort method: ${getSortDescription(sort)}`,
+          `⚠️ Note: Pinned pages are always shown first due to API specifications ⚠️`,
+          '---'
+        ].join('\n') + '\n';
+
+        output += pages.pages.map((page, index) => {
           const sortValue = getSortValue(page, sort);
-          output += `Page number: ${skip ? skip + index + 1 : index + 1}\n`;
-          output += `Title: ${page.title}\n`;
-          output += `Sort value: ${sortValue.formatted}\n`;
-          output += `Pinned: ${page.pin ? 'Yes' : 'No'}\n`;
-          output += '---\n';
-        });
+          return formatPageOutput(page, index, {
+            skip: skip || 0,
+            showSort: true,
+            sortValue: sortValue.formatted
+          }) + '\n---';
+        }).join('\n');
 
         return {
           content: [{
@@ -272,19 +250,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         };
       } catch (error) {
         return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                error: {
-                  message: error instanceof Error ? error.message : 'Unknown error',
-                  type: error instanceof Error ? error.constructor.name : 'Unknown',
-                  timestamp: new Date().toISOString()
-                }
-              }, null, 2)
-            }
-          ],
-          isError: true,
+          content: [{
+            type: "text",
+            text: [
+              `Project: ${projectName}`,
+              `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              `Timestamp: ${new Date().toISOString()}`
+            ].join('\n')
+          }],
+          isError: true
         };
       }
     }
@@ -354,46 +328,22 @@ ${readablePage.collaborators
         const results = await searchPages(projectName, query, cosenseSid);
         
         if (!results) {
-          return {
-            content: [
-              {
-                type: "text",
-                text: `An error occurred while searching.\nProject: ${projectName}\nQuery: ${query}`,
-              },
-            ],
-            isError: true,
-          };
+          throw new Error('Search returned no results');
         }
 
-        let output = `Project: ${projectName}\n`;
-        output += `Search query: ${results.searchQuery}\n`;
-        output += `Total results: ${results.count}\n`;
-        output += '---\n';
-        
-        results.pages.forEach((page, index) => {
-          output += `Page number: ${index + 1}\n`;
-          output += `Title: ${page.title}\n`;
-          if (page.created) {
-            output += `Created: ${formatYmd(new Date(page.created * 1000))}\n`;
-          }
-          if (page.updated) {
-            output += `Updated: ${formatYmd(new Date(page.updated * 1000))}\n`;
-          }
-          output += `Matched words: ${page.words.join(', ')}\n`;
-          if (page.user) {
-            output += `Last editor: ${page.user.displayName}\n`;
-          }
-          if (page.collaborators && page.collaborators.length > 0) {
-            output += `Other editors:\n`;
-            output += page.collaborators
-              .filter(collab => collab.id !== page.user?.id)
-              .map(user => `- ${user.displayName}`)
-              .join('\n') + '\n';
-          }
-          output += 'Snippet:\n';
-          output += page.lines.join('\n');
-          output += '\n---\n';
-        });
+        let output = [
+          `Project: ${projectName}`,
+          `Search query: ${results.searchQuery}`,
+          `Total results: ${results.count}`,
+          '---'
+        ].join('\n') + '\n';
+
+        output += results.pages.map((page, index) => 
+          formatPageOutput(page, index, {
+            showMatches: true,
+            showSnippet: true
+          }) + '\n---'
+        ).join('\n');
 
         return {
           content: [{
@@ -402,17 +352,17 @@ ${readablePage.collaborators
           }]
         };
       } catch (error) {
-        console.error('Error in search_pages:', error);
         return {
           content: [{
             type: "text",
             text: [
-            `Project: ${projectName}`,
-            `Search query: ${request.params.arguments?.query}`,
-            `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+              `Project: ${projectName}`,
+              `Search query: ${request.params.arguments?.query}`,
+              `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              `Timestamp: ${new Date().toISOString()}`
             ].join('\n')
           }],
-          isError: true,
+          isError: true
         };
       }
     }
@@ -421,11 +371,9 @@ ${readablePage.collaborators
       const title = String(request.params.arguments?.title);
       const body = request.params.arguments?.body as string | undefined;
       
-      // Markdownテキストを変換
       const convertedBody = body ? await convertMarkdownToScrapbox(body) : undefined;
       const url = createPageUrl(projectName, title, convertedBody);
       
-      // ブラウザでURLを開く
       const { exec } = await import("child_process");
       exec(`open "${url}"`);
 
