@@ -1,3 +1,41 @@
+import { ListPagesResponse } from '../cosense.js';
+
+// 基本的なページ型を定義
+interface BasePage {
+  title: string;
+  created?: number;
+  updated?: number;
+  pin?: number;
+  user?: {
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
+  };
+  lastUpdateUser?: {
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
+  };
+  lastAccessed?: number;
+  accessed?: number;
+  views?: number;
+  linked?: number;
+}
+
+// 検索結果用の拡張ページ型
+interface ExtendedPage extends BasePage {
+  words?: string[];
+  lines?: string[];
+  collaborators?: Array<{
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
+  }>;
+}
+
 export interface PageMetadata {
   title: string;
   created?: number;
@@ -100,61 +138,46 @@ export function getSortValue(page: ScrapboxPage, sortMethod: string | undefined)
 }
 
 export function formatPageOutput(
-  page: PageMetadata,
+  page: ExtendedPage,
   index: number,
-  options: FormatPageOptions = {}
+  options: {
+    skip?: number,
+    showSort?: boolean,
+    sortValue?: string,
+    showMatches?: boolean,
+    showSnippet?: boolean
+  } = {}
 ): string {
-  const {
-    skip = 0,
-    showSort = false,
-    showMatches = false,
-    sortValue = null,
-    showSnippet = false
-  } = options;
-
   const lines = [
-    `Page number: ${skip + index + 1}`,
-    `Title: ${page.title}`
+    `Page number: ${(options.skip || 0) + index + 1}`,
+    `Title: ${page.title}`,
+    `Created: ${formatYmd(new Date((page.created || 0) * 1000))}`,
+    `Updated: ${formatYmd(new Date((page.updated || 0) * 1000))}`,
+    `Pinned: ${page.pin ? 'Yes' : 'No'}`
   ];
 
-  if (page.created) {
-    lines.push(`Created: ${formatYmd(new Date(page.created * 1000))}`);
-  }
-  if (page.updated) {
-    lines.push(`Updated: ${formatYmd(new Date(page.updated * 1000))}`);
-  }
-
-  if (page.pin !== undefined) {
-    lines.push(`Pinned: ${page.pin ? 'Yes' : 'No'}`);
-  }
-
-  if (showSort && sortValue) {
-    lines.push(`Sort value: ${sortValue}`);
-  }
-
-  if (showMatches && page.words) {
+  if (options.showMatches && page.words) {
     lines.push(`Matched words: ${page.words.join(', ')}`);
   }
 
-  lines.push(`Last editor: ${page.lastUpdateUser?.displayName || page.user?.displayName || 'Unknown'}`);
-  lines.push(`Last editor details: ${JSON.stringify(page.lastUpdateUser ?? page.user ?? {})}`);
-  if (page.debug) {
-    if (page.debug.warning) {
-      lines.push(`Debug Warning: ${page.debug.warning}`);
-    }
-    if (page.debug.error) {
-      lines.push(`Debug Error: ${page.debug.error}`);
-    }
+  if (options.showSort && options.sortValue) {
+    lines.push(`Sort value: ${options.sortValue}`);
   }
 
-  if (page.collaborators?.length) {
+  if (page.user?.displayName) {
+    lines.push(`Last editor: ${page.user.displayName}`);
+  }
+
+  if (page.collaborators && page.collaborators.length > 0) {
     lines.push('Other editors:');
     page.collaborators
       .filter(collab => collab.id !== page.user?.id)
-      .forEach(user => lines.push(`- ${user.displayName}`));
+      .forEach(editor => {
+        lines.push(`- ${editor.displayName}`);
+      });
   }
 
-  if (showSnippet && page.lines) {
+  if (options.showSnippet && page.lines) {
     lines.push('Snippet:');
     lines.push(page.lines.join('\n'));
   }
@@ -162,13 +185,5 @@ export function formatPageOutput(
   return lines.join('\n');
 }
 
-export interface ScrapboxPage {
-  title: string;
-  lastAccessed?: number;
-  created?: number;
-  updated?: number;
-  accessed?: number;
-  views?: number;
-  linked?: number;
-  pin?: number;
-}
+// ScrapboxPageインターフェースをBasePageから継承
+export interface ScrapboxPage extends BasePage {}

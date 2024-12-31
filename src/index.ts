@@ -253,7 +253,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           `Pages fetched: ${pages.limit}`,
           `Pages skipped: ${pages.skip}`,
           `Sort method: ${getSortDescription(sort)}`,
-          `⚠️ Note: Pinned pages are always shown first due to API specifications ⚠️`,
+          `Note: Pinned pages are always shown first due to API specifications`,
           '---'
         ].join('\n') + '\n';
 
