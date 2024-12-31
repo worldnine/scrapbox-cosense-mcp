@@ -399,34 +399,29 @@ async function listPagesWithSort(
   },
   sid?: string
 ): Promise<ListPagesResponse> {
-  // 1. まず最初のlimit件を取得
-  const firstResponse = await listPages(projectName, sid, {
-    limit: options.limit,
-    skip: options.skip || 0,
+  const skip = options.skip || 0;
+  const limit = options.limit;
+  const fetchSize = limit + skip + 100; // skip + limit + 余裕を持って取得
+
+  // 1. より多くのページを一度に取得
+  const response = await listPages(projectName, sid, {
+    limit: fetchSize,
+    skip: 0, // 最初から取得して後でskipを適用
     sort: options.sort
   });
 
-  // ピン留めページが含まれていない、もしくは
-  // 要求された件数より少ない結果の場合は、
-  // この結果をそのまま返す
-  const pinnedPagesCount = firstResponse.pages.filter(p => (p.pin ?? 0) > 0).length;
-  if (pinnedPagesCount === 0 || firstResponse.pages.length < options.limit) {
-    return firstResponse;
-  }
+  // 2. 取得したページをメモリ上でソート
+  const sortedPages = sortPages(response.pages, options.sort);
 
-  // 2. ピン留めページが含まれている場合、
-  // limit + 100件（最大ピン留め数）を取得して
-  // 正確なソートを行う
-  const expandedResponse = await listPages(projectName, sid, {
-    limit: options.limit + 100,
-    skip: options.skip || 0,
-    sort: options.sort
-  });
+  // 3. skip位置から必要な件数を切り出し
+  const resultPages = sortedPages.slice(skip, skip + limit);
 
-  // ソートして最初のlimit件を返す
+  // 4. 結果を返す
   return {
-    ...expandedResponse,
-    pages: sortPages(expandedResponse.pages, options.sort).slice(0, options.limit)
+    ...response,
+    pages: resultPages,
+    limit: resultPages.length,
+    skip: skip
   };
 }
 
