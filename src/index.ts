@@ -9,7 +9,7 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { listPages, getPage, toReadablePage, createPageUrl, searchPages } from "./cosense.js";
+import { listPages, getPage, toReadablePage, createPageUrl, searchPages, listPagesWithSort, type ListPagesResponse } from "./cosense.js";
 import { convertMarkdownToScrapbox } from './utils/markdown-converter.js';
 import { formatYmd, formatPageOutput, getSortDescription, getSortValue } from './utils/format.js';
 
@@ -205,33 +205,46 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const sort = request.params.arguments?.sort as string | undefined;
         const limit = request.params.arguments?.limit as number | undefined;
         const skip = request.params.arguments?.skip as number | undefined;
-        const excludePinned = request.params.arguments?.excludePinned ?? true;
+        const excludePinned = request.params.arguments?.excludePinned ?? false;
 
-        let pages = await listPages(projectName, cosenseSid, { sort, limit, skip });
-
+        let pages;
         if (excludePinned) {
+          // 既存のピン留めページ除外ロジックを使用
           const targetLimit = limit || 10;
-          let unpinnedPages: typeof pages.pages = [];
+          let unpinnedPages: ListPagesResponse['pages'] = [];
           let currentSkip = skip || 0;
           
           while (unpinnedPages.length < targetLimit) {
             const fetchedPages = await listPages(projectName, cosenseSid, {
               sort,
-              limit: targetLimit * 3, // ピン留めページが多い場合を考慮してさらに多めに取得
+              limit: targetLimit * 3,
               skip: currentSkip
             });
             
-            // ピン留めページを正しく判定して除外
             const newUnpinned = fetchedPages.pages.filter(page => !page.pin || page.pin === 0);
             unpinnedPages = unpinnedPages.concat(newUnpinned);
             
-            if (fetchedPages.pages.length === 0) break; // これ以上ページがない場合
+            if (fetchedPages.pages.length === 0) break;
             currentSkip += fetchedPages.pages.length;
           }
           
-          pages.pages = unpinnedPages.slice(0, targetLimit);
-          pages.limit = pages.pages.length;
-          pages.skip = skip || 0;
+          pages = {
+            ...await listPages(projectName, cosenseSid, { limit: 1 }), // ベース情報取得用
+            pages: unpinnedPages.slice(0, targetLimit),
+            limit: targetLimit,
+            skip: skip || 0
+          };
+        } else {
+          // 新しいlistPagesWithSortを使用
+          pages = await listPagesWithSort(
+            projectName,
+            {
+              sort,
+              limit: limit || 10,
+              skip
+            },
+            cosenseSid
+          );
         }
 
         let output = [
@@ -244,7 +257,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           '---'
         ].join('\n') + '\n';
 
-        output += pages.pages.map((page, index) => {
+        output += pages.pages.map((page: ListPagesResponse['pages'][0], index: number) => {
           const sortValue = getSortValue(page, sort);
           return formatPageOutput(page, index, {
             skip: skip || 0,

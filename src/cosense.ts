@@ -184,6 +184,30 @@ function toReadablePage(page: GetPageResponse): {
   };
 }
 
+// Scrapboxのページ型定義
+type ScrapboxPage = {
+  title: string;
+  lastAccessed?: number;
+  created?: number;
+  updated?: number;
+  accessed?: number;
+  views?: number;
+  linked?: number;
+  pin?: number;
+  user?: {
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
+  };
+  lastUpdateUser?: {
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
+  };
+};
+
 // /api/pages/:projectname
 type ListPagesResponse = {
   limit: number;
@@ -363,4 +387,79 @@ async function searchPages(
   }
 }
 
-export { getPage, listPages, toReadablePage, createPageUrl, searchPages };
+/**
+ * ピン留めページを考慮してソートされたページリストを取得する
+ */
+async function listPagesWithSort(
+  projectName: string,
+  options: {
+    limit: number;
+    skip?: number;
+    sort?: string;
+  },
+  sid?: string
+): Promise<ListPagesResponse> {
+  // 1. まず最初のlimit件を取得
+  const firstResponse = await listPages(projectName, sid, {
+    limit: options.limit,
+    skip: options.skip || 0,
+    sort: options.sort
+  });
+
+  // ピン留めページが含まれていない、もしくは
+  // 要求された件数より少ない結果の場合は、
+  // この結果をそのまま返す
+  const pinnedPagesCount = firstResponse.pages.filter(p => (p.pin ?? 0) > 0).length;
+  if (pinnedPagesCount === 0 || firstResponse.pages.length < options.limit) {
+    return firstResponse;
+  }
+
+  // 2. ピン留めページが含まれている場合、
+  // limit + 100件（最大ピン留め数）を取得して
+  // 正確なソートを行う
+  const expandedResponse = await listPages(projectName, sid, {
+    limit: options.limit + 100,
+    skip: options.skip || 0,
+    sort: options.sort
+  });
+
+  // ソートして最初のlimit件を返す
+  return {
+    ...expandedResponse,
+    pages: sortPages(expandedResponse.pages, options.sort).slice(0, options.limit)
+  };
+}
+
+/**
+ * ページリストをソートする内部関数
+ */
+function sortPages(pages: ScrapboxPage[], sortType?: string): ScrapboxPage[] {
+  if (!sortType) return pages;
+
+  return [...pages].sort((a, b) => {
+    switch (sortType) {
+      case 'updated':
+        return (b.updated || 0) - (a.updated || 0);
+      case 'created':
+        return (b.created || 0) - (a.created || 0);
+      case 'accessed':
+        const aAccess = a.accessed || a.lastAccessed || 0;
+        const bAccess = b.accessed || b.lastAccessed || 0;
+        return bAccess - aAccess;
+      case 'linked':
+        return (b.linked || 0) - (a.linked || 0);
+      case 'views':
+        return (b.views || 0) - (a.views || 0);
+      case 'title':
+        return a.title.localeCompare(b.title);
+      default:
+        return 0;
+    }
+  });
+}
+
+// 型のエクスポート
+export type { ListPagesResponse, ScrapboxPage };
+
+// 関数のエクスポート
+export { getPage, listPages, listPagesWithSort, toReadablePage, createPageUrl, searchPages };
