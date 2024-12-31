@@ -277,8 +277,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           content: [{
             type: "text",
             text: [
+              'Error details:',
+              `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              `Operation: list_pages`,
               `Project: ${projectName}`,
-              `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              `Sort: ${request.params.arguments?.sort || 'default'}`,
+              `Limit: ${request.params.arguments?.limit || 'default'}`,
+              `Skip: ${request.params.arguments?.skip || '0'}`,
+              `ExcludePinned: ${request.params.arguments?.excludePinned}`,
               `Timestamp: ${new Date().toISOString()}`
             ].join('\n')
           }],
@@ -297,7 +303,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             content: [
               {
                 type: "text",
-                text: `Page "${pageTitle}" not found.\nProject: ${projectName}`,
+                text: [
+                  `Error: Page "${pageTitle}" not found`,
+                  `Operation: get_page`,
+                  `Project: ${projectName}`,
+                  `Status: 404`,
+                  `Timestamp: ${new Date().toISOString()}`
+                ].join('\n'),
               },
             ],
             isError: true,
@@ -333,12 +345,18 @@ ${readablePage.collaborators
           ],
         };
       } catch (error) {
-        console.error('Error in get_page:', error);
         return {
           content: [
             {
               type: "text",
-              text: `Error occurred while fetching page: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              text: [
+                'Error details:',
+                `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                `Operation: get_page`,
+                `Project: ${projectName}`,
+                `Page: ${request.params.arguments?.pageTitle}`,
+                `Timestamp: ${new Date().toISOString()}`
+              ].join('\n'),
             },
           ],
           isError: true,
@@ -352,7 +370,20 @@ ${readablePage.collaborators
         const results = await searchPages(projectName, query, cosenseSid);
         
         if (!results) {
-          throw new Error('Search returned no results');
+          return {
+            content: [{
+              type: "text",
+              text: [
+                `Error: No search results`,
+                `Operation: search_pages`,
+                `Project: ${projectName}`,
+                `Query: ${query}`,
+                `Status: 404`,
+                `Timestamp: ${new Date().toISOString()}`
+              ].join('\n')
+            }],
+            isError: true
+          };
         }
 
         let output = [
@@ -380,9 +411,11 @@ ${readablePage.collaborators
           content: [{
             type: "text",
             text: [
+              'Error details:',
+              `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              `Operation: search_pages`,
               `Project: ${projectName}`,
-              `Search query: ${request.params.arguments?.query}`,
-              `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+              `Query: ${request.params.arguments?.query}`,
               `Timestamp: ${new Date().toISOString()}`
             ].join('\n')
           }],
@@ -392,27 +425,59 @@ ${readablePage.collaborators
     }
 
     case "create_page": {
-      const title = String(request.params.arguments?.title);
-      const body = request.params.arguments?.body as string | undefined;
-      
-      const convertedBody = body ? await convertMarkdownToScrapbox(body) : undefined;
-      const url = createPageUrl(projectName, title, convertedBody);
-      
-      const { exec } = await import("child_process");
-      exec(`open "${url}"`);
+      try {
+        const title = String(request.params.arguments?.title);
+        const body = request.params.arguments?.body as string | undefined;
+        
+        const convertedBody = body ? await convertMarkdownToScrapbox(body) : undefined;
+        const url = createPageUrl(projectName, title, convertedBody);
+        
+        const { exec } = await import("child_process");
+        exec(`open "${url}"`);
 
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Opening new page: ${title}\nURL: ${url}`,
+            },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: [
+                'Error details:',
+                `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                `Operation: create_page`,
+                `Project: ${projectName}`,
+                `Title: ${request.params.arguments?.title}`,
+                `Timestamp: ${new Date().toISOString()}`
+              ].join('\n'),
+            },
+          ],
+          isError: true,
+        };
+      }
+    }
+
+    default:
       return {
         content: [
           {
             type: "text",
-            text: `Opening new page: ${title}\nURL: ${url}`,
+            text: [
+              'Error details:',
+              'Message: Unknown tool requested',
+              `Tool: ${request.params.name}`,
+              `Timestamp: ${new Date().toISOString()}`
+            ].join('\n'),
           },
         ],
+        isError: true,
       };
-    }
-
-    default:
-      throw new Error("Unknown tool");
   }
 });
 
@@ -422,6 +487,11 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("Server error:", error);
+  // メインプロセスのエラーはプロセスを終了する必要があるため、console.errorを使用
+  console.error([
+    'Fatal Error:',
+    `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    `Timestamp: ${new Date().toISOString()}`
+  ].join('\n'));
   process.exit(1);
 });
