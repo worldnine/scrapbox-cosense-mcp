@@ -4,14 +4,13 @@ const API_DOMAIN = process.env.API_DOMAIN || "cosen.se";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
-  CallToolRequestSchema,
   ListResourcesRequestSchema,
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { listPages, getPage, toReadablePage, createPageUrl, searchPages, listPagesWithSort, type ListPagesResponse } from "./cosense.js";
-import { convertMarkdownToScrapbox } from './utils/markdown-converter.js';
-import { formatYmd, formatPageOutput, getSortDescription, getSortValue } from './utils/format.js';
+import { listPages, getPage, toReadablePage } from "./cosense.js";
+import { formatYmd } from './utils/format.js';
+import { setupRoutes } from './routes/index.js';
 
 const cosenseSid: string | undefined = process.env.COSENSE_SID;
 const projectName: string | undefined = process.env.COSENSE_PROJECT_NAME;
@@ -198,287 +197,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   };
 });
 
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  switch (request.params.name) {
-    case "list_pages": {
-      try {
-        const sort = request.params.arguments?.sort as string | undefined;
-        const limit = request.params.arguments?.limit as number | undefined;
-        const skip = request.params.arguments?.skip as number | undefined;
-        const excludePinned = request.params.arguments?.excludePinned ?? false;
-
-        let pages;
-        if (excludePinned) {
-          // 既存のピン留めページ除外ロジックを使用
-          const targetLimit = limit || 10;
-          let unpinnedPages: ListPagesResponse['pages'] = [];
-          let currentSkip = skip || 0;
-          
-          while (unpinnedPages.length < targetLimit) {
-            const fetchedPages = await listPages(projectName, cosenseSid, {
-              sort,
-              limit: targetLimit * 3,
-              skip: currentSkip
-            });
-            
-            const newUnpinned = fetchedPages.pages.filter(page => !page.pin || page.pin === 0);
-            unpinnedPages = unpinnedPages.concat(newUnpinned);
-            
-            if (fetchedPages.pages.length === 0) break;
-            currentSkip += fetchedPages.pages.length;
-          }
-          
-          pages = {
-            ...await listPages(projectName, cosenseSid, { limit: 1 }), // ベース情報取得用
-            pages: unpinnedPages.slice(0, targetLimit),
-            limit: targetLimit,
-            skip: skip || 0
-          };
-        } else {
-          // 新しいlistPagesWithSortを使用
-          pages = await listPagesWithSort(
-            projectName,
-            {
-              sort,
-              limit: limit || 10,
-              skip
-            },
-            cosenseSid
-          );
-        }
-
-        let output = [
-          `Project: ${projectName}`,
-          `Total pages: ${pages.count}`,
-          `Pages fetched: ${pages.limit}`,
-          `Pages skipped: ${pages.skip}`,
-          `Sort method: ${getSortDescription(sort)}`,
-          `Note: Pinned pages are always shown first due to API specifications`,
-          '---'
-        ].join('\n') + '\n';
-
-        output += pages.pages.map((page: ListPagesResponse['pages'][0], index: number) => {
-          const sortValue = getSortValue(page, sort);
-          return formatPageOutput(page, index, {
-            skip: skip || 0,
-            showSort: true,
-            sortValue: sortValue.formatted
-          }) + '\n---';
-        }).join('\n');
-
-        return {
-          content: [{
-            type: "text",
-            text: output
-          }]
-        };
-      } catch (error) {
-        return {
-          content: [{
-            type: "text",
-            text: [
-              'Error details:',
-              `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
-              `Operation: list_pages`,
-              `Project: ${projectName}`,
-              `Sort: ${request.params.arguments?.sort || 'default'}`,
-              `Limit: ${request.params.arguments?.limit || 'default'}`,
-              `Skip: ${request.params.arguments?.skip || '0'}`,
-              `ExcludePinned: ${request.params.arguments?.excludePinned}`,
-              `Timestamp: ${new Date().toISOString()}`
-            ].join('\n')
-          }],
-          isError: true
-        };
-      }
-    }
-
-    case "get_page": {
-      try {
-        const pageTitle = String(request.params.arguments?.pageTitle);
-        const page = await getPage(projectName, pageTitle, cosenseSid);
-        
-        if (!page) {
-          return {
-            content: [
-              {
-                type: "text",
-                text: [
-                  `Error: Page "${pageTitle}" not found`,
-                  `Operation: get_page`,
-                  `Project: ${projectName}`,
-                  `Status: 404`,
-                  `Timestamp: ${new Date().toISOString()}`
-                ].join('\n'),
-              },
-            ],
-            isError: true,
-          };
-        }
-
-        const readablePage = toReadablePage(page);
-        const formattedText = `
-${readablePage.title}
-Created: ${formatYmd(new Date(readablePage.created * 1000))}
-Updated: ${formatYmd(new Date(readablePage.updated * 1000))}
-
-${readablePage.lines.map(line => line.text).join('\n')}
-
-Links:
-${readablePage.links.length > 0 ? readablePage.links.map((link: string) => `- ${link}`).join('\n') : '(None)'}
-
-Last editor:
-- ${readablePage.user.displayName}
-
-Other editors:
-${readablePage.collaborators
-  .filter(collab => collab.id !== readablePage.user.id)
-  .map(user => `- ${user.displayName}`)
-  .join('\n')}
-`;
-        return {
-          content: [
-            {
-              type: "text",
-              text: formattedText,
-            },
-          ],
-        };
-      } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: [
-                'Error details:',
-                `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                `Operation: get_page`,
-                `Project: ${projectName}`,
-                `Page: ${request.params.arguments?.pageTitle}`,
-                `Timestamp: ${new Date().toISOString()}`
-              ].join('\n'),
-            },
-          ],
-          isError: true,
-        };
-      }
-    }
-
-    case "search_pages": {
-      try {
-        const query = String(request.params.arguments?.query);
-        const results = await searchPages(projectName, query, cosenseSid);
-        
-        if (!results) {
-          return {
-            content: [{
-              type: "text",
-              text: [
-                `Error: No search results`,
-                `Operation: search_pages`,
-                `Project: ${projectName}`,
-                `Query: ${query}`,
-                `Status: 404`,
-                `Timestamp: ${new Date().toISOString()}`
-              ].join('\n')
-            }],
-            isError: true
-          };
-        }
-
-        let output = [
-          `Project: ${projectName}`,
-          `Search query: ${results.searchQuery}`,
-          `Total results: ${results.count}`,
-          '---'
-        ].join('\n') + '\n';
-
-        output += results.pages.map((page, index) => 
-          formatPageOutput(page, index, {
-            showMatches: true,
-            showSnippet: true
-          }) + '\n---'
-        ).join('\n');
-
-        return {
-          content: [{
-            type: "text",
-            text: output
-          }]
-        };
-      } catch (error) {
-        return {
-          content: [{
-            type: "text",
-            text: [
-              'Error details:',
-              `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
-              `Operation: search_pages`,
-              `Project: ${projectName}`,
-              `Query: ${request.params.arguments?.query}`,
-              `Timestamp: ${new Date().toISOString()}`
-            ].join('\n')
-          }],
-          isError: true
-        };
-      }
-    }
-
-    case "create_page": {
-      try {
-        const title = String(request.params.arguments?.title);
-        const body = request.params.arguments?.body as string | undefined;
-        
-        const convertedBody = body ? await convertMarkdownToScrapbox(body) : undefined;
-        const url = createPageUrl(projectName, title, convertedBody);
-        
-        const { exec } = await import("child_process");
-        exec(`open "${url}"`);
-
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Opening new page: ${title}\nURL: ${url}`,
-            },
-          ],
-        };
-      } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: [
-                'Error details:',
-                `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                `Operation: create_page`,
-                `Project: ${projectName}`,
-                `Title: ${request.params.arguments?.title}`,
-                `Timestamp: ${new Date().toISOString()}`
-              ].join('\n'),
-            },
-          ],
-          isError: true,
-        };
-      }
-    }
-
-    default:
-      return {
-        content: [
-          {
-            type: "text",
-            text: [
-              'Error details:',
-              'Message: Unknown tool requested',
-              `Tool: ${request.params.name}`,
-              `Timestamp: ${new Date().toISOString()}`
-            ].join('\n'),
-          },
-        ],
-        isError: true,
-      };
-  }
+// ルートのセットアップ
+setupRoutes(server, {
+  projectName,
+  cosenseSid,
 });
 
 async function main() {
@@ -487,7 +209,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  // メインプロセスのエラーはプロセスを終了する必要があるため、console.errorを使用
   console.error([
     'Fatal Error:',
     `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
