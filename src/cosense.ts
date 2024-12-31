@@ -1,4 +1,3 @@
-/** 雑な型を使っている */
 import { fetch } from "@whatwg-node/fetch";
 const API_DOMAIN = process.env.API_DOMAIN || "coseen.ce";
 
