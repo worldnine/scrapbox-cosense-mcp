@@ -40,6 +40,12 @@ type SearchQueryResponse = {
       photo: string;
     }[];
   }[];
+  debug?: {  // デバッグ情報を追加
+    request_url?: string;
+    query?: string;
+    total_results?: number;
+    error?: string;
+  };
 };
 
 // /api/pages/:projectname/:pagetitle
@@ -348,41 +354,62 @@ function createPageUrl(projectName: string, title: string, body?: string): strin
 async function searchPages(
   projectName: string,
   query: string,
-  sid?: string,
+  sid?: string
 ): Promise<SearchQueryResponse | null> {
   try {
     const encodedQuery = encodeURIComponent(query);
     const url = `https://${API_DOMAIN}/api/pages/${projectName}/search/query?q=${encodedQuery}`;
     
+    const debugInfo = {
+      request_url: url,
+      query: query
+    };
+
     const response = sid
-      ? await fetch(url, {
-          headers: { Cookie: `connect.sid=${sid}` },
-        })
+      ? await fetch(url, { headers: { Cookie: `connect.sid=${sid}` } })
       : await fetch(url);
 
     if (!response.ok) {
-      console.error(`Search API error: ${response.status} ${response.statusText}`);
-      return null;
+      return {
+        projectName,
+        searchQuery: query,
+        query: { words: [], excludes: [] },
+        limit: 0,
+        count: 0,
+        existsExactTitleMatch: false,
+        backend: 'elasticsearch',
+        pages: [],
+        debug: {
+          ...debugInfo,
+          error: `Search API error: ${response.status} ${response.statusText}`
+        }
+      };
     }
 
-    const result = await response.json() as SearchQueryResponse;
+    const result = await response.json();
     
-    // 各ページのメタ情報を取得
-    for (const page of result.pages) {
-      const pageDetails = await getPage(projectName, page.title, sid);
-      if (pageDetails) {
-        page.created = pageDetails.created;
-        page.updated = pageDetails.updated;
-        page.user = pageDetails.user;
-        page.lastUpdateUser = pageDetails.lastUpdateUser;
-        page.collaborators = pageDetails.collaborators;
+    return {
+      ...result,
+      debug: {
+        ...debugInfo,
+        total_results: result.pages.length
       }
-    }
-    
-    return result;
+    };
+
   } catch (error) {
-    console.error('Error searching pages:', error);
-    return null;
+    return {
+      projectName,
+      searchQuery: query,
+      query: { words: [], excludes: [] },
+      limit: 0,
+      count: 0,
+      existsExactTitleMatch: false,
+      backend: 'elasticsearch',
+      pages: [],
+      debug: {
+        error: error instanceof Error ? error.message : '不明なエラー'
+      }
+    };
   }
 }
 
