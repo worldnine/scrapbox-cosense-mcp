@@ -1,20 +1,20 @@
-# scrapbox-cosense-mcp MCP Server
+# scrapbox-cosense-mcp
 
-MCP server for [cosense/scrapbox](https://cosen.se)
+[cosense/scrapbox](https://cosen.se) 用のMCPサーバーです。
 
-## Features
+## 機能
 
 - `get_page` 
-  - Get page content from cosense/Scrapbox
-    - Input: page title
-    - Returns: page content, metadata, links and collaborators
+  - cosense/Scrapboxからベージコンテンツを取得
+    - Input: ページタイトル
+    - Returns: ページコンテンツ、メタデータ、リンク、編集者の情報
 - `list_pages`
-  - List all pages in the project
-    - Returns: list of page titles in the project
+  - プロジェクト内のページを一覧表示（最大1000件）
+    - Returns: プロジェクト内のページタイトルの一覧（最大1000件）
 - `search_pages`
-  - Full-text search across pages
-    - Supports basic search, phrase search, and exclusion search
-    - Returns: matching pages with snippets
+  - プロジェクト内のページ全体を対象とした全文検索（最大100件）
+    - Supports 基本検索、AND検索、OR検索、NOT検索をサポート
+    - Returns: 検索結果のページタイトルの一覧（最大100件）
 - `create_pages`
   - Generate URL for a page
     - Input: page title and optional body text
