@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const API_DOMAIN = process.env.API_DOMAIN || "cosen.se";
+const API_DOMAIN = process.env.API_DOMAIN || "scrapbox.io";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {

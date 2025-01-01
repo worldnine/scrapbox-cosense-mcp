@@ -20,7 +20,7 @@ MCP server for [cosense/scrapbox](https://cosen.se)
     - Input: page title and optional body text
     - Returns: URL that can be opened in browser
 
-## Development
+## Developmentbbbb
 
 Install dependencies:
 
