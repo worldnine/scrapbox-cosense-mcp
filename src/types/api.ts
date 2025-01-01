@@ -13,6 +13,7 @@ export interface ScrapboxPage {
   accessed: number;
   persistent: boolean;
   lines: ScrapboxLine[];
+  descriptions?: string[];  // 冒頭5行を追加
 }
 
 /**
@@ -36,6 +37,7 @@ export interface ListPagesResponse {
     accessed: number;
     created: number;
     persistent: boolean;
+    descriptions?: string[];  // 冒頭5行を追加
   }>;
   skip?: number;
   limit?: number;

@@ -34,6 +34,7 @@ interface ExtendedPage extends BasePage {
     displayName: string;
     photo: string;
   }>;
+  descriptions?: string[];  // 冒頭5行を追加
 }
 
 export interface PageMetadata {
@@ -146,7 +147,8 @@ export function formatPageOutput(
     sortValue?: string,
     showMatches?: boolean,
     showSnippet?: boolean,
-    isSearchResult?: boolean  // 追加: 検索結果かどうかのフラグ
+    isSearchResult?: boolean,  // 追加: 検索結果かどうかのフラグ
+    showDescriptions?: boolean  // 冒頭5行表示オプションを追加
   } = {}
 ): string {
   const lines = [
@@ -188,6 +190,11 @@ export function formatPageOutput(
   if (options.showSnippet && page.lines) {
     lines.push('Snippet:');
     lines.push(page.lines.join('\n'));
+  }
+
+  if (options.showDescriptions && page.descriptions?.length) {
+    lines.push('Description:');
+    lines.push(page.descriptions.join('\n'));
   }
 
   return lines.join('\n');

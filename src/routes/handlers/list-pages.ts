@@ -70,7 +70,8 @@ export async function handleListPages(
       return formatPageOutput(page, index, {
         skip: skip || 0,
         showSort: true,
-        sortValue: sortValue.formatted
+        sortValue: sortValue.formatted,
+        showDescriptions: true  // 冒頭5行を表示するオプションを有効化
       }) + '\n---';
     }).join('\n');
 
