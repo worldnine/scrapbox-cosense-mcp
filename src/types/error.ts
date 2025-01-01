@@ -4,12 +4,21 @@
 
 import { ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 
+// MCPエラーコードの拡張
+export enum ScrapboxErrorCode {
+  AUTH_ERROR = 'AUTH_ERROR',
+  NOT_FOUND = 'NOT_FOUND',
+  RATE_LIMIT = 'RATE_LIMIT',
+  API_ERROR = 'API_ERROR',
+}
+
 /**
  * MCPエラーレスポンスの型定義
  */
 export interface ErrorResponse {
+  success: false;
   error: {
-    code: ErrorCode;
+    code: ErrorCode | ScrapboxErrorCode;
     message: string;
     details?: unknown;
   };
@@ -18,9 +27,7 @@ export interface ErrorResponse {
 /**
  * Scrapbox APIエラーの型定義
  */
-export interface ScrapboxApiError {
-  name: string;
-  message: string;
+export interface ScrapboxApiError extends Error {
   status: number;
   response?: {
     data?: unknown;
@@ -39,10 +46,11 @@ export type ErrorConverter = (error: unknown) => ErrorResponse;
  * @param details 追加のエラー詳細情報（オプション）
  */
 export const createErrorResponse = (
-  code: ErrorCode,
+  code: ErrorCode | ScrapboxErrorCode,
   message: string,
   details?: unknown
 ): ErrorResponse => ({
+  success: false,
   error: {
     code,
     message,

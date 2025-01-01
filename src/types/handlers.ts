@@ -1,7 +1,4 @@
-/**
- * MCPリクエストハンドラー関連の型定義
- */
-
+import { AuthParams, PaginationParams } from './common.js';
 import { ErrorResponse } from './error.js';
 import {
   ListPagesResponse,
@@ -17,17 +14,17 @@ import {
 export type HandlerResponse<T> = T | ErrorResponse;
 
 /**
- * ページ一覧取得ハンドラーの入力パラメータ
+ * リストページハンドラーのパラメータ型定義
  */
-export interface ListPagesHandlerParams {
+export interface ListPagesHandlerParams extends PaginationParams {
   cosenseSid: string;
   projectName: string;
 }
 
 /**
- * ページ検索ハンドラーの入力パラメータ
+ * 検索ページハンドラーのパラメータ型定義
  */
-export interface SearchPagesHandlerParams {
+export interface SearchPagesHandlerParams extends PaginationParams {
   cosenseSid: string;
   projectName: string;
   query: string;
@@ -36,29 +33,40 @@ export interface SearchPagesHandlerParams {
 /**
  * ページ取得ハンドラーの入力パラメータ
  */
-export interface GetPageHandlerParams {
+export interface GetPageHandlerParams extends AuthParams {
   pageId: string;
-  projectName: string;
-  cookie: string;
 }
 
 /**
  * ページ作成ハンドラーの入力パラメータ
  */
-export interface CreatePageHandlerParams {
+export interface CreatePageHandlerParams extends AuthParams {
   title: string;
   content: string;
-  projectName: string;
-  cookie: string;
 }
 
 /**
  * 各ハンドラーのレスポンス型
  */
-export type ListPagesHandlerResponse = HandlerResponse<ListPagesResponse>;
-export type SearchPagesHandlerResponse = HandlerResponse<SearchPagesResponse>;
-export type GetPageHandlerResponse = HandlerResponse<ScrapboxPage>;
-export type CreatePageHandlerResponse = HandlerResponse<CreatePageResponse>;
+export type ListPagesHandlerResponse = HandlerResponse<{
+  success: true;
+  data: ListPagesResponse;
+}>;
+
+export type SearchPagesHandlerResponse = HandlerResponse<{
+  success: true;
+  data: SearchPagesResponse;
+}>;
+
+export type GetPageHandlerResponse = HandlerResponse<{
+  success: true;
+  data: ScrapboxPage;
+}>;
+
+export type CreatePageHandlerResponse = HandlerResponse<{
+  success: true;
+  data: CreatePageResponse;
+}>;
 
 /**
  * ハンドラー関数の型定義
