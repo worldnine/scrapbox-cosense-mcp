@@ -27,16 +27,19 @@ const resources = await listPages(projectName, cosenseSid).then((pages) =>
   })),
 );
 
-const server = new Server({
-  name: "scrapbox-cosense-mcp",
-  version: "0.1.0",
-}, {
-  capabilities: {
-    resources: {}, // Scrapboxページをリソースとして公開
-    tools: {},     // ページ作成・更新・検索のツールを提供 
-    prompts: {}    // よく使うテンプレートをプロンプトとして提供
-  }
-});
+const server = new Server(
+  {
+    name: "scrapbox-cosense-mcp",
+    version: "0.1.0",
+  },
+  {
+    capabilities: {
+      resources: {},
+      tools: {},
+      prompts: {},
+    },
+  },
+);
 
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
   return {

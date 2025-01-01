@@ -41,7 +41,8 @@ export async function handleSearchPages(
     output += results.pages.map((page, index) => 
       formatPageOutput(page, index, {
         showMatches: true,
-        showSnippet: true
+        showSnippet: true,
+        isSearchResult: true  // 検索結果であることを示すフラグを追加
       }) + '\n---'
     ).join('\n');
 

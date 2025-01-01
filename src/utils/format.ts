@@ -145,16 +145,24 @@ export function formatPageOutput(
     showSort?: boolean,
     sortValue?: string,
     showMatches?: boolean,
-    showSnippet?: boolean
+    showSnippet?: boolean,
+    isSearchResult?: boolean  // 追加: 検索結果かどうかのフラグ
   } = {}
 ): string {
   const lines = [
     `Page number: ${(options.skip || 0) + index + 1}`,
-    `Title: ${page.title}`,
-    `Created: ${formatYmd(new Date((page.created || 0) * 1000))}`,
-    `Updated: ${formatYmd(new Date((page.updated || 0) * 1000))}`,
-    `Pinned: ${page.pin ? 'Yes' : 'No'}`
+    `Title: ${page.title}`
   ];
+
+  // 検索結果以外の場合のみ日付を表示
+  if (!options.isSearchResult) {
+    lines.push(
+      `Created: ${formatYmd(new Date((page.created || 0) * 1000))}`,
+      `Updated: ${formatYmd(new Date((page.updated || 0) * 1000))}`
+    );
+  }
+
+  lines.push(`Pinned: ${page.pin ? 'Yes' : 'No'}`);
 
   if (options.showMatches && page.words) {
     lines.push(`Matched words: ${page.words.join(', ')}`);
