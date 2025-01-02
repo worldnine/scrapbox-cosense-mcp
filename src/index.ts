@@ -56,25 +56,26 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
     throw new Error(`Page ${title} not found`);
   }
   const readablePage = toReadablePage(getPageResult);
-  const formattedText = `
-${readablePage.title}
-Created: ${formatYmd(new Date(readablePage.created * 1000))}
-Updated: ${formatYmd(new Date(readablePage.updated * 1000))}
-
-${readablePage.lines.map(line => line.text).join('\n')}
-
-Links:
-${getPageResult.links.length > 0 ? getPageResult.links.map((link: string) => `- ${link}`).join('\n') : '(None)'}
-
-Last editor:
-- ${readablePage.user.displayName}
-
-Other editors:
-${readablePage.collaborators
-  .filter(collab => collab.id !== readablePage.user.id)
-  .map(user => `- ${user.displayName}`)
-  .join('\n')}
-`;
+  const formattedText = [
+    `Title: ${readablePage.title}`,
+    `Created: ${formatYmd(new Date(readablePage.created * 1000))}`,
+    `Updated: ${formatYmd(new Date(readablePage.updated * 1000))}`,
+    `Created user: ${readablePage.lastUpdateUser?.displayName || readablePage.user.displayName}`,
+    `Last editor: ${readablePage.user.displayName}`,
+    `Other editors: ${readablePage.collaborators
+      .filter(collab => 
+        collab.id !== readablePage.user.id && 
+        collab.id !== readablePage.lastUpdateUser?.id
+      )
+      .map(user => user.displayName)
+      .join(', ')}`,
+    '',
+    readablePage.lines.map(line => line.text).join('\n'),
+    '',
+    `Links:\n${getPageResult.links.length > 0 
+      ? getPageResult.links.map((link: string) => `- ${link}`).join('\n') 
+      : '(None)'}`
+  ].join('\n');
 
   return {
     contents: [
