@@ -174,10 +174,12 @@ export function formatPageOutput(
     lines.push(`Sort value: ${options.sortValue}`);
   }
 
+  // 作成者の表示
   if (page.user) {
     lines.push(`Created user: ${page.user.displayName}`);
   }
 
+  // 最終更新者の表示
   if (page.lastUpdateUser) {
     lines.push(`Last editor: ${page.lastUpdateUser.displayName}`);
   }

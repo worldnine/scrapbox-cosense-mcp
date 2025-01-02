@@ -129,12 +129,22 @@ async function getPage(
       };
     }
 
-    // 編集者情報が存在しない場合にデバッグ情報を追加
-    if (!typedPage.user) {
+    // userとlastUpdateUserの整合性チェック
+    if (!typedPage.user && typedPage.lastUpdateUser) {
+      // lastUpdateUserが存在するがuserが存在しない場合
+      return {
+        ...typedPage,
+        user: typedPage.lastUpdateUser,
+        debug: {
+          warning: `Using lastUpdateUser as fallback for user information on page: ${typedPage.title}`
+        }
+      };
+    } else if (!typedPage.user) {
+      // どちらの情報も存在しない場合
       return {
         ...typedPage,
         debug: {
-          warning: `Missing user information for page: ${typedPage.title}`
+          warning: `Missing both user and lastUpdateUser information for page: ${typedPage.title}`
         }
       };
     }

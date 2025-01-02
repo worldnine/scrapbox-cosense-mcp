@@ -29,30 +29,37 @@ export async function handleGetPage(
       };
     }
 
-    const readablePage = toReadablePage(page);
-    const formattedText = `
-${readablePage.title}
-Created: ${formatYmd(new Date(readablePage.created * 1000))}
-Updated: ${formatYmd(new Date(readablePage.updated * 1000))}
+        const readablePage = toReadablePage(page);
+    
+    // ページ情報を整形
+    const formattedText = [
+      `Title: ${readablePage.title}`,
+      `Created: ${formatYmd(new Date(readablePage.created * 1000))}`,
+      `Updated: ${formatYmd(new Date(readablePage.updated * 1000))}`,
+      `Created user: ${readablePage.lastUpdateUser?.displayName || readablePage.user.displayName}`,
+      `Last editor: ${readablePage.user.displayName}`,
+      `Other editors: ${readablePage.collaborators
+        .filter(collab => 
+          collab.id !== readablePage.user.id && 
+          collab.id !== readablePage.lastUpdateUser?.id
+        )
+        .map(user => user.displayName)
+        .join(', ')}`
+    ].join('\n');
 
-${readablePage.lines.map(line => line.text).join('\n')}
+    // 本文を追加
+    const contentText = readablePage.lines.map(line => line.text).join('\n');
 
-Links:
-${readablePage.links.length > 0 ? readablePage.links.map((link: string) => `- ${link}`).join('\n') : '(None)'}
+    // リンク情報を追加
+    const linksText = `\nLinks:\n${readablePage.links.length > 0 
+      ? readablePage.links.map((link: string) => `- ${link}`).join('\n') 
+      : '(None)'}`;
 
-Last editor:
-- ${readablePage.user.displayName}
-
-Other editors:
-${readablePage.collaborators
-  .filter(collab => collab.id !== readablePage.user.id)
-  .map(user => `- ${user.displayName}`)
-  .join('\n')}
-`;
+    const fullText = `${formattedText}\n\n${contentText}\n${linksText}`;
     return {
       content: [{
         type: "text",
-        text: formattedText
+        text: fullText
       }]
     };
   } catch (error) {
