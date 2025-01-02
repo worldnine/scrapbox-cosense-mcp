@@ -174,17 +174,26 @@ export function formatPageOutput(
     lines.push(`Sort value: ${options.sortValue}`);
   }
 
-  if (page.user?.displayName) {
-    lines.push(`Last editor: ${page.user.displayName}`);
+  if (page.user) {
+    lines.push(`Created user: ${page.user.displayName}`);
+  }
+
+  if (page.lastUpdateUser) {
+    lines.push(`Last editor: ${page.lastUpdateUser.displayName}`);
   }
 
   if (page.collaborators && page.collaborators.length > 0) {
-    lines.push('Other editors:');
-    page.collaborators
-      .filter(collab => collab.id !== page.user?.id)
-      .forEach(editor => {
-        lines.push(`- ${editor.displayName}`);
-      });
+    const uniqueCollaborators = page.collaborators
+      .filter(collab => 
+        collab.id !== page.user?.id && 
+        collab.id !== page.lastUpdateUser?.id
+      )
+      .map(collab => collab.displayName)
+      .filter((value, index, self) => self.indexOf(value) === index);
+
+    if (uniqueCollaborators.length > 0) {
+      lines.push(`Other editors: ${uniqueCollaborators.join(', ')}`);
+    }
   }
 
   if (options.showSnippet && page.lines) {
