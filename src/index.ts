@@ -16,7 +16,7 @@ import { setupRoutes } from './routes/index.js';
 // 環境変数のデフォルト値と検証用の定数
 const FETCH_PAGE_LIMIT = 100;  // 固定で100件取得
 const DEFAULT_PAGE_LIMIT = FETCH_PAGE_LIMIT;  // デフォルトは取得上限と同じ
-const DEFAULT_SORT_METHOD = 'title';
+const DEFAULT_SORT_METHOD = 'updated';
 const MIN_PAGE_LIMIT = 1;
 const MAX_PAGE_LIMIT = 1000;
 
