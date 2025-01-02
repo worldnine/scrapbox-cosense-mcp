@@ -92,6 +92,9 @@ Windowsの場合: `%APPDATA%/Claude/claude_desktop_config.json`
 
 - **COSENSE_PROJECT_NAME**: 必須の環境変数です。未設定の場合、サーバーは起動時にエラーで終了します。
 - **COSENSE_SID**: プライベートプロジェクトへのアクセスに必要です。未設定の場合、パブリックプロジェクトのみアクセス可能です。
+- **API_DOMAIN**:
+  - 未設定時は"scrapbox.io"を使用
+  - 作者の環境では"scrapbox.io"以外の値は未検証ですが、"cosen.se"でないと動作しない環境が存在する可能性があるため念のためのオプションです。
 - **COSENSE_PAGE_LIMIT**:
   - 未設定時は100を使用
   - 無効な値（数値以外や範囲外）の場合は100を使用
