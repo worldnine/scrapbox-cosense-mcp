@@ -12,19 +12,39 @@ import { listPages, getPage, toReadablePage } from "./cosense.js";
 import { formatYmd } from './utils/format.js';
 import { setupRoutes } from './routes/index.js';
 
+// resourcesの初期取得用の設定
 const cosenseSid: string | undefined = process.env.COSENSE_SID;
 const projectName: string | undefined = process.env.COSENSE_PROJECT_NAME;
+const initialPageLimit: number = parseInt(process.env.COSENSE_PAGE_LIMIT || '100', 10);
+const initialSortMethod: string | undefined = process.env.COSENSE_SORT_METHOD;
+
+// 設定値の検証（resources用）
+const validSortMethods = ['updated', 'created', 'accessed', 'linked', 'views', 'title'];
+if (initialSortMethod && !validSortMethods.includes(initialSortMethod)) {
+  throw new Error(`Invalid sort method: ${initialSortMethod}. Valid values are: ${validSortMethods.join(', ')}`);
+}
+if (isNaN(initialPageLimit) || initialPageLimit < 1 || initialPageLimit > 1000) {
+  throw new Error('COSENSE_PAGE_LIMIT must be a number between 1 and 1000');
+}
 if (!projectName) {
   throw new Error("COSENSE_PROJECT_NAME is not set");
 }
 
-const resources = await listPages(projectName, cosenseSid).then((pages) =>
+// resourcesの初期化時のみ環境変数の設定を使用
+const resources = await listPages(
+  projectName, 
+  cosenseSid,
+  {
+    limit: initialPageLimit,
+    sort: initialSortMethod,
+  }
+).then((pages) =>
   pages.pages.map((page) => ({
     uri: `cosense:///${page.title}`,
     mimeType: "text/plain",
     name: page.title,
     description: `A text page: ${page.title}`,
-  })),
+  }))
 );
 
 const server = new Server(

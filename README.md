@@ -4,7 +4,7 @@
 
 ## 機能
 
-- `get_page` 
+- `get_page`
   - cosense/Scrapboxからベージコンテンツを取得
     - Input: ページタイトル
     - Returns: ページコンテンツ、メタデータ、リンク、編集者の情報
@@ -77,6 +77,16 @@ If you want to use this server towards a private project, you need to set `COSEN
 
 Note: This configuration has only been tested and verified to work with "scrapbox.io" in my environment.
 
+## 環境変数
+
+このサーバーは以下の環境変数で動作をカスタマイズできます：
+
+| 環境変数 | 説明 | デフォルト値 | 有効な値 |
+|----------|------|--------------|----------|
+| COSENSE_PROJECT_NAME | Scrapboxのプロジェクト名 | - | 必須 |
+| COSENSE_SID | Scrapboxの認証Cookie | - | オプション |
+| COSENSE_PAGE_LIMIT | 取得するページ数の上限 | 100 | 1-1000 |
+| COSENSE_SORT_METHOD | ページの並び順 | created | updated, created, accessed, linked, views, title |
 
 ### Debugging
 
