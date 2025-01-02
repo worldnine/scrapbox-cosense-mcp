@@ -83,10 +83,24 @@ Note: This configuration has only been tested and verified to work with "scrapbo
 
 | 環境変数 | 説明 | デフォルト値 | 有効な値 |
 |----------|------|--------------|----------|
-| COSENSE_PROJECT_NAME | Scrapboxのプロジェクト名 | - | 必須 |
-| COSENSE_SID | Scrapboxの認証Cookie | - | オプション |
-| COSENSE_PAGE_LIMIT | 取得するページ数の上限 | 100 | 1-1000 |
-| COSENSE_SORT_METHOD | ページの並び順 | created | updated, created, accessed, linked, views, title |
+| COSENSE_PROJECT_NAME | Scrapboxのプロジェクト名 | - | 必須（未設定時は起動エラー） |
+| COSENSE_SID | Scrapboxの認証Cookie | なし | オプション（未設定時は非認証で動作） |
+| COSENSE_PAGE_LIMIT | 初期リソース取得時のページ数上限 | 100 | 1-1000（無効な値の場合はデフォルト値を使用） |
+| COSENSE_SORT_METHOD | 初期リソース取得時の並び順 | created | updated, created, accessed, linked, views, title（無効な値の場合はデフォルト値を使用） |
+| API_DOMAIN | APIのドメイン | scrapbox.io | scrapbox.io, cosen.se |
+
+### 環境変数の挙動について
+
+- **COSENSE_PROJECT_NAME**: 必須の環境変数です。未設定の場合、サーバーは起動時にエラーで終了します。
+- **COSENSE_SID**: オプションです。未設定の場合、パブリックプロジェクトのみアクセス可能です。
+- **COSENSE_PAGE_LIMIT**:
+  - 未設定時は100を使用
+  - 無効な値（数値以外や範囲外）の場合は100を使用
+  - 有効範囲: 1-1000
+- **COSENSE_SORT_METHOD**:
+  - 未設定時は'created'を使用
+  - 無効な値の場合は'created'を使用
+  - list_pagesツールの動作には影響しません（初期リソース取得時のみ使用）
 
 ### Debugging
 

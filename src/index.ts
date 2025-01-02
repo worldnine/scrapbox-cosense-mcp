@@ -12,25 +12,44 @@ import { listPages, getPage, toReadablePage } from "./cosense.js";
 import { formatYmd } from './utils/format.js';
 import { setupRoutes } from './routes/index.js';
 
+// 環境変数のデフォルト値と検証用の定数
+const DEFAULT_PAGE_LIMIT = 100;
+const DEFAULT_SORT_METHOD = 'created';
+const MIN_PAGE_LIMIT = 1;
+const MAX_PAGE_LIMIT = 1000;
+
 // resourcesの初期取得用の設定
 const cosenseSid: string | undefined = process.env.COSENSE_SID;
 const projectName: string | undefined = process.env.COSENSE_PROJECT_NAME;
-const initialPageLimit: number = parseInt(process.env.COSENSE_PAGE_LIMIT || '100', 10);
-const initialSortMethod: string | undefined = process.env.COSENSE_SORT_METHOD;
+const initialPageLimit: number = (() => {
+  const limit = process.env.COSENSE_PAGE_LIMIT ? 
+    parseInt(process.env.COSENSE_PAGE_LIMIT, 10) : 
+    DEFAULT_PAGE_LIMIT;
 
-// 設定値の検証（resources用）
-const validSortMethods = ['updated', 'created', 'accessed', 'linked', 'views', 'title'];
-if (initialSortMethod && !validSortMethods.includes(initialSortMethod)) {
-  throw new Error(`Invalid sort method: ${initialSortMethod}. Valid values are: ${validSortMethods.join(', ')}`);
-}
-if (isNaN(initialPageLimit) || initialPageLimit < 1 || initialPageLimit > 1000) {
-  throw new Error('COSENSE_PAGE_LIMIT must be a number between 1 and 1000');
-}
+  if (isNaN(limit) || limit < MIN_PAGE_LIMIT || limit > MAX_PAGE_LIMIT) {
+    console.error(`Invalid COSENSE_PAGE_LIMIT: ${process.env.COSENSE_PAGE_LIMIT}, using default: ${DEFAULT_PAGE_LIMIT}`);
+    return DEFAULT_PAGE_LIMIT;
+  }
+  return limit;
+})();
+
+const initialSortMethod: string = (() => {
+  const validSortMethods = ['updated', 'created', 'accessed', 'linked', 'views', 'title'] as const;
+  const sort = process.env.COSENSE_SORT_METHOD;
+
+  if (!sort) return DEFAULT_SORT_METHOD;
+  if (!validSortMethods.includes(sort as any)) {
+    console.error(`Invalid COSENSE_SORT_METHOD: ${sort}, using default: ${DEFAULT_SORT_METHOD}`);
+    return DEFAULT_SORT_METHOD;
+  }
+  return sort;
+})();
+
 if (!projectName) {
   throw new Error("COSENSE_PROJECT_NAME is not set");
 }
 
-// resourcesの初期化時のみ環境変数の設定を使用
+// resourcesの初期化（エラーハンドリングを追加）
 const resources = await listPages(
   projectName, 
   cosenseSid,
@@ -38,14 +57,17 @@ const resources = await listPages(
     limit: initialPageLimit,
     sort: initialSortMethod,
   }
-).then((pages) =>
+).then((pages) => 
   pages.pages.map((page) => ({
     uri: `cosense:///${page.title}`,
     mimeType: "text/plain",
     name: page.title,
     description: `A text page: ${page.title}`,
   }))
-);
+).catch(error => {
+  console.error('Failed to initialize resources:', error);
+  return [];  // 空の配列を返してサーバーは起動を継続
+});
 
 const server = new Server(
   {
