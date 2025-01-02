@@ -7,16 +7,21 @@ import {
   ListResourcesRequestSchema,
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
+  CallToolRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { listPages, getPage, toReadablePage } from "./cosense.js";
 import { formatYmd } from './utils/format.js';
 import { setupRoutes } from './routes/index.js';
 
 // 環境変数のデフォルト値と検証用の定数
-const DEFAULT_PAGE_LIMIT = 100;
-const DEFAULT_SORT_METHOD = 'created';
+const FETCH_PAGE_LIMIT = 100;  // 固定で100件取得
+const DEFAULT_PAGE_LIMIT = FETCH_PAGE_LIMIT;  // デフォルトは取得上限と同じ
+const DEFAULT_SORT_METHOD = 'title';
 const MIN_PAGE_LIMIT = 1;
 const MAX_PAGE_LIMIT = 1000;
+
+// 有効なソート方法の定義
+const VALID_SORT_METHODS = ['updated', 'created', 'accessed', 'linked', 'views', 'title'] as const;
 
 // resourcesの初期取得用の設定
 const cosenseSid: string | undefined = process.env.COSENSE_SID;
@@ -34,11 +39,10 @@ const initialPageLimit: number = (() => {
 })();
 
 const initialSortMethod: string = (() => {
-  const validSortMethods = ['updated', 'created', 'accessed', 'linked', 'views', 'title'] as const;
   const sort = process.env.COSENSE_SORT_METHOD;
 
   if (!sort) return DEFAULT_SORT_METHOD;
-  if (!validSortMethods.includes(sort as any)) {
+  if (!VALID_SORT_METHODS.includes(sort as any)) {
     console.error(`Invalid COSENSE_SORT_METHOD: ${sort}, using default: ${DEFAULT_SORT_METHOD}`);
     return DEFAULT_SORT_METHOD;
   }
@@ -49,25 +53,36 @@ if (!projectName) {
   throw new Error("COSENSE_PROJECT_NAME is not set");
 }
 
-// resourcesの初期化（エラーハンドリングを追加）
-const resources = await listPages(
-  projectName, 
-  cosenseSid,
-  {
-    limit: initialPageLimit,
-    sort: initialSortMethod,
+// resourcesの初期化（100件取得してソート）
+const resources = await (async () => {
+  try {
+    // 常に100件取得
+    const result = await listPages(
+      projectName, 
+      cosenseSid,
+      {
+        limit: FETCH_PAGE_LIMIT,  // 固定で100件
+        skip: 0,
+        sort: initialSortMethod,
+        excludePinned: process.env.COSENSE_EXCLUDE_PINNED === 'true'
+      }
+    );
+
+    // ソート済みのページから必要な件数だけを使用
+    return result.pages
+      .slice(0, Math.min(initialPageLimit, FETCH_PAGE_LIMIT))  // 環境変数で指定された件数か100件の小さい方
+      .map((page) => ({
+        uri: `cosense:///${page.title}`,
+        mimeType: "text/plain",
+        name: page.title,
+        description: `A text page: ${page.title}`,
+      }));
+
+  } catch (error) {
+    console.error('Failed to initialize resources:', error);
+    return [];  // 空の配列を返してサーバーは起動を継続
   }
-).then((pages) => 
-  pages.pages.map((page) => ({
-    uri: `cosense:///${page.title}`,
-    mimeType: "text/plain",
-    name: page.title,
-    description: `A text page: ${page.title}`,
-  }))
-).catch(error => {
-  console.error('Failed to initialize resources:', error);
-  return [];  // 空の配列を返してサーバーは起動を継続
-});
+})();
 
 const server = new Server(
   {
@@ -237,6 +252,35 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
     ],
+  };
+});
+
+// list_pagesツールのハンドラーを修正
+server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
+  if (request.params.name === "list_pages") {
+    const args = request.params.arguments || {};
+    
+    const result = await listPages(projectName, cosenseSid, {
+      sort: String(args.sort || ''),
+      limit: Number(args.limit || 1000),
+      skip: Number(args.skip || 0),
+      excludePinned: Boolean(args.excludePinned || false)
+    });
+
+    return {
+      content: [{
+        type: "text",
+        text: JSON.stringify(result, null, 2)
+      }]
+    };
+  }
+  
+  // 他のツールハンドラーが未実装の場合のデフォルトレスポンス
+  return {
+    content: [{
+      type: "text",
+      text: "Tool not implemented"
+    }]
   };
 });
 

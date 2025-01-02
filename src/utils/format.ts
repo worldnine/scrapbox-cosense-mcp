@@ -1,5 +1,5 @@
 // 基本的なページ型を定義
-interface BasePage {
+export interface BasePage {
   title: string;
   created?: number;
   updated?: number;

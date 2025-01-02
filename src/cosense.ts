@@ -1,4 +1,5 @@
 import { fetch } from "@whatwg-node/fetch";
+import { sortPages, type SortOptions } from './utils/sort.js';
 const API_DOMAIN = process.env.API_DOMAIN || "scrapbox.io";
 
 // /api/pages/:projectname/search/query の型定義
@@ -253,19 +254,26 @@ type ListPagesResponse = {
   }[];
 };
 
-// デバッグ情報の型を定義
-type DebugInfo = {  // 'b' が誤って入力されていたのを修正
+// デバッグ情報の型を拡張
+type DebugInfo = {
   request_url?: string;
   params?: Record<string, string>;
   error?: string;
+  originalCount?: number;
+  filteredCount?: number;
+  appliedSort?: string;
+  excludedPinned?: boolean;
+  total_results?: number;
 };
 
 async function listPages(
   projectName: string,
   sid?: string,
-  options: { limit?: number; skip?: number; sort?: string } = {}
+  options: { limit?: number; skip?: number; sort?: string; excludePinned?: boolean } = {}
 ): Promise<ListPagesResponse & { debug?: DebugInfo }> {
   try {
+    const { limit = 1000, skip = 0, sort, excludePinned } = options;
+    
     // クエリパラメータの構築
     const sortValue = options.sort || 'created';
     const params = new URLSearchParams({
@@ -303,8 +311,6 @@ async function listPages(
     }
 
     const pages = await response.json();
-    
-    // 各ページの詳細情報を取得
     const pagesWithDetails = await Promise.all(
       (pages as ListPagesResponse).pages.map(async (page) => {
         const pageDetails = await getPage(projectName, page.title, sid);
@@ -313,21 +319,31 @@ async function listPages(
             ...page,
             user: pageDetails.user,
             lastUpdateUser: pageDetails.lastUpdateUser,
-            created: pageDetails.created,      // 作成日時を追加
-            updated: pageDetails.updated,      // 更新日時を追加
+            created: pageDetails.created,
+            updated: pageDetails.updated,
             collaborators: pageDetails.collaborators,
-            descriptions: pageDetails.lines?.slice(0, 5).map(line => line.text) || [] // 冒頭5行を追加
+            descriptions: pageDetails.lines?.slice(0, 5).map(line => line.text) || []
           };
         }
         return page;
       })
     );
 
+    // ソートとフィルタリングを適用
+    const sortedPages = sortPages(pagesWithDetails, { sort, excludePinned });
+
     return {
       ...(pages as ListPagesResponse),
-      pages: pagesWithDetails,
-      debug: debugInfo
+      pages: sortedPages,
+      debug: {
+        ...debugInfo,
+        originalCount: pagesWithDetails.length,
+        filteredCount: sortedPages.length,
+        appliedSort: sort || 'created',
+        excludedPinned: excludePinned || false
+      }
     };
+
   } catch (error) {
     return {
       limit: 0,
@@ -370,47 +386,19 @@ async function searchPages(
   query: string,
   sid?: string
 ): Promise<SearchQueryResponse | null> {
-  try {
-    const encodedQuery = encodeURIComponent(query);
-    const url = `https://${API_DOMAIN}/api/pages/${projectName}/search/query?q=${encodedQuery}`;
-    
-    const debugInfo = {
-      request_url: url,
-      query: query
-    };
+  const encodedQuery = encodeURIComponent(query);
+  const url = `https://${API_DOMAIN}/api/pages/${projectName}/search/query?q=${encodedQuery}`;
+  
+  const debugInfo = {
+    request_url: url,
+    searchQuery: query,
+  };
 
-    const response = sid
-      ? await fetch(url, { headers: { Cookie: `connect.sid=${sid}` } })
-      : await fetch(url);
+  const response = sid
+    ? await fetch(url, { headers: { Cookie: `connect.sid=${sid}` } })
+    : await fetch(url);
 
-    if (!response.ok) {
-      return {
-        projectName,
-        searchQuery: query,
-        query: { words: [], excludes: [] },
-        limit: 0,
-        count: 0,
-        existsExactTitleMatch: false,
-        backend: 'elasticsearch',
-        pages: [],
-        debug: {
-          ...debugInfo,
-          error: `Search API error: ${response.status} ${response.statusText}`
-        }
-      };
-    }
-
-    const result = await response.json();
-    
-    return {
-      ...result,
-      debug: {
-        ...debugInfo,
-        total_results: result.pages.length
-      }
-    };
-
-  } catch (error) {
+  if (!response.ok) {
     return {
       projectName,
       searchQuery: query,
@@ -421,10 +409,27 @@ async function searchPages(
       backend: 'elasticsearch',
       pages: [],
       debug: {
-        error: error instanceof Error ? error.message : '不明なエラー'
+        ...debugInfo,
+        error: `Search API error: ${response.status} ${response.statusText}`
       }
     };
   }
+
+  const result = await response.json();
+  return {
+    projectName,
+    searchQuery: query,
+    query: result.query,
+    limit: result.limit,
+    count: result.count,
+    existsExactTitleMatch: result.existsExactTitleMatch,
+    backend: result.backend,
+    pages: result.pages,
+    debug: {
+      ...debugInfo,
+      total_results: result.pages.length
+    }
+  };
 }
 
 /**
@@ -434,8 +439,9 @@ async function listPagesWithSort(
   projectName: string,
   options: {
     limit: number;
-    skip?: number;
+    skip: number;
     sort?: string;
+    excludePinned?: boolean;
   },
   sid?: string
 ): Promise<ListPagesResponse> {
@@ -447,11 +453,11 @@ async function listPagesWithSort(
   const response = await listPages(projectName, sid, {
     limit: fetchSize,
     skip: 0, // 最初から取得して後でskipを適用
-    sort: options.sort
+    excludePinned: options.excludePinned
   });
 
   // 2. 取得したページをメモリ上でソート
-  const sortedPages = sortPages(response.pages, options.sort);
+  const sortedPages = sortPages(response.pages, { sort: options.sort, excludePinned: options.excludePinned });
 
   // 3. skip位置から必要な件数を切り出し
   const resultPages = sortedPages.slice(skip, skip + limit);
@@ -463,34 +469,6 @@ async function listPagesWithSort(
     limit: resultPages.length,
     skip: skip
   };
-}
-
-/**
- * ページリストをソートする内部関数
- */
-function sortPages(pages: ScrapboxPage[], sortType?: string): ScrapboxPage[] {
-  if (!sortType) return pages;
-
-  return [...pages].sort((a, b) => {
-    switch (sortType) {
-      case 'updated':
-        return (b.updated || 0) - (a.updated || 0);
-      case 'created':
-        return (b.created || 0) - (a.created || 0);
-      case 'accessed':
-        const aAccess = a.accessed || a.lastAccessed || 0;
-        const bAccess = b.accessed || b.lastAccessed || 0;
-        return bAccess - aAccess;
-      case 'linked':
-        return (b.linked || 0) - (a.linked || 0);
-      case 'views':
-        return (b.views || 0) - (a.views || 0);
-      case 'title':
-        return a.title.localeCompare(b.title);
-      default:
-        return 0;
-    }
-  });
 }
 
 // 型のエクスポート

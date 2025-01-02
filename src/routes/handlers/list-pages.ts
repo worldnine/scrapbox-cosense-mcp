@@ -15,7 +15,12 @@ export async function handleListPages(
   params: ListPagesParams
 ) {
   try {
-    const { sort, limit, skip, excludePinned = false } = params;
+    const {
+      sort,
+      limit = 1000,
+      skip = 0,  // デフォルト値を設定
+      excludePinned = false
+    } = params;
     let pages;
 
     if (excludePinned) {
@@ -49,7 +54,7 @@ export async function handleListPages(
         {
           sort,
           limit: limit || 10,
-          skip
+          skip,
         },
         cosenseSid
       );
