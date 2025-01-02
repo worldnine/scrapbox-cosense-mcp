@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const API_DOMAIN = process.env.API_DOMAIN || "scrapbox.io";
+const SERVICE_LABEL = process.env.SERVICE_LABEL || "cosense (scrapbox)";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -151,7 +152,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: "create_page",
         description: `
-        Create a new page in ${projectName} project on ${API_DOMAIN}
+        Create a new page in ${projectName} project on ${SERVICE_LABEL}
         
         Creates a new page with the specified title and optional body text.
         The page will be opened in your default browser.
@@ -174,7 +175,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: "get_page",
         description: `
-        Get a page from ${projectName} project on ${API_DOMAIN}
+        Get a page from ${projectName} project on ${SERVICE_LABEL}
         Returns page content and its linked pages.
         Page content includes title and description in plain text format.
         `,
@@ -192,7 +193,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: "list_pages",
         description: `
-        List pages from ${projectName} project on ${API_DOMAIN} with flexible sorting options.
+        List pages from ${projectName} project on ${SERVICE_LABEL} with flexible sorting options.
         
         Available sorting methods:
         - updated: Sort by last update time
@@ -232,7 +233,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: "search_pages",
         description: `
-        Search pages in ${projectName} project on ${API_DOMAIN}
+        Search pages in ${projectName} project on ${SERVICE_LABEL}
         
         Supports various search features:
         - Basic search: "keyword"

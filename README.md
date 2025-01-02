@@ -79,15 +79,19 @@ Note: This configuration has only been tested and verified to work with "scrapbo
 
 ## 環境変数
 
-このサーバーは以下の環境変数で動作をカスタマイズできます：
+このサーバーは以下の環境変数を使用します：
 
-| 環境変数 | 説明 | デフォルト値 | 有効な値 |
-|----------|------|--------------|----------|
-| COSENSE_PROJECT_NAME | Scrapboxのプロジェクト名 | - | 必須（未設定時は起動エラー） |
-| COSENSE_SID | Scrapboxの認証Cookie | なし | オプション（未設定時は非認証で動作） |
-| COSENSE_PAGE_LIMIT | 初期リソース取得時のページ数上限 | 100 | 1-1000（無効な値の場合はデフォルト値を使用） |
-| COSENSE_SORT_METHOD | 初期リソース取得時の並び順 | created | updated, created, accessed, linked, views, title（無効な値の場合はデフォルト値を使用） |
-| API_DOMAIN | APIのドメイン | scrapbox.io | scrapbox.io, cosen.se |
+### 必須の環境変数
+
+- `COSENSE_PROJECT_NAME`: プロジェクト名
+- `COSENSE_SID`: Scrapbox/Cosenseの認証用セッションID
+
+### オプションの環境変数
+
+- `API_DOMAIN`: APIドメイン（デフォルト: "scrapbox.io"）
+- `SERVICE_LABEL`: サービスの識別名（デフォルト: "cosense (scrapbox)"）
+- `COSENSE_PAGE_LIMIT`: 初期取得時のページ数（1-1000、デフォルト: 100）
+- `COSENSE_SORT_METHOD`: ページの並び順（updated/created/accessed/linked/views/title、デフォルト: updated）
 
 ### 環境変数の挙動について
 
