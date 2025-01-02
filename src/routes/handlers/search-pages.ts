@@ -35,6 +35,7 @@ export async function handleSearchPages(
       `Project: ${projectName}`,
       `Search query: ${results.searchQuery}`,
       `Total results: ${results.count}`,
+      `Note: Limited to 100 results. No way to fetch beyond this limit. If expected content is not found, please try refining your search query.`,
       '---'
     ].join('\n') + '\n';
 
