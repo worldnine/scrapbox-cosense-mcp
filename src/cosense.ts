@@ -302,7 +302,11 @@ async function listPages(
           return {
             ...page,
             user: pageDetails.user,
-            lastUpdateUser: pageDetails.lastUpdateUser
+            lastUpdateUser: pageDetails.lastUpdateUser,
+            created: pageDetails.created,      // 作成日時を追加
+            updated: pageDetails.updated,      // 更新日時を追加
+            collaborators: pageDetails.collaborators,
+            descriptions: pageDetails.lines?.slice(0, 5).map(line => line.text) || [] // 冒頭5行を追加
           };
         }
         return page;
