@@ -89,7 +89,7 @@ export function getSortDescription(sortMethod: string | undefined): string {
     title: "Sorted by title"
   }[sortMethod || ''] || "Default order";
 
-  return `${base} (Pinned pages are shown first)`;
+  return `${base}`;
 }
 
 export function getSortValue(page: ScrapboxPage, sortMethod: string | undefined): { 

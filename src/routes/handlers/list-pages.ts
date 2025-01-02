@@ -61,7 +61,6 @@ export async function handleListPages(
       `Pages fetched: ${pages.limit}`,
       `Pages skipped: ${pages.skip}`,
       `Sort method: ${getSortDescription(sort)}`,
-      `Note: Pinned pages are always shown first due to API specifications`,
       '---'
     ].join('\n') + '\n';
 
