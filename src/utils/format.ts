@@ -1,5 +1,3 @@
-import { ListPagesResponse } from '../cosense.js';
-
 // 基本的なページ型を定義
 interface BasePage {
   title: string;
