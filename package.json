@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "MCP server for cosense",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "bin": {
     "cosense-mcp-server": "./build/index.js"
