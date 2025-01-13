@@ -2,6 +2,8 @@
 
 [cosense/scrapbox](https://cosen.se) 用のMCPサーバーです。
 
+<a href="https://glama.ai/mcp/servers/8huixkwpe2"><img width="380" height="200" src="https://glama.ai/mcp/servers/8huixkwpe2/badge" alt="Scrapbox Cosense Server MCP server" /></a>
+
 ## 機能
 
 - `get_page`
