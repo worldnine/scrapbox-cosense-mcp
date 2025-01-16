@@ -5,3 +5,5 @@ build/
 .clinerules
 .env*
 .DS_Store
+.vscode/
+*.code-workspace
