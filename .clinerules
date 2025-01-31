@@ -1,0 +1,74 @@
+# cline rules
+
+## プロジェクト概要
+
+* cocen.se(別名scrapbox.io)に対応したMPCサーバの開発を行います。
+* APIClaude DesktopなどのMCPクライアントからこのサーバにアクセスすることを想定しています。
+* このサーバは、ScrapboxのREST APIを使用して、Scrapboxのページを取得、作成、編集するためのAPIを提供します。
+* Cookie認証を使用して、Scrapboxにログインしているユーザーの権限で操作を行うため、このサーバを複数人で共有することはあまり考えられません。
+  * APIへの負荷軽減のためにキャッシュを使用することは検討しなくてもよいです。
+* 型の定義を行うことを忘れないでください。
+
+## ファイル構成
+
+scrapbox-cosense-mcp/
+├── src/
+│   ├── types/
+│   │   ├── api.ts              # Scrapbox APIのレスポンス型定義
+│   │   ├── common.ts           # 共通で使用する型定義
+│   │   └── config.ts           # 設定関連の型定義
+│   ├── routes/
+│   │   ├── handlers/          # 各ツールのハンドラー実装
+│   │   │   ├── list-pages.ts     # ページ一覧取得ハンドラー
+│   │   │   ├── get-page.ts       # ページ取得ハンドラー 
+│   │   │   ├── search-pages.ts   # ページ検索ハンドラー
+│   │   │   └── create-page.ts    # ページ作成ハンドラー
+│   │   └── index.ts            # ルーティングのセットアップ
+│   ├── utils/
+│   │   ├── format.ts           # レスポンスのフォーマット用ユーティリティ
+│   │   ├── markdown-converter.ts# Markdown→Scrapbox変換
+│   │   └── sort.ts             # ソート用ユーティリティ
+│   ├── cosense.ts            # Scrapbox APIクライアント実装
+│   └── index.ts              # サーバーのエントリーポイント
+├── tests/
+│   ├── integration/          # 統合テスト
+│   │   └── server.test.ts     # MCPサーバー全体の動作テスト
+│   ├── routes/               
+│   │   └── handlers/         # ルートハンドラーのテスト
+│   │       ├── list-pages.test.ts    # ページ一覧機能のテスト
+│   │       ├── get-page.test.ts      # ページ取得機能のテスト
+│   │       ├── search-pages.test.ts   # ページ検索機能のテスト
+│   │       └── create-page.test.ts    # ページ作成機能のテスト
+│   ├── utils/               # ユーティリティのテスト
+│   │   └── markdown-converter.test.ts # Markdown変換機能のテスト
+│   ├── cosense.test.ts       # APIクライアントのテスト
+│   └── helpers.ts            # テスト用ヘルパー関数
+├── build/                    # コンパイル後のファイル
+├── package.json             # プロジェクト設定
+├── tsconfig.json            # TypeScript設定
+└── README.md                # プロジェクトのドキュメント
+
+## 開発環境
+
+* Node.js v20.11.1
+* TypeScript
+
+## cscapboxのAPI仕様書やMCPサーバの実装例など
+
+* [Scrapbox REST API 仕様書](.github/scrapbox-api-spec.md)を参照してください。
+  * ただしこの仕様書はインターネット上で公開されている情報の断片を寄せ集めて作成されたものであり、正確性を保証するものではないので注意すること。
+* MCPサーバの実装は[Example Clients](.github/llms-full.txt)を参照してください。
+
+
+## デバッグ方法
+
+### MCPプロトコルの制約
+
+* JSONのみでの通信が必要
+* コンソールログは使用不可
+
+## 出力のルール
+
+日本語での出力を優先し、英語での出力は補助的なものとして使用します。
+ただし、プログラムのコードは英語で記述します。
+readmeなどのドキュメントは日本語で記述します。
