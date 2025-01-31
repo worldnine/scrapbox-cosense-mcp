@@ -20,38 +20,22 @@
     - 入力: ページタイトルとオプションの本文テキスト
     - 出力: ブラウザで開くことができるURL
 
-## 開発方法
-
-依存関係のインストール:
+## インストール・開発方法
 
 ```bash
-npm install
-```
-
-サーバーのビルド:
-
-```bash
-npm run build
-```
-
-開発時の自動リビルド:
-
-```bash
-npm run watch
-```
-
-## インストール方法
-
-```bash
+# インストール
 git clone https://github.com/worldnine/scrapbox-cosense-mcp.git
 cd scrapbox-cosense-mcp
 npm install
 npm run build
+
+# 開発時の自動リビルド
+npm run watch
 ```
 
 Claude Desktopで使用するには、以下のようにサーバー設定を追加してください:
 
-MacOSの場合: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
+macOSの場合: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
 Windowsの場合: `%APPDATA%/Claude/claude_desktop_config.json`
 
 ```json
