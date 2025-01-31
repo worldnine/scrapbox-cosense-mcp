@@ -1,0 +1,38 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - cosenseProjectName
+      - cosenseSid
+    properties:
+      cosenseProjectName:
+        type: string
+        description: The name of the cosense project.
+      cosenseSid:
+        type: string
+        description: The session ID for Scrapbox/Cosense authentication (required for
+          private projects).
+      apiDomain:
+        type: string
+        default: scrapbox.io
+        description: API domain.
+      serviceLabel:
+        type: string
+        default: cosense (scrapbox)
+        description: Service identifier.
+      cosensePageLimit:
+        type: number
+        default: 100
+        description: Initial page fetch limit.
+      cosenseSortMethod:
+        type: string
+        default: updated
+        description: Initial page fetch order.
+  commandFunction:
+    # A function that produces the CLI command to start the MCP on stdio.
+    |-
+    (config) => ({ command: 'node', args: ['build/index.js'], env: { COSENSE_PROJECT_NAME: config.cosenseProjectName, COSENSE_SID: config.cosenseSid, API_DOMAIN: config.apiDomain, SERVICE_LABEL: config.serviceLabel, COSENSE_PAGE_LIMIT: String(config.cosensePageLimit), COSENSE_SORT_METHOD: config.cosenseSortMethod } })

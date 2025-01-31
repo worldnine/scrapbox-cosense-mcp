@@ -4,6 +4,8 @@
 
 ## English
 
+[![smithery badge](https://smithery.ai/badge/scrapbox-cosense-mcp)](https://smithery.ai/server/scrapbox-cosense-mcp)
+
 MCP server for [cosense/scrapbox](https://cosen.se).
 
 <a href="https://glama.ai/mcp/servers/8huixkwpe2"><img width="380" height="200" src="https://glama.ai/mcp/servers/8huixkwpe2/badge" alt="Scrapbox Cosense Server MCP server" /></a>
@@ -48,6 +50,15 @@ npm run watch
 
 ### Installation
 
+### Installing via Smithery
+
+To install Scrapbox Cosense for Claude Desktop automatically via [Smithery](https://smithery.ai/server/scrapbox-cosense-mcp):
+
+```bash
+npx -y @smithery/cli install scrapbox-cosense-mcp --client claude
+```
+
+### Installing Manually
 ```bash
 git clone https://github.com/worldnine/scrapbox-cosense-mcp.git
 cd scrapbox-cosense-mcp
@@ -122,6 +133,8 @@ The Inspector provides a URL to access debugging tools in the browser.
 
 ## 日本語
 
+[![smithery badge](https://smithery.ai/badge/scrapbox-cosense-mcp)](https://smithery.ai/server/scrapbox-cosense-mcp)
+
 [cosense/scrapbox](https://cosen.se) 用のMCPサーバーです。
 
 ## 機能
@@ -163,6 +176,16 @@ npm run watch
 ```
 
 ## インストール方法
+
+### Smitheryを通したインストール
+
+[Smithery](https://smithery.ai/server/scrapbox-cosense-mcp)でClaude Desktop用にScrapbox Cosenseを自動インストールするためには：
+
+```bash
+npx -y @smithery/cli install scrapbox-cosense-mcp --client claude
+```
+
+### 手動インストール
 
 ```bash
 git clone https://github.com/worldnine/scrapbox-cosense-mcp.git
