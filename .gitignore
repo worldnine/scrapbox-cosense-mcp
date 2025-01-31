@@ -1,7 +1,10 @@
 .github/
+.vscode/
+.cursorrules
 node_modules/
 build/
 *.log
 .clinerules
 .env*
 .DS_Store
+*.code-workspace
