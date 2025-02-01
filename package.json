@@ -2,10 +2,10 @@
   "name": "scrapbox-cosense-mcp",
   "version": "0.1.0",
   "description": "MCP server for cosense",
-  "private": true,
+  "private": false,
   "type": "module",
   "bin": {
-    "cosense-mcp-server": "./build/index.js"
+    "scrapbox-cosense-mcp": "./build/index.js"
   },
   "files": [
     "build"
