@@ -64,8 +64,8 @@ For Windows: `%APPDATA%/Claude/claude_desktop_config.json`
 {
   "mcpServers": {
     "scrapbox-cosense-mcp": {
-      "command": "node",
-      "args": ["/path/to/scrapbox-cosense-mcp/build/index.js"],
+      "command": "npx",
+      "args": ["github:worldnine/scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "your_project_name",
         "COSENSE_SID": "your_sid", // Required for private projects
@@ -180,8 +180,8 @@ Windowsの場合: `%APPDATA%/Claude/claude_desktop_config.json`
 {
   "mcpServers": {
     "scrapbox-cosense-mcp": {
-      "command": "node",
-      "args": ["/path/to/scrapbox-cosense-mcp/build/index.js"],
+      "command": "npx",
+      "args": ["github:worldnine/scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "your_project_name",
         "COSENSE_SID": "your_sid", // プライベートプロジェクトの場合は必須
