@@ -1,5 +1,127 @@
 # scrapbox-cosense-mcp
 
+[English](#english) | [日本語](#日本語)
+
+## English
+
+MCP server for [cosense/scrapbox](https://cosen.se).
+
+<a href="https://glama.ai/mcp/servers/8huixkwpe2"><img width="380" height="200" src="https://glama.ai/mcp/servers/8huixkwpe2/badge" alt="Scrapbox Cosense Server MCP server" /></a>
+
+### Features
+
+- `get_page`
+  - Get page content from cosense/Scrapbox
+    - Input: Page title
+    - Output: Page content, metadata, links, and editor information
+- `list_pages`
+  - Get a list of pages in the project (max 1000 pages)
+    - Output: List of page titles in the project
+- `search_pages`
+  - Full-text search across all pages in the project (max 100 pages)
+    - Supports basic search, AND search, OR search, and NOT search
+    - Output: List of page titles in search results
+- `create_pages`
+  - Generate page URLs
+    - Input: Page title and optional body text
+    - Output: URL that can be opened in a browser
+
+### Development
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Build the server:
+
+```bash
+npm run build
+```
+
+Auto-rebuild during development:
+
+```bash
+npm run watch
+```
+
+### Installation
+
+```bash
+git clone https://github.com/worldnine/scrapbox-cosense-mcp.git
+cd scrapbox-cosense-mcp
+npm install
+npm run build
+```
+
+To use with Claude Desktop, add the server configuration as follows:
+
+For MacOS: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
+For Windows: `%APPDATA%/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "scrapbox-cosense-mcp": {
+      "command": "npx",
+      "args": ["github:worldnine/scrapbox-cosense-mcp"],
+      "env": {
+        "COSENSE_PROJECT_NAME": "your_project_name",
+        "COSENSE_SID": "your_sid", // Required for private projects
+        "COSENSE_PAGE_LIMIT": "25", // Optional (default: 100)
+        "COSENSE_SORT_METHOD": "created", // Optional (default: "updated")
+        "SERVICE_LABEL": "scrapbox(cosense)" // Optional (default: "cosense(scrapbox)")
+      }
+    }
+  }
+}
+```
+
+### Environment Variables
+
+This server uses the following environment variables:
+
+#### Required Environment Variables
+
+- `COSENSE_PROJECT_NAME`: Project name
+- `COSENSE_SID`: Session ID for Scrapbox/Cosense authentication (required for private projects)
+
+#### Optional Environment Variables
+
+- `API_DOMAIN`: API domain (default: "scrapbox.io")
+- `SERVICE_LABEL`: Service identifier (default: "cosense (scrapbox)")
+- `COSENSE_PAGE_LIMIT`: Initial page fetch limit (1-1000, default: 100)
+- `COSENSE_SORT_METHOD`: Initial page fetch order (updated/created/accessed/linked/views/title, default: updated)
+
+#### Environment Variable Behavior
+
+- **COSENSE_PROJECT_NAME**: Required environment variable. Server will exit with an error if not set.
+- **COSENSE_SID**: Required for accessing private projects. If not set, only public projects are accessible.
+- **API_DOMAIN**:
+  - Uses "scrapbox.io" if not set
+  - While unverified with domains other than "scrapbox.io" in the author's environment, this option exists in case some environments require "cosen.se"
+- **COSENSE_PAGE_LIMIT**:
+  - Uses 100 if not set
+  - Uses 100 if value is invalid (non-numeric or out of range)
+  - Valid range: 1-1000
+- **COSENSE_SORT_METHOD**:
+  - Uses 'updated' if not set
+  - Uses 'updated' if value is invalid
+  - Does not affect list_pages tool behavior (only used for initial resource fetch)
+
+### Debugging
+
+Since MCP servers communicate via stdio, debugging can be challenging. Using [MCP Inspector](https://github.com/modelcontextprotocol/inspector) is recommended. You can run it with:
+
+```bash
+npm run inspector
+```
+
+The Inspector provides a URL to access debugging tools in the browser.
+
+## 日本語
+
 [cosense/scrapbox](https://cosen.se) 用のMCPサーバーです。
 
 ## 機能
@@ -20,30 +142,46 @@
     - 入力: ページタイトルとオプションの本文テキスト
     - 出力: ブラウザで開くことができるURL
 
-## インストール・開発方法
+## 開発方法
+
+依存関係のインストール:
 
 ```bash
-# インストール
+npm install
+```
+
+サーバーのビルド:
+
+```bash
+npm run build
+```
+
+開発時の自動リビルド:
+
+```bash
+npm run watch
+```
+
+## インストール方法
+
+```bash
 git clone https://github.com/worldnine/scrapbox-cosense-mcp.git
 cd scrapbox-cosense-mcp
 npm install
 npm run build
-
-# 開発時の自動リビルド
-npm run watch
 ```
 
 Claude Desktopで使用するには、以下のようにサーバー設定を追加してください:
 
-macOSの場合: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
+MacOSの場合: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
 Windowsの場合: `%APPDATA%/Claude/claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
     "scrapbox-cosense-mcp": {
-      "command": "node",
-      "args": ["/path/to/scrapbox-cosense-mcp/build/index.js"],
+      "command": "npx",
+      "args": ["github:worldnine/scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "your_project_name",
         "COSENSE_SID": "your_sid", // プライベートプロジェクトの場合は必須
