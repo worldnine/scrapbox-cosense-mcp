@@ -1,6 +1,7 @@
 .github/
 .vscode/
 .cursorrules
+.clinerules
 node_modules/
 build/
 *.log
