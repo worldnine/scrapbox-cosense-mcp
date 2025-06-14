@@ -15,16 +15,22 @@ MCP server for [cosense/scrapbox](https://cosen.se).
     - Input: Page title
     - Output: Page content, metadata, links, and editor information
 - `list_pages`
-  - Get a list of pages in the project (max 1000 pages)
-    - Output: List of page titles in the project
+  - Browse and list pages with flexible sorting and pagination
+    - Purpose: Discover pages by recency, popularity, or alphabetically
+    - Output: Page metadata and first 5 lines of content
+    - Max: 1000 pages per request
+    - Sorting: updated, created, accessed, linked, views, title
 - `search_pages`
-  - Full-text search across all pages in the project (max 100 pages)
-    - Supports basic search, AND search, OR search, and NOT search
-    - Output: List of page titles in search results
-- `create_pages`
-  - Generate page URLs
-    - Input: Page title and optional body text
-    - Output: URL that can be opened in a browser
+  - Search for content within pages using keywords or phrases
+    - Purpose: Find pages containing specific keywords or phrases
+    - Output: Matching pages with highlighted search terms and content snippets
+    - Max: 100 results (API limitation)
+    - Supports: basic search, AND search, exclude search, exact phrases
+- `create_page`
+  - Create a new page in the project
+    - Input: Page title and optional markdown body text
+    - Output: Opens the new page in your default browser
+    - Note: Markdown content is converted to Scrapbox format
 
 ### Development
 
@@ -131,16 +137,22 @@ The Inspector provides a URL to access debugging tools in the browser.
     - 入力: ページタイトル
     - 出力: ページコンテンツ、メタデータ、リンク、編集者の情報
 - `list_pages`
-  - プロジェクト内のページ一覧を取得（最大1000件）
-    - 出力: プロジェクト内のページタイトル一覧
+  - 柔軟なソートとページネーションによるページ一覧の閲覧
+    - 用途: 最新性、人気度、アルファベット順でページを発見
+    - 出力: ページのメタデータと冒頭5行の内容
+    - 最大: 1リクエスト当たり1000件
+    - ソート: updated, created, accessed, linked, views, title
 - `search_pages`
-  - プロジェクト内のページ全体を対象とした全文検索（最大100件）
-    - 基本検索、AND検索、OR検索、NOT検索をサポート
-    - 出力: 検索結果のページタイトル一覧
-- `create_pages`
-  - ページのURLを生成
-    - 入力: ページタイトルとオプションの本文テキスト
-    - 出力: ブラウザで開くことができるURL
+  - キーワードやフレーズを使用したページ内コンテンツの検索
+    - 用途: 特定のキーワードやフレーズを含むページを発見
+    - 出力: マッチしたページとハイライトされた検索語句、コンテンツスニペット
+    - 最大: 100件（API制限）
+    - サポート: 基本検索、AND検索、除外検索、完全一致フレーズ
+- `create_page`
+  - プロジェクトに新しいページを作成
+    - 入力: ページタイトルとオプションのマークダウン本文テキスト
+    - 出力: デフォルトブラウザで新しいページを開く
+    - 注意: マークダウンコンテンツはScrapbox形式に変換されます
 
 ## 開発方法
 
