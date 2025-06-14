@@ -99,16 +99,30 @@ async function getPage(
   sid?: string,
 ): Promise<GetPageResponse | null> {
   try {
+    const url = `https://${API_DOMAIN}/api/pages/${projectName}/${encodeURIComponent(pageName)}`;
+    
+    // デバッグ情報をログ出力
+    console.log(`[DEBUG] API Request - getPage:
+  URL: ${url}
+  Project: ${projectName}
+  Page: ${pageName}
+  SID Present: ${sid ? 'yes' : 'no'}
+  API Domain: ${API_DOMAIN}
+`);
+
     const response = sid
-      ? await fetch(`https://${API_DOMAIN}/api/pages/${projectName}/${encodeURIComponent(pageName)}`, {
+      ? await fetch(url, {
           headers: { Cookie: `connect.sid=${sid}` },
         })
-      : await fetch(
-          `https://${API_DOMAIN}/api/pages/${projectName}/${encodeURIComponent(pageName)}`,
-        );
+      : await fetch(url);
 
     if (!response.ok) {
-      console.error(`API error: ${response.status} ${response.statusText}`);
+      console.error(`[DEBUG] API Error - getPage:
+  Status: ${response.status} ${response.statusText}
+  URL: ${url}
+  Project: ${projectName}
+  Page: ${pageName}
+`);
       return null;
     }
 
@@ -260,6 +274,14 @@ async function listPages(
     });
 
     const url = `https://${API_DOMAIN}/api/pages/${projectName}?${params}`;
+    
+    // デバッグ情報をログ出力
+    console.log(`[DEBUG] API Request - listPages:
+  URL: ${url}
+  Project: ${projectName}
+  Options: ${JSON.stringify(options)}
+  SID Present: ${sid ? 'yes' : 'no'}
+`);
     
     // デバッグ情報を含めるための変数
     const debugInfo: DebugInfo = {
