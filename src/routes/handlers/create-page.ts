@@ -1,5 +1,5 @@
-import { createPageUrl } from "../../cosense.js";
-import { convertMarkdownToScrapbox } from '../../utils/markdown-converter.js';
+import { createPageUrl } from "@/cosense.js";
+import { convertMarkdownToScrapbox } from '@/utils/markdown-converter.js';
 
 export interface CreatePageParams {
   title: string;

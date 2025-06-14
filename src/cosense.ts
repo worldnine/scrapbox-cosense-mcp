@@ -1,5 +1,5 @@
 import { fetch } from "@whatwg-node/fetch";
-import { sortPages } from './utils/sort.js';
+import { sortPages } from '@/utils/sort.js';
 const API_DOMAIN = process.env.API_DOMAIN || "scrapbox.io";
 
 // /api/pages/:projectname/search/query の型定義
