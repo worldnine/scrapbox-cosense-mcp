@@ -26,6 +26,15 @@ export function setupRoutes(
     const { projectName, cosenseSid, toolSuffix } = config;
     const normalizedToolName = normalizeToolName(request.params.name, toolSuffix);
 
+    // デバッグ情報をログ出力
+    console.log(`[DEBUG] Tool Call:
+  Requested Tool: ${request.params.name}
+  Normalized Tool: ${normalizedToolName}
+  Tool Suffix: ${toolSuffix || 'none'}
+  Project: ${projectName}
+  Arguments: ${JSON.stringify(request.params.arguments)}
+`);
+
     switch (normalizedToolName) {
       case "list_pages":
         return handleListPages(

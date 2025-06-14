@@ -58,6 +58,16 @@ if (!projectName) {
   throw new Error("COSENSE_PROJECT_NAME is not set");
 }
 
+// デバッグ情報をログ出力
+console.log(`[DEBUG] Server Configuration:
+  Project: ${projectName}
+  Tool Suffix: ${TOOL_SUFFIX || 'none'}
+  Service Label: ${SERVICE_LABEL}
+  SID Present: ${cosenseSid ? 'yes' : 'no'}
+  Page Limit: ${initialPageLimit}
+  Sort Method: ${initialSortMethod}
+`);
+
 // resourcesの初期化（100件取得してソート）
 const resources = await (async () => {
   try {
@@ -151,8 +161,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
 });
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [
+  const tools = [
       {
         name: getToolName("create_page"),
         description: `Create a new page in Scrapbox project on ${SERVICE_LABEL}. Creates a new page with the specified title and optional body text. Returns the page creation URL without opening browser. Uses ${projectName} project as default if projectName is not specified.`,
@@ -263,8 +272,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["query"],
         },
       },
-    ],
-  };
+    ];
+  
+  // デバッグ情報をログ出力
+  console.log(`[DEBUG] Generated Tools:
+${tools.map(tool => `  - ${tool.name}`).join('\n')}
+  Total: ${tools.length} tools
+`);
+  
+  return { tools };
 });
 
 

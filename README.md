@@ -171,13 +171,35 @@ This server uses the following environment variables:
 
 ### Debugging
 
-Since MCP servers communicate via stdio, debugging can be challenging. Using [MCP Inspector](https://github.com/modelcontextprotocol/inspector) is recommended. You can run it with:
+Since MCP servers communicate via stdio, debugging can be challenging. This server includes comprehensive debug logging to help troubleshoot issues.
+
+#### Debug Logs
+
+The server outputs detailed debug information to help identify configuration and API issues:
+
+- **Server Configuration**: Project name, tool suffix, SID presence, limits
+- **Tool Generation**: List of generated tools with their names
+- **Tool Calls**: Requested vs normalized tool names, arguments
+- **API Requests**: URLs, project names, authentication status
+- **API Errors**: Detailed error information with context
+
+#### Using MCP Inspector
+
+Using [MCP Inspector](https://github.com/modelcontextprotocol/inspector) is recommended for interactive debugging:
 
 ```bash
 npm run inspector
 ```
 
 The Inspector provides a URL to access debugging tools in the browser.
+
+#### Troubleshooting Multiple Servers
+
+When running multiple server instances, check the debug logs for:
+
+1. **Tool Name Conflicts**: Ensure `COSENSE_TOOL_SUFFIX` is set differently for each server
+2. **API Access**: Verify SID authentication works for each project
+3. **Project Names**: Confirm project names are correctly configured
 
 ## 日本語
 
