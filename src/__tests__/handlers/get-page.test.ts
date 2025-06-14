@@ -88,6 +88,30 @@ describe('handleGetPage', () => {
 
       expect(result.content[0]?.text).toContain('Title: Test Page');
     });
+
+    test('オプショナルprojectNameパラメータが使用されること', async () => {
+      mockedCosense.getPage.mockResolvedValue(mockPageResponse);
+      mockedCosense.toReadablePage.mockReturnValue(mockReadablePageResponse);
+
+      const params = { pageTitle: 'Test Page', projectName: 'custom-project' };
+      const result = await handleGetPage(mockProjectName, mockCosenseSid, params);
+
+      // getPageが指定されたprojectNameで呼び出されることを確認
+      expect(mockedCosense.getPage).toHaveBeenCalledWith('custom-project', 'Test Page', mockCosenseSid);
+      expect(result.content[0]?.text).toContain('Title: Test Page');
+    });
+
+    test('projectNameが未指定の場合はデフォルトプロジェクト名が使用されること', async () => {
+      mockedCosense.getPage.mockResolvedValue(mockPageResponse);
+      mockedCosense.toReadablePage.mockReturnValue(mockReadablePageResponse);
+
+      const params = { pageTitle: 'Test Page' };
+      const result = await handleGetPage(mockProjectName, mockCosenseSid, params);
+
+      // getPageがデフォルトprojectNameで呼び出されることを確認
+      expect(mockedCosense.getPage).toHaveBeenCalledWith(mockProjectName, 'Test Page', mockCosenseSid);
+      expect(result.content[0]?.text).toContain('Title: Test Page');
+    });
   });
 
   describe('エラーケース', () => {
