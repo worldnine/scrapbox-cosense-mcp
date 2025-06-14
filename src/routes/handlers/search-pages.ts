@@ -3,14 +3,16 @@ import { formatPageOutput } from '../../utils/format.js';
 
 export interface SearchPagesParams {
   query: string;
+  projectName?: string | undefined;
 }
 
 export async function handleSearchPages(
-  projectName: string,
+  defaultProjectName: string,
   cosenseSid: string | undefined,
   params: SearchPagesParams
 ) {
   try {
+    const projectName = params.projectName || defaultProjectName;
     const query = String(params.query);
     const results = await searchPages(projectName, query, cosenseSid);
     
@@ -21,7 +23,7 @@ export async function handleSearchPages(
           text: [
             `Error: No search results`,
             `Operation: search_pages`,
-            `Project: ${projectName}`,
+            `Project: ${params.projectName || defaultProjectName}`,
             `Query: ${query}`,
             `Status: 404`,
             `Timestamp: ${new Date().toISOString()}`
@@ -61,7 +63,7 @@ export async function handleSearchPages(
           'Error details:',
           `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
           `Operation: search_pages`,
-          `Project: ${projectName}`,
+          `Project: ${params.projectName || defaultProjectName}`,
           `Query: ${params.query}`,
           `Timestamp: ${new Date().toISOString()}`
         ].join('\n')

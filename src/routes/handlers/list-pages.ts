@@ -7,10 +7,11 @@ export interface ListPagesParams {
   limit?: number;
   skip?: number;
   excludePinned?: boolean;
+  projectName?: string | undefined;
 }
 
 export async function handleListPages(
-  projectName: string,
+  defaultProjectName: string,
   cosenseSid: string | undefined,
   params: ListPagesParams
 ) {
@@ -19,8 +20,10 @@ export async function handleListPages(
       sort,
       limit = 1000,
       skip = 0,  // デフォルト値を設定
-      excludePinned = false
+      excludePinned = false,
+      projectName: paramsProjectName
     } = params;
+    const projectName = paramsProjectName || defaultProjectName;
     let pages;
 
     if (excludePinned) {
@@ -93,7 +96,7 @@ export async function handleListPages(
           'Error details:',
           `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
           `Operation: list_pages`,
-          `Project: ${projectName}`,
+          `Project: ${params.projectName || defaultProjectName}`,
           `Sort: ${params.sort || 'default'}`,
           `Limit: ${params.limit || 'default'}`,
           `Skip: ${params.skip || '0'}`,

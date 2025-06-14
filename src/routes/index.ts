@@ -21,7 +21,10 @@ export function setupRoutes(
         return handleListPages(
           projectName,
           cosenseSid,
-          request.params.arguments || {}
+          {
+            ...request.params.arguments || {},
+            projectName: request.params.arguments?.projectName as string | undefined
+          }
         );
 
       case "get_page":
@@ -29,7 +32,8 @@ export function setupRoutes(
           projectName,
           cosenseSid,
           {
-            pageTitle: String(request.params.arguments?.pageTitle)
+            pageTitle: String(request.params.arguments?.pageTitle),
+            projectName: request.params.arguments?.projectName as string | undefined
           }
         );
 
@@ -38,7 +42,8 @@ export function setupRoutes(
           projectName,
           cosenseSid,
           {
-            query: String(request.params.arguments?.query)
+            query: String(request.params.arguments?.query),
+            projectName: request.params.arguments?.projectName as string | undefined
           }
         );
 
@@ -48,7 +53,8 @@ export function setupRoutes(
           cosenseSid,
           {
             title: String(request.params.arguments?.title),
-            body: (request.params.arguments?.body as string | undefined) ?? undefined
+            body: (request.params.arguments?.body as string | undefined) ?? undefined,
+            projectName: request.params.arguments?.projectName as string | undefined
           }
         );
 
@@ -57,7 +63,8 @@ export function setupRoutes(
           projectName,
           cosenseSid,
           {
-            title: String(request.params.arguments?.title)
+            title: String(request.params.arguments?.title),
+            projectName: request.params.arguments?.projectName as string | undefined
           }
         );
 
