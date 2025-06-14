@@ -200,29 +200,6 @@ function toReadablePage(page: GetPageResponse): {
   };
 }
 
-// Scrapboxのページ型定義
-type ScrapboxPage = {
-  title: string;
-  lastAccessed?: number | undefined;
-  created?: number | undefined;
-  updated?: number | undefined;
-  accessed?: number | undefined;
-  views?: number | undefined;
-  linked?: number | undefined;
-  pin?: number | undefined;
-  user?: {
-    id: string;
-    name: string;
-    displayName: string;
-    photo: string;
-  } | undefined;
-  lastUpdateUser?: {
-    id: string;
-    name: string;
-    displayName: string;
-    photo: string;
-  } | undefined;
-};
 
 // /api/pages/:projectname
 type ListPagesResponse = {
@@ -478,7 +455,7 @@ async function listPagesWithSort(
 }
 
 // 型のエクスポート
-export type { ListPagesResponse, ScrapboxPage };
+export type { ListPagesResponse };
 
 // 関数のエクスポート
 export { getPage, listPages, listPagesWithSort, toReadablePage, createPageUrl, searchPages };

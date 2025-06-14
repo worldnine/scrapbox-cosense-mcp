@@ -3,17 +3,29 @@
  */
 
 /**
- * Scrapboxページの基本情報
+ * Scrapboxページの基本情報（実際のAPI形式）
  */
 export interface ScrapboxPage {
-  id: string;
   title: string;
-  created: number;
-  updated: number;
-  accessed: number;
-  persistent: boolean;
-  lines: ScrapboxLine[];
-  descriptions?: string[];  // 冒頭5行を追加
+  lastAccessed?: number | undefined;
+  created?: number | undefined;
+  updated?: number | undefined;
+  accessed?: number | undefined;
+  views?: number | undefined;
+  linked?: number | undefined;
+  pin?: number | undefined;
+  user?: {
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
+  } | undefined;
+  lastUpdateUser?: {
+    id: string;
+    name: string;
+    displayName: string;
+    photo: string;
+  } | undefined;
 }
 
 /**
