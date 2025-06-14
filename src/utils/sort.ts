@@ -1,4 +1,4 @@
-import type { ScrapboxPage } from '../cosense.js';
+import type { ScrapboxPage } from '../types/api.js';
 
 export interface SortOptions {
   sort?: string | undefined;

@@ -7,7 +7,6 @@ import {
   ListResourcesRequestSchema,
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
-  CallToolRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { listPages, getPage, toReadablePage } from "./cosense.js";
 import { formatYmd } from './utils/format.js';
@@ -228,34 +227,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   };
 });
 
-// list_pagesツールのハンドラーを修正
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  if (request.params.name === "list_pages") {
-    const args = request.params.arguments || {};
-    
-    const result = await listPages(projectName, cosenseSid, {
-      sort: String(args.sort || ''),
-      limit: Number(args.limit || 1000),
-      skip: Number(args.skip || 0),
-      excludePinned: Boolean(args.excludePinned || false)
-    });
-
-    return {
-      content: [{
-        type: "text",
-        text: JSON.stringify(result, null, 2)
-      }]
-    };
-  }
-  
-  // 他のツールハンドラーが未実装の場合のデフォルトレスポンス
-  return {
-    content: [{
-      type: "text",
-      text: "Tool not implemented"
-    }]
-  };
-});
 
 // ルートのセットアップ
 setupRoutes(server, {

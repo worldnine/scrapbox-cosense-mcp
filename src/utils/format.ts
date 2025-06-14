@@ -92,7 +92,7 @@ export function getSortDescription(sortMethod: string | undefined): string {
   return `${base}`;
 }
 
-export function getSortValue(page: ScrapboxPage, sortMethod: string | undefined): { 
+export function getSortValue(page: BasePage, sortMethod: string | undefined): { 
   value: number | string | null; 
   formatted: string;
 } {
@@ -209,5 +209,3 @@ export function formatPageOutput(
   return lines.join('\n');
 }
 
-// ScrapboxPageインターフェースをBasePageから継承
-export interface ScrapboxPage extends BasePage {}
