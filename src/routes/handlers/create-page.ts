@@ -4,14 +4,16 @@ import { convertMarkdownToScrapbox } from '../../utils/markdown-converter.js';
 export interface CreatePageParams {
   title: string;
   body?: string | undefined;
+  projectName?: string | undefined;
 }
 
 export async function handleCreatePage(
-  projectName: string,
+  defaultProjectName: string,
   _cosenseSid: string | undefined,
   params: CreatePageParams
 ) {
   try {
+    const projectName = params.projectName || defaultProjectName;
     const title = String(params.title);
     const body = params.body;
     
@@ -32,7 +34,7 @@ export async function handleCreatePage(
           'Error details:',
           `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
           `Operation: create_page`,
-          `Project: ${projectName}`,
+          `Project: ${params.projectName || defaultProjectName}`,
           `Title: ${params.title}`,
           `Timestamp: ${new Date().toISOString()}`
         ].join('\n')

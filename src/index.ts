@@ -149,7 +149,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "create_page",
-        description: `Create a new page in ${projectName} project on ${SERVICE_LABEL}. Creates a new page with the specified title and optional body text. Returns the page creation URL without opening browser.`,
+        description: `Create a new page in Scrapbox project on ${SERVICE_LABEL}. Creates a new page with the specified title and optional body text. Returns the page creation URL without opening browser. Uses ${projectName} project as default if projectName is not specified.`,
         inputSchema: {
           type: "object",
           properties: {
@@ -161,13 +161,17 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: "string",
               description: "Content in markdown format that will be converted to Scrapbox format. Supports standard markdown syntax including links, code blocks, lists, and emphasis.",
             },
+            projectName: {
+              type: "string",
+              description: `Target project name. If not specified, defaults to '${projectName}'.`,
+            },
           },
           required: ["title"],
         },
       },
       {
         name: "get_page_url",
-        description: `Generate URL for a page in ${projectName} project on ${SERVICE_LABEL}. Returns the direct URL to the specified page without opening it in browser.`,
+        description: `Generate URL for a page in Scrapbox project on ${SERVICE_LABEL}. Returns the direct URL to the specified page without opening it in browser. Uses ${projectName} project as default if projectName is not specified.`,
         inputSchema: {
           type: "object",
           properties: {
@@ -175,13 +179,17 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: "string",
               description: "Title of the page",
             },
+            projectName: {
+              type: "string",
+              description: `Target project name. If not specified, defaults to '${projectName}'.`,
+            },
           },
           required: ["title"],
         },
       },
       {
         name: "get_page",
-        description: `Get a page from ${projectName} project on ${SERVICE_LABEL}. Returns page content and its linked pages. Page content includes title and description in plain text format.`,
+        description: `Get a page from Scrapbox project on ${SERVICE_LABEL}. Returns page content and its linked pages. Page content includes title and description in plain text format. Uses ${projectName} project as default if projectName is not specified.`,
         inputSchema: {
           type: "object",
           properties: {
@@ -189,13 +197,17 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: "string",
               description: "Title of the page",
             },
+            projectName: {
+              type: "string",
+              description: `Target project name. If not specified, defaults to '${projectName}'.`,
+            },
           },
           required: ["pageTitle"],
         },
       },
       {
         name: "list_pages",
-        description: `Browse and list pages from ${projectName} project on ${SERVICE_LABEL} with flexible sorting and pagination. Use this tool to discover pages by recency, popularity, or alphabetically. Returns page metadata and first 5 lines of content. Available sorting methods: updated (last update time), created (creation time), accessed (access time), linked (number of incoming links), views (view count), title (alphabetical). Different from search_pages which finds content by keywords.`,
+        description: `Browse and list pages from Scrapbox project on ${SERVICE_LABEL} with flexible sorting and pagination. Use this tool to discover pages by recency, popularity, or alphabetically. Returns page metadata and first 5 lines of content. Available sorting methods: updated (last update time), created (creation time), accessed (access time), linked (number of incoming links), views (view count), title (alphabetical). Different from search_pages which finds content by keywords. Uses ${projectName} project as default if projectName is not specified.`,
         inputSchema: {
           type: "object",
           properties: {
@@ -219,19 +231,27 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: "boolean",
               description: "Whether to exclude pinned pages from the results",
             },
+            projectName: {
+              type: "string",
+              description: `Target project name. If not specified, defaults to '${projectName}'.`,
+            },
           },
           required: [],
         },
       },
       {
         name: "search_pages",
-        description: `Search for content within pages in ${projectName} project on ${SERVICE_LABEL}. Use this tool to find pages containing specific keywords or phrases. Returns matching pages with highlighted search terms and content snippets. Limited to 100 results maximum. Supports basic search ("keyword"), multiple keywords ("word1 word2" for AND search), exclude words ("word1 -word2"), and exact phrases ("\\"exact phrase\\""). Different from list_pages which browses pages by metadata.`,
+        description: `Search for content within pages in Scrapbox project on ${SERVICE_LABEL}. Use this tool to find pages containing specific keywords or phrases. Returns matching pages with highlighted search terms and content snippets. Limited to 100 results maximum. Supports basic search ("keyword"), multiple keywords ("word1 word2" for AND search), exclude words ("word1 -word2"), and exact phrases ("\\"exact phrase\\""). Different from list_pages which browses pages by metadata. Uses ${projectName} project as default if projectName is not specified.`,
         inputSchema: {
           type: "object",
           properties: {
             query: {
               type: "string",
               description: "Search query string",
+            },
+            projectName: {
+              type: "string",
+              description: `Target project name. If not specified, defaults to '${projectName}'.`,
             },
           },
           required: ["query"],

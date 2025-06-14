@@ -3,14 +3,16 @@ import { formatYmd } from '../../utils/format.js';
 
 export interface GetPageParams {
   pageTitle: string;
+  projectName?: string | undefined;
 }
 
 export async function handleGetPage(
-  projectName: string,
+  defaultProjectName: string,
   cosenseSid: string | undefined,
   params: GetPageParams
 ) {
   try {
+    const projectName = params.projectName || defaultProjectName;
     const page = await getPage(projectName, params.pageTitle, cosenseSid);
     
     if (!page) {
@@ -20,7 +22,7 @@ export async function handleGetPage(
           text: [
             `Error: Page "${params.pageTitle}" not found`,
             `Operation: get_page`,
-            `Project: ${projectName}`,
+            `Project: ${params.projectName || defaultProjectName}`,
             `Status: 404`,
             `Timestamp: ${new Date().toISOString()}`
           ].join('\n')
@@ -70,7 +72,7 @@ export async function handleGetPage(
           'Error details:',
           `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
           `Operation: get_page`,
-          `Project: ${projectName}`,
+          `Project: ${params.projectName || defaultProjectName}`,
           `Page: ${params.pageTitle}`,
           `Timestamp: ${new Date().toISOString()}`
         ].join('\n')

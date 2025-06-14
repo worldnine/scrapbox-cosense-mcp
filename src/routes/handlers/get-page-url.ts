@@ -2,14 +2,16 @@ import { createPageUrl } from "../../cosense.js";
 
 export interface GetPageUrlParams {
   title: string;
+  projectName?: string | undefined;
 }
 
 export async function handleGetPageUrl(
-  projectName: string,
+  defaultProjectName: string,
   _cosenseSid: string | undefined,
   params: GetPageUrlParams
 ) {
   try {
+    const projectName = params.projectName || defaultProjectName;
     const title = String(params.title);
     const url = createPageUrl(projectName, title);
     
@@ -27,7 +29,7 @@ export async function handleGetPageUrl(
           'Error details:',
           `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
           `Operation: get_page_url`,
-          `Project: ${projectName}`,
+          `Project: ${params.projectName || defaultProjectName}`,
           `Title: ${params.title}`,
           `Timestamp: ${new Date().toISOString()}`
         ].join('\n')
