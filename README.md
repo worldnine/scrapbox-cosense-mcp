@@ -15,29 +15,40 @@ MCP server for [cosense/scrapbox](https://cosen.se).
 
 - `get_page`
   - Get page content from cosense/Scrapbox
-    - Input: Page title
+    - Input: Page title, optional project name
     - Output: Page content, metadata, links, and editor information
 - `list_pages`
   - Browse and list pages with flexible sorting and pagination
     - Purpose: Discover pages by recency, popularity, or alphabetically
+    - Input: Sorting options, pagination, optional project name
     - Output: Page metadata and first 5 lines of content
     - Max: 1000 pages per request
     - Sorting: updated, created, accessed, linked, views, title
 - `search_pages`
   - Search for content within pages using keywords or phrases
     - Purpose: Find pages containing specific keywords or phrases
+    - Input: Search query, optional project name
     - Output: Matching pages with highlighted search terms and content snippets
     - Max: 100 results (API limitation)
     - Supports: basic search, AND search, exclude search, exact phrases
 - `create_page`
   - Create a new page in the project
-    - Input: Page title and optional markdown body text
+    - Input: Page title, optional markdown body text, optional project name
     - Output: Returns the page creation URL without opening browser
     - Note: Markdown content is converted to Scrapbox format
 - `get_page_url`
   - Generate URL for a page in the project
-    - Input: Page title
+    - Input: Page title, optional project name
     - Output: Direct URL to the specified page
+
+### Multiple Project Support
+
+All tools support an optional `projectName` parameter to target different Scrapbox projects from a single MCP server instance:
+
+- **Default behavior**: Uses `COSENSE_PROJECT_NAME` environment variable when no project is specified
+- **Multi-project usage**: Specify `projectName` parameter to access different projects
+- **Backward compatibility**: Existing configurations work unchanged
+- **Efficient**: Single server handles multiple projects instead of running multiple instances
 
 ### Development
 
@@ -141,29 +152,40 @@ The Inspector provides a URL to access debugging tools in the browser.
 
 - `get_page`
   - cosense/Scrapboxからページコンテンツを取得
-    - 入力: ページタイトル
+    - 入力: ページタイトル、オプションのプロジェクト名
     - 出力: ページコンテンツ、メタデータ、リンク、編集者の情報
 - `list_pages`
   - 柔軟なソートとページネーションによるページ一覧の閲覧
     - 用途: 最新性、人気度、アルファベット順でページを発見
+    - 入力: ソートオプション、ページネーション、オプションのプロジェクト名
     - 出力: ページのメタデータと冒頭5行の内容
     - 最大: 1リクエスト当たり1000件
     - ソート: updated, created, accessed, linked, views, title
 - `search_pages`
   - キーワードやフレーズを使用したページ内コンテンツの検索
     - 用途: 特定のキーワードやフレーズを含むページを発見
+    - 入力: 検索クエリ、オプションのプロジェクト名
     - 出力: マッチしたページとハイライトされた検索語句、コンテンツスニペット
     - 最大: 100件（API制限）
     - サポート: 基本検索、AND検索、除外検索、完全一致フレーズ
 - `create_page`
   - プロジェクトに新しいページを作成
-    - 入力: ページタイトルとオプションのマークダウン本文テキスト
+    - 入力: ページタイトル、オプションのマークダウン本文テキスト、オプションのプロジェクト名
     - 出力: ブラウザを開かずにページ作成URLを返す
     - 注意: マークダウンコンテンツはScrapbox形式に変換されます
 - `get_page_url`
   - プロジェクト内のページのURLを生成
-    - 入力: ページタイトル
+    - 入力: ページタイトル、オプションのプロジェクト名
     - 出力: 指定されたページへの直接URL
+
+## 複数プロジェクト対応
+
+すべてのツールで、単一のMCPサーバーインスタンスから異なるScrapboxプロジェクトを対象とするオプションの`projectName`パラメータをサポートしています：
+
+- **デフォルト動作**: プロジェクトが指定されていない場合は`COSENSE_PROJECT_NAME`環境変数を使用
+- **複数プロジェクト使用**: `projectName`パラメータを指定して異なるプロジェクトにアクセス
+- **後方互換性**: 既存の設定は変更なしで動作
+- **効率性**: 複数のインスタンスを実行する代わりに、単一のサーバーで複数のプロジェクトを処理
 
 ## 開発方法
 
