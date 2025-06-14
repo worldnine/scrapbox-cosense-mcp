@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-const API_DOMAIN = process.env.API_DOMAIN || "scrapbox.io";
 const SERVICE_LABEL = process.env.SERVICE_LABEL || "cosense (scrapbox)";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -8,11 +7,10 @@ import {
   ListResourcesRequestSchema,
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
-  CallToolRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { listPages, getPage, toReadablePage } from "./cosense.js";
-import { formatYmd } from './utils/format.js';
-import { setupRoutes } from './routes/index.js';
+import { listPages, getPage, toReadablePage } from "@/cosense.js";
+import { formatYmd } from '@/utils/format.js';
+import { setupRoutes } from '@/routes/index.js';
 
 // 環境変数のデフォルト値と検証用の定数
 const FETCH_PAGE_LIMIT = 100;  // 固定で100件取得
@@ -229,39 +227,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   };
 });
 
-// list_pagesツールのハンドラーを修正
-server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
-  if (request.params.name === "list_pages") {
-    const args = request.params.arguments || {};
-    
-    const result = await listPages(projectName, cosenseSid, {
-      sort: String(args.sort || ''),
-      limit: Number(args.limit || 1000),
-      skip: Number(args.skip || 0),
-      excludePinned: Boolean(args.excludePinned || false)
-    });
-
-    return {
-      content: [{
-        type: "text",
-        text: JSON.stringify(result, null, 2)
-      }]
-    };
-  }
-  
-  // 他のツールハンドラーが未実装の場合のデフォルトレスポンス
-  return {
-    content: [{
-      type: "text",
-      text: "Tool not implemented"
-    }]
-  };
-});
 
 // ルートのセットアップ
 setupRoutes(server, {
   projectName,
-  cosenseSid,
+  cosenseSid: cosenseSid ?? undefined,
 });
 
 async function main() {

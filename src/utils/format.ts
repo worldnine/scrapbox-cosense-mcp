@@ -1,67 +1,67 @@
 // 基本的なページ型を定義
 export interface BasePage {
   title: string;
-  created?: number;
-  updated?: number;
-  pin?: number;
+  created?: number | undefined;
+  updated?: number | undefined;
+  pin?: number | undefined;
   user?: {
     id: string;
     name: string;
     displayName: string;
     photo: string;
-  };
+  } | undefined;
   lastUpdateUser?: {
     id: string;
     name: string;
     displayName: string;
     photo: string;
-  };
-  lastAccessed?: number;
-  accessed?: number;
-  views?: number;
-  linked?: number;
+  } | undefined;
+  lastAccessed?: number | undefined;
+  accessed?: number | undefined;
+  views?: number | undefined;
+  linked?: number | undefined;
 }
 
 // 検索結果用の拡張ページ型
 interface ExtendedPage extends BasePage {
-  words?: string[];
-  lines?: string[];
+  words?: string[] | undefined;
+  lines?: string[] | undefined;
   collaborators?: Array<{
     id: string;
     name: string;
     displayName: string;
     photo: string;
-  }>;
-  descriptions?: string[];  // 冒頭5行を追加
+  }> | undefined;
+  descriptions?: string[] | undefined;  // 冒頭5行を追加
 }
 
 export interface PageMetadata {
   title: string;
-  created?: number;
-  updated?: number;
-  pin?: number | boolean;
+  created?: number | undefined;
+  updated?: number | undefined;
+  pin?: number | boolean | undefined;
   user?: {
     id: string;
     name: string;
     displayName: string;
     photo: string;
-  };
+  } | undefined;
   lastUpdateUser?: {
     id: string;
     name: string;
     displayName: string;
     photo: string;
-  };
+  } | undefined;
   collaborators?: Array<{
     id: string;
     displayName: string;
-  }>;
-  words?: string[];
-  lines?: string[];
+  }> | undefined;
+  words?: string[] | undefined;
+  lines?: string[] | undefined;
   debug?: {
     warning?: string;
     error?: string;
-  };
+  } | undefined;
 }
 
 export interface FormatPageOptions {
@@ -92,7 +92,7 @@ export function getSortDescription(sortMethod: string | undefined): string {
   return `${base}`;
 }
 
-export function getSortValue(page: ScrapboxPage, sortMethod: string | undefined): { 
+export function getSortValue(page: BasePage, sortMethod: string | undefined): { 
   value: number | string | null; 
   formatted: string;
 } {
@@ -209,5 +209,3 @@ export function formatPageOutput(
   return lines.join('\n');
 }
 
-// ScrapboxPageインターフェースをBasePageから継承
-export interface ScrapboxPage extends BasePage {}
