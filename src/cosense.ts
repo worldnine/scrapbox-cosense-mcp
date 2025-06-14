@@ -80,7 +80,7 @@ type GetPageResponse = {
     name: string;
     displayName: string;
     photo: string;
-  };
+  } | undefined;
   collaborators: {
     id: string;
     name: string;
@@ -90,7 +90,7 @@ type GetPageResponse = {
   debug?: {
     error?: string;
     warning?: string;
-  };
+  } | undefined;
 };
 
 async function getPage(
