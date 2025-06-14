@@ -1,15 +1,15 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { handleListPages } from './handlers/list-pages.js';
-import { handleGetPage } from './handlers/get-page.js';
-import { handleSearchPages } from './handlers/search-pages.js';
-import { handleCreatePage } from './handlers/create-page.js';
+import { handleListPages } from '@/routes/handlers/list-pages.js';
+import { handleGetPage } from '@/routes/handlers/get-page.js';
+import { handleSearchPages } from '@/routes/handlers/search-pages.js';
+import { handleCreatePage } from '@/routes/handlers/create-page.js';
 
 export function setupRoutes(
   server: Server,
   config: {
     projectName: string;
-    cosenseSid?: string;
+    cosenseSid?: string | undefined;
   }
 ) {
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -47,7 +47,7 @@ export function setupRoutes(
           cosenseSid,
           {
             title: String(request.params.arguments?.title),
-            body: request.params.arguments?.body as string | undefined
+            body: (request.params.arguments?.body as string | undefined) ?? undefined
           }
         );
 

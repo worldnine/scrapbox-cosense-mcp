@@ -1,11 +1,11 @@
-import { AuthParams, PaginationParams } from './common.js';
-import { ErrorResponse } from './error.js';
-import {
+import type { AuthParams, PaginationParams } from '@/types/common.js';
+import type { ErrorResponse } from '@/types/error.js';
+import type {
   ListPagesResponse,
   SearchPagesResponse,
   CreatePageResponse,
   ScrapboxPage,
-} from './api.js';
+} from '@/types/api.js';
 
 /**
  * MCPハンドラーの共通レスポンス型
