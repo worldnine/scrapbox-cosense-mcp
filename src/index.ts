@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const SERVICE_LABEL = process.env.SERVICE_LABEL || "cosense (scrapbox)";
+const TOOL_SUFFIX = process.env.COSENSE_TOOL_SUFFIX;
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
@@ -21,6 +22,11 @@ const MAX_PAGE_LIMIT = 1000;
 
 // 有効なソート方法の定義
 const VALID_SORT_METHODS = ['updated', 'created', 'accessed', 'linked', 'views', 'title'] as const;
+
+// ツール名生成ヘルパー
+function getToolName(baseName: string): string {
+  return TOOL_SUFFIX ? `${baseName}_${TOOL_SUFFIX}` : baseName;
+}
 
 // resourcesの初期取得用の設定
 const cosenseSid: string | undefined = process.env.COSENSE_SID;
@@ -148,7 +154,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
       {
-        name: "create_page",
+        name: getToolName("create_page"),
         description: `Create a new page in Scrapbox project on ${SERVICE_LABEL}. Creates a new page with the specified title and optional body text. Returns the page creation URL without opening browser. Uses ${projectName} project as default if projectName is not specified.`,
         inputSchema: {
           type: "object",
@@ -170,7 +176,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: "get_page_url",
+        name: getToolName("get_page_url"),
         description: `Generate URL for a page in Scrapbox project on ${SERVICE_LABEL}. Returns the direct URL to the specified page without opening it in browser. Uses ${projectName} project as default if projectName is not specified.`,
         inputSchema: {
           type: "object",
@@ -188,7 +194,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: "get_page",
+        name: getToolName("get_page"),
         description: `Get a page from Scrapbox project on ${SERVICE_LABEL}. Returns page content and its linked pages. Page content includes title and description in plain text format. Uses ${projectName} project as default if projectName is not specified.`,
         inputSchema: {
           type: "object",
@@ -206,7 +212,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: "list_pages",
+        name: getToolName("list_pages"),
         description: `Browse and list pages from Scrapbox project on ${SERVICE_LABEL} with flexible sorting and pagination. Use this tool to discover pages by recency, popularity, or alphabetically. Returns page metadata and first 5 lines of content. Available sorting methods: updated (last update time), created (creation time), accessed (access time), linked (number of incoming links), views (view count), title (alphabetical). Different from search_pages which finds content by keywords. Uses ${projectName} project as default if projectName is not specified.`,
         inputSchema: {
           type: "object",
@@ -240,7 +246,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: "search_pages",
+        name: getToolName("search_pages"),
         description: `Search for content within pages in Scrapbox project on ${SERVICE_LABEL}. Use this tool to find pages containing specific keywords or phrases. Returns matching pages with highlighted search terms and content snippets. Limited to 100 results maximum. Supports basic search ("keyword"), multiple keywords ("word1 word2" for AND search), exclude words ("word1 -word2"), and exact phrases ("\\"exact phrase\\""). Different from list_pages which browses pages by metadata. Uses ${projectName} project as default if projectName is not specified.`,
         inputSchema: {
           type: "object",
@@ -266,6 +272,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 setupRoutes(server, {
   projectName,
   cosenseSid: cosenseSid ?? undefined,
+  toolSuffix: TOOL_SUFFIX,
 });
 
 async function main() {
