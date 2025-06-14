@@ -1,5 +1,5 @@
 import { fetch } from "@whatwg-node/fetch";
-import { sortPages, type SortOptions } from './utils/sort.js';
+import { sortPages } from './utils/sort.js';
 const API_DOMAIN = process.env.API_DOMAIN || "scrapbox.io";
 
 // /api/pages/:projectname/search/query の型定義
@@ -179,7 +179,7 @@ function toReadablePage(page: GetPageResponse): {
     name: string;
     displayName: string;
     photo: string;
-  };
+  } | undefined;
   collaborators: {
     id: string;
     name: string;
@@ -194,7 +194,7 @@ function toReadablePage(page: GetPageResponse): {
     created: page.created,
     updated: page.updated,
     user: page.user,
-    lastUpdateUser: page.lastUpdateUser,
+    lastUpdateUser: page.lastUpdateUser ?? undefined,
     collaborators: page.collaborators,
     links: page.links,
   };
@@ -203,25 +203,25 @@ function toReadablePage(page: GetPageResponse): {
 // Scrapboxのページ型定義
 type ScrapboxPage = {
   title: string;
-  lastAccessed?: number;
-  created?: number;
-  updated?: number;
-  accessed?: number;
-  views?: number;
-  linked?: number;
-  pin?: number;
+  lastAccessed?: number | undefined;
+  created?: number | undefined;
+  updated?: number | undefined;
+  accessed?: number | undefined;
+  views?: number | undefined;
+  linked?: number | undefined;
+  pin?: number | undefined;
   user?: {
     id: string;
     name: string;
     displayName: string;
     photo: string;
-  };
+  } | undefined;
   lastUpdateUser?: {
     id: string;
     name: string;
     displayName: string;
     photo: string;
-  };
+  } | undefined;
 };
 
 // /api/pages/:projectname
@@ -232,25 +232,25 @@ type ListPagesResponse = {
   projectName: string;
   pages: {
     title: string;
-    lastAccessed?: number;
-    created?: number;
-    updated?: number;
-    accessed?: number;
-    views?: number;
-    linked?: number;
-    pin?: number;
+    lastAccessed?: number | undefined;
+    created?: number | undefined;
+    updated?: number | undefined;
+    accessed?: number | undefined;
+    views?: number | undefined;
+    linked?: number | undefined;
+    pin?: number | undefined;
     user?: {
       id: string;
       name: string;
       displayName: string;
       photo: string;
-    };
+    } | undefined;
     lastUpdateUser?: {
       id: string;
       name: string;
       displayName: string;
       photo: string;
-    };
+    } | undefined;
   }[];
 };
 
@@ -269,10 +269,10 @@ type DebugInfo = {
 async function listPages(
   projectName: string,
   sid?: string,
-  options: { limit?: number; skip?: number; sort?: string; excludePinned?: boolean } = {}
+  options: { limit?: number | undefined; skip?: number | undefined; sort?: string | undefined; excludePinned?: boolean | undefined } = {}
 ): Promise<ListPagesResponse & { debug?: DebugInfo }> {
   try {
-    const { limit = 1000, skip = 0, sort, excludePinned } = options;
+    const { sort, excludePinned } = options;
     
     // クエリパラメータの構築
     const sortValue = options.sort || 'created';
@@ -330,7 +330,10 @@ async function listPages(
     );
 
     // ソートとフィルタリングを適用
-    const sortedPages = sortPages(pagesWithDetails, { sort, excludePinned });
+    const sortedPages = sortPages(pagesWithDetails, { 
+      sort: sort ?? undefined, 
+      excludePinned: excludePinned ?? undefined 
+    });
 
     return {
       ...(pages as ListPagesResponse),
@@ -440,8 +443,8 @@ async function listPagesWithSort(
   options: {
     limit: number;
     skip: number;
-    sort?: string;
-    excludePinned?: boolean;
+    sort?: string | undefined;
+    excludePinned?: boolean | undefined;
   },
   sid?: string
 ): Promise<ListPagesResponse> {
@@ -453,11 +456,14 @@ async function listPagesWithSort(
   const response = await listPages(projectName, sid, {
     limit: fetchSize,
     skip: 0, // 最初から取得して後でskipを適用
-    excludePinned: options.excludePinned
+    excludePinned: options.excludePinned ?? false
   });
 
   // 2. 取得したページをメモリ上でソート
-  const sortedPages = sortPages(response.pages, { sort: options.sort, excludePinned: options.excludePinned });
+  const sortedPages = sortPages(response.pages, { 
+    sort: options.sort ?? undefined, 
+    excludePinned: options.excludePinned ?? undefined 
+  });
 
   // 3. skip位置から必要な件数を切り出し
   const resultPages = sortedPages.slice(skip, skip + limit);

@@ -1,6 +1,6 @@
-import { AuthParams, PaginationParams } from './common.js';
-import { ErrorResponse } from './error.js';
-import {
+import type { AuthParams, PaginationParams } from './common.js';
+import type { ErrorResponse } from './error.js';
+import type {
   ListPagesResponse,
   SearchPagesResponse,
   CreatePageResponse,

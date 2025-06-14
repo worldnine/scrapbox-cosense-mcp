@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-const API_DOMAIN = process.env.API_DOMAIN || "scrapbox.io";
 const SERVICE_LABEL = process.env.SERVICE_LABEL || "cosense (scrapbox)";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -230,7 +229,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 });
 
 // list_pagesツールのハンドラーを修正
-server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
   if (request.params.name === "list_pages") {
     const args = request.params.arguments || {};
     
@@ -261,7 +260,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
 // ルートのセットアップ
 setupRoutes(server, {
   projectName,
-  cosenseSid,
+  cosenseSid: cosenseSid ?? undefined,
 });
 
 async function main() {

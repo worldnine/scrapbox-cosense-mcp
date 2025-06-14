@@ -1,8 +1,8 @@
 import type { ScrapboxPage } from '../cosense.js';
 
 export interface SortOptions {
-  sort?: string;
-  excludePinned?: boolean;
+  sort?: string | undefined;
+  excludePinned?: boolean | undefined;
 }
 
 export function sortPages(pages: ScrapboxPage[], options: SortOptions = {}): ScrapboxPage[] {
