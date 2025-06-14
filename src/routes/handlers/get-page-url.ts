@@ -1,4 +1,4 @@
-import { createPageUrl } from "@/cosense.js";
+import { createPageUrl } from "../../cosense.js";
 
 export interface GetPageUrlParams {
   title: string;
