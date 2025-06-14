@@ -82,7 +82,7 @@ describe('handleSearchPages', () => {
         ...mockSearchResponse,
         searchQuery: 'basic test',
         count: 1,
-        pages: [mockSearchResponse.pages[0]]
+        pages: [mockSearchResponse.pages[0]!]
       });
 
       const params = { query: 'basic test' };
