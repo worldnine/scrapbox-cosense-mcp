@@ -151,12 +151,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "create_page",
-        description: `
-        Create a new page in ${projectName} project on ${SERVICE_LABEL}
-        
-        Creates a new page with the specified title and optional body text.
-        The page will be opened in your default browser.
-        `,
+        description: `Create a new page in ${projectName} project on ${SERVICE_LABEL}. Creates a new page with the specified title and optional body text. The page will be opened in your default browser.`,
         inputSchema: {
           type: "object",
           properties: {
@@ -174,11 +169,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "get_page",
-        description: `
-        Get a page from ${projectName} project on ${SERVICE_LABEL}
-        Returns page content and its linked pages.
-        Page content includes title and description in plain text format.
-        `,
+        description: `Get a page from ${projectName} project on ${SERVICE_LABEL}. Returns page content and its linked pages. Page content includes title and description in plain text format.`,
         inputSchema: {
           type: "object",
           properties: {
@@ -192,17 +183,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "list_pages",
-        description: `
-        List pages from ${projectName} project on ${SERVICE_LABEL} with flexible sorting options.
-        
-        Available sorting methods:
-        - updated: Sort by last update time
-        - created: Sort by creation time
-        - accessed: Sort by access time
-        - linked: Sort by number of incoming links
-        - views: Sort by view count
-        - title: Sort by page title
-        `,
+        description: `Browse and list pages from ${projectName} project on ${SERVICE_LABEL} with flexible sorting and pagination. Use this tool to discover pages by recency, popularity, or alphabetically. Returns page metadata and first 5 lines of content. Available sorting methods: updated (last update time), created (creation time), accessed (access time), linked (number of incoming links), views (view count), title (alphabetical). Different from search_pages which finds content by keywords.`,
         inputSchema: {
           type: "object",
           properties: {
@@ -232,15 +213,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "search_pages",
-        description: `
-        Search pages in ${projectName} project on ${SERVICE_LABEL}
-        
-        Supports various search features:
-        - Basic search: "keyword"
-        - Multiple keywords: "word1 word2" (AND search)
-        - Exclude words: "word1 -word2"
-        - Exact phrase: "\\"exact phrase\\""
-        `,
+        description: `Search for content within pages in ${projectName} project on ${SERVICE_LABEL}. Use this tool to find pages containing specific keywords or phrases. Returns matching pages with highlighted search terms and content snippets. Limited to 100 results maximum. Supports basic search ("keyword"), multiple keywords ("word1 word2" for AND search), exclude words ("word1 -word2"), and exact phrases ("\\"exact phrase\\""). Different from list_pages which browses pages by metadata.`,
         inputSchema: {
           type: "object",
           properties: {
