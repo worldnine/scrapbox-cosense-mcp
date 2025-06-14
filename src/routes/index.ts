@@ -6,17 +6,27 @@ import { handleSearchPages } from './handlers/search-pages.js';
 import { handleCreatePage } from './handlers/create-page.js';
 import { handleGetPageUrl } from './handlers/get-page-url.js';
 
+// ツール名正規化ヘルパー
+function normalizeToolName(toolName: string, toolSuffix?: string): string {
+  if (!toolSuffix) return toolName;
+  
+  const suffix = `_${toolSuffix}`;
+  return toolName.endsWith(suffix) ? toolName.slice(0, -suffix.length) : toolName;
+}
+
 export function setupRoutes(
   server: Server,
   config: {
     projectName: string;
     cosenseSid?: string | undefined;
+    toolSuffix?: string | undefined;
   }
 ) {
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    const { projectName, cosenseSid } = config;
+    const { projectName, cosenseSid, toolSuffix } = config;
+    const normalizedToolName = normalizeToolName(request.params.name, toolSuffix);
 
-    switch (request.params.name) {
+    switch (normalizedToolName) {
       case "list_pages":
         return handleListPages(
           projectName,

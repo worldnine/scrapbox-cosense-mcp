@@ -43,12 +43,46 @@ MCP server for [cosense/scrapbox](https://cosen.se).
 
 ### Multiple Project Support
 
-All tools support an optional `projectName` parameter to target different Scrapbox projects from a single MCP server instance:
+**Method 1: Multiple MCP Server Instances (Recommended)**
+
+For best user experience, run separate MCP server instances for each project:
+
+```json
+{
+  "mcpServers": {
+    "scrapbox-main": {
+      "command": "npx",
+      "args": ["github:worldnine/scrapbox-cosense-mcp"],
+      "env": {
+        "COSENSE_PROJECT_NAME": "my-main-project",
+        "COSENSE_SID": "s:main_sid_here...",
+        "COSENSE_TOOL_SUFFIX": "main",
+        "SERVICE_LABEL": "Main Scrapbox"
+      }
+    },
+    "scrapbox-team": {
+      "command": "npx",
+      "args": ["github:worldnine/scrapbox-cosense-mcp"],
+      "env": {
+        "COSENSE_PROJECT_NAME": "team-workspace", 
+        "COSENSE_SID": "s:team_sid_here...",
+        "COSENSE_TOOL_SUFFIX": "team",
+        "SERVICE_LABEL": "Team Scrapbox"
+      }
+    }
+  }
+}
+```
+
+This creates tools like `get_page_main`, `list_pages_main`, `get_page_team`, `list_pages_team`, allowing LLMs to automatically select the appropriate project.
+
+**Method 2: Single Server with Optional Parameters**
+
+All tools support an optional `projectName` parameter to target different projects from a single server:
 
 - **Default behavior**: Uses `COSENSE_PROJECT_NAME` environment variable when no project is specified
-- **Multi-project usage**: Specify `projectName` parameter to access different projects
+- **Multi-project usage**: Specify `projectName` parameter to access different projects  
 - **Backward compatibility**: Existing configurations work unchanged
-- **Efficient**: Single server handles multiple projects instead of running multiple instances
 
 ### Development
 
@@ -117,6 +151,7 @@ This server uses the following environment variables:
 - `SERVICE_LABEL`: Service identifier (default: "cosense (scrapbox)")
 - `COSENSE_PAGE_LIMIT`: Initial page fetch limit (1-1000, default: 100)
 - `COSENSE_SORT_METHOD`: Initial page fetch order (updated/created/accessed/linked/views/title, default: updated)
+- `COSENSE_TOOL_SUFFIX`: Tool name suffix for multiple server instances (e.g., "main" creates "get_page_main")
 
 #### Environment Variable Behavior
 
@@ -180,12 +215,46 @@ The Inspector provides a URL to access debugging tools in the browser.
 
 ## 複数プロジェクト対応
 
-すべてのツールで、単一のMCPサーバーインスタンスから異なるScrapboxプロジェクトを対象とするオプションの`projectName`パラメータをサポートしています：
+**方法1: 複数MCPサーバーインスタンス（推奨）**
+
+最良のユーザー体験のために、プロジェクトごとに別々のMCPサーバーインスタンスを実行してください：
+
+```json
+{
+  "mcpServers": {
+    "scrapbox-main": {
+      "command": "npx",
+      "args": ["github:worldnine/scrapbox-cosense-mcp"],
+      "env": {
+        "COSENSE_PROJECT_NAME": "my-main-project",
+        "COSENSE_SID": "s:main_sid_here...",
+        "COSENSE_TOOL_SUFFIX": "main",
+        "SERVICE_LABEL": "メインScrapbox"
+      }
+    },
+    "scrapbox-team": {
+      "command": "npx",
+      "args": ["github:worldnine/scrapbox-cosense-mcp"],
+      "env": {
+        "COSENSE_PROJECT_NAME": "team-workspace", 
+        "COSENSE_SID": "s:team_sid_here...",
+        "COSENSE_TOOL_SUFFIX": "team",
+        "SERVICE_LABEL": "チームScrapbox"
+      }
+    }
+  }
+}
+```
+
+これにより `get_page_main`、`list_pages_main`、`get_page_team`、`list_pages_team` のようなツールが作成され、LLMが自動的に適切なプロジェクトを選択できるようになります。
+
+**方法2: オプショナルパラメータを使用した単一サーバー**
+
+すべてのツールで、単一サーバーから異なるプロジェクトを対象とするオプションの`projectName`パラメータをサポートしています：
 
 - **デフォルト動作**: プロジェクトが指定されていない場合は`COSENSE_PROJECT_NAME`環境変数を使用
 - **複数プロジェクト使用**: `projectName`パラメータを指定して異なるプロジェクトにアクセス
 - **後方互換性**: 既存の設定は変更なしで動作
-- **効率性**: 複数のインスタンスを実行する代わりに、単一のサーバーで複数のプロジェクトを処理
 
 ## 開発方法
 
@@ -254,6 +323,7 @@ Windowsの場合: `%APPDATA%/Claude/claude_desktop_config.json`
 - `SERVICE_LABEL`: サービスの識別名（デフォルト: "cosense (scrapbox)"）
 - `COSENSE_PAGE_LIMIT`: 初期取得時のページ数（1-1000、デフォルト: 100）
 - `COSENSE_SORT_METHOD`: 初期取得時の取得ページ順（updated/created/accessed/linked/views/title、デフォルト: updated）
+- `COSENSE_TOOL_SUFFIX`: 複数サーバーインスタンス用のツール名サフィックス（例："main"で"get_page_main"が作成されます）
 
 ### 環境変数の挙動について
 
