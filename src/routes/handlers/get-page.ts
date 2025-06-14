@@ -1,5 +1,5 @@
-import { getPage, toReadablePage } from "../../cosense.js";
-import { formatYmd } from '../../utils/format.js';
+import { getPage, toReadablePage } from "@/cosense.js";
+import { formatYmd } from '@/utils/format.js';
 
 export interface GetPageParams {
   pageTitle: string;
