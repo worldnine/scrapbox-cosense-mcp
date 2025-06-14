@@ -30,7 +30,7 @@ export async function handleListPages(
       
       while (unpinnedPages.length < targetLimit) {
         const fetchedPages = await listPages(projectName, cosenseSid, {
-          sort,
+          ...(sort !== undefined && { sort }),
           limit: targetLimit * 3,
           skip: currentSkip
         });
@@ -52,7 +52,7 @@ export async function handleListPages(
       pages = await listPagesWithSort(
         projectName,
         {
-          sort,
+          ...(sort !== undefined && { sort }),
           limit: limit || 10,
           skip,
         },

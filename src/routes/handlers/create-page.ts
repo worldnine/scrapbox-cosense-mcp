@@ -3,7 +3,7 @@ import { convertMarkdownToScrapbox } from '../../utils/markdown-converter.js';
 
 export interface CreatePageParams {
   title: string;
-  body?: string;
+  body?: string | undefined;
 }
 
 export async function handleCreatePage(

@@ -9,7 +9,7 @@ export function setupRoutes(
   server: Server,
   config: {
     projectName: string;
-    cosenseSid?: string;
+    cosenseSid?: string | undefined;
   }
 ) {
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -47,7 +47,7 @@ export function setupRoutes(
           cosenseSid,
           {
             title: String(request.params.arguments?.title),
-            body: request.params.arguments?.body as string | undefined
+            body: (request.params.arguments?.body as string | undefined) ?? undefined
           }
         );
 
