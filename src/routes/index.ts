@@ -4,6 +4,7 @@ import { handleListPages } from '@/routes/handlers/list-pages.js';
 import { handleGetPage } from '@/routes/handlers/get-page.js';
 import { handleSearchPages } from '@/routes/handlers/search-pages.js';
 import { handleCreatePage } from '@/routes/handlers/create-page.js';
+import { handleGetPageUrl } from '@/routes/handlers/get-page-url.js';
 
 export function setupRoutes(
   server: Server,
@@ -48,6 +49,15 @@ export function setupRoutes(
           {
             title: String(request.params.arguments?.title),
             body: (request.params.arguments?.body as string | undefined) ?? undefined
+          }
+        );
+
+      case "get_page_url":
+        return handleGetPageUrl(
+          projectName,
+          cosenseSid,
+          {
+            title: String(request.params.arguments?.title)
           }
         );
 
