@@ -32,8 +32,12 @@ MCP server for [cosense/scrapbox](https://cosen.se).
 - `create_page`
   - Create a new page in the project
     - Input: Page title and optional markdown body text
-    - Output: Opens the new page in your default browser
+    - Output: Returns the page creation URL without opening browser
     - Note: Markdown content is converted to Scrapbox format
+- `get_page_url`
+  - Generate URL for a page in the project
+    - Input: Page title
+    - Output: Direct URL to the specified page
 
 ### Development
 
@@ -154,8 +158,12 @@ The Inspector provides a URL to access debugging tools in the browser.
 - `create_page`
   - プロジェクトに新しいページを作成
     - 入力: ページタイトルとオプションのマークダウン本文テキスト
-    - 出力: デフォルトブラウザで新しいページを開く
+    - 出力: ブラウザを開かずにページ作成URLを返す
     - 注意: マークダウンコンテンツはScrapbox形式に変換されます
+- `get_page_url`
+  - プロジェクト内のページのURLを生成
+    - 入力: ページタイトル
+    - 出力: 指定されたページへの直接URL
 
 ## 開発方法
 
