@@ -149,7 +149,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "create_page",
-        description: `Create a new page in ${projectName} project on ${SERVICE_LABEL}. Creates a new page with the specified title and optional body text. The page will be opened in your default browser.`,
+        description: `Create a new page in ${projectName} project on ${SERVICE_LABEL}. Creates a new page with the specified title and optional body text. Returns the page creation URL without opening browser.`,
         inputSchema: {
           type: "object",
           properties: {
@@ -160,6 +160,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             body: {
               type: "string",
               description: "Content in markdown format that will be converted to Scrapbox format. Supports standard markdown syntax including links, code blocks, lists, and emphasis.",
+            },
+          },
+          required: ["title"],
+        },
+      },
+      {
+        name: "get_page_url",
+        description: `Generate URL for a page in ${projectName} project on ${SERVICE_LABEL}. Returns the direct URL to the specified page without opening it in browser.`,
+        inputSchema: {
+          type: "object",
+          properties: {
+            title: {
+              type: "string",
+              description: "Title of the page",
             },
           },
           required: ["title"],

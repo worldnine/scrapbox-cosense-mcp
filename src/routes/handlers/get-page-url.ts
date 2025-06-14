@@ -1,27 +1,22 @@
 import { createPageUrl } from "@/cosense.js";
-import { convertMarkdownToScrapbox } from '@/utils/markdown-converter.js';
 
-export interface CreatePageParams {
+export interface GetPageUrlParams {
   title: string;
-  body?: string | undefined;
 }
 
-export async function handleCreatePage(
+export async function handleGetPageUrl(
   projectName: string,
   _cosenseSid: string | undefined,
-  params: CreatePageParams
+  params: GetPageUrlParams
 ) {
   try {
     const title = String(params.title);
-    const body = params.body;
-    
-    const convertedBody = body ? await convertMarkdownToScrapbox(body) : undefined;
-    const url = createPageUrl(projectName, title, convertedBody);
+    const url = createPageUrl(projectName, title);
     
     return {
       content: [{
         type: "text",
-        text: `Created page: ${title}\nURL: ${url}`
+        text: url
       }]
     };
   } catch (error) {
@@ -31,7 +26,7 @@ export async function handleCreatePage(
         text: [
           'Error details:',
           `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          `Operation: create_page`,
+          `Operation: get_page_url`,
           `Project: ${projectName}`,
           `Title: ${params.title}`,
           `Timestamp: ${new Date().toISOString()}`
