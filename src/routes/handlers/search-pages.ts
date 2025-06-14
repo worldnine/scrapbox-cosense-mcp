@@ -1,5 +1,5 @@
-import { searchPages } from "@/cosense.js";
-import { formatPageOutput } from '@/utils/format.js';
+import { searchPages } from "../../cosense.js";
+import { formatPageOutput } from '../../utils/format.js';
 
 export interface SearchPagesParams {
   query: string;
