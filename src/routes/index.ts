@@ -1,10 +1,10 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { handleListPages } from '@/routes/handlers/list-pages.js';
-import { handleGetPage } from '@/routes/handlers/get-page.js';
-import { handleSearchPages } from '@/routes/handlers/search-pages.js';
-import { handleCreatePage } from '@/routes/handlers/create-page.js';
-import { handleGetPageUrl } from '@/routes/handlers/get-page-url.js';
+import { handleListPages } from './handlers/list-pages.js';
+import { handleGetPage } from './handlers/get-page.js';
+import { handleSearchPages } from './handlers/search-pages.js';
+import { handleCreatePage } from './handlers/create-page.js';
+import { handleGetPageUrl } from './handlers/get-page-url.js';
 
 export function setupRoutes(
   server: Server,

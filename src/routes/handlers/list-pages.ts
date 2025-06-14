@@ -1,6 +1,6 @@
-import { type ListPagesResponse } from "@/cosense.js";
-import { listPages, listPagesWithSort } from "@/cosense.js";
-import { formatPageOutput, getSortDescription, getSortValue } from '@/utils/format.js';
+import { type ListPagesResponse } from "../../cosense.js";
+import { listPages, listPagesWithSort } from "../../cosense.js";
+import { formatPageOutput, getSortDescription, getSortValue } from '../../utils/format.js';
 
 export interface ListPagesParams {
   sort?: string;
