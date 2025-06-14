@@ -66,10 +66,10 @@ describe('handleGetPage', () => {
       const result = await handleGetPage(mockProjectName, mockCosenseSid, params);
 
       expect(result.content).toHaveLength(1);
-      expect(result.content[0].type).toBe('text');
-      expect(result.content[0].text).toContain('Title: Test Page');
-      expect(result.content[0].text).toContain('Line 1');
-      expect(result.content[0].text).toContain('Line 2');
+      expect(result.content[0]?.type).toBe('text');
+      expect(result.content[0]?.text).toContain('Title: Test Page');
+      expect(result.content[0]?.text).toContain('Line 1');
+      expect(result.content[0]?.text).toContain('Line 2');
 
       expect(mockedCosense.getPage).toHaveBeenCalledWith(
         mockProjectName,
@@ -86,7 +86,7 @@ describe('handleGetPage', () => {
       const params = { pageTitle: 'Simple Test' };
       const result = await handleGetPage(mockProjectName, mockCosenseSid, params);
 
-      expect(result.content[0].text).toContain('Title: Test Page');
+      expect(result.content[0]?.text).toContain('Title: Test Page');
     });
   });
 
@@ -98,9 +98,9 @@ describe('handleGetPage', () => {
       const result = await handleGetPage(mockProjectName, mockCosenseSid, params);
 
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Page \"Nonexistent Page\" not found');
-      expect(result.content[0].text).toContain('Operation: get_page');
-      expect(result.content[0].text).toContain(`Project: ${mockProjectName}`);
+      expect(result.content[0]?.text).toContain('Page \"Nonexistent Page\" not found');
+      expect(result.content[0]?.text).toContain('Operation: get_page');
+      expect(result.content[0]?.text).toContain(`Project: ${mockProjectName}`);
     });
 
     test('空のページタイトルが正しく処理されること', async () => {
@@ -110,7 +110,7 @@ describe('handleGetPage', () => {
       const result = await handleGetPage(mockProjectName, mockCosenseSid, params);
 
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Page \"\" not found');
+      expect(result.content[0]?.text).toContain('Page \"\" not found');
     });
 
     test('APIエラーが発生した場合にエラーレスポンスを返すこと', async () => {
@@ -121,8 +121,8 @@ describe('handleGetPage', () => {
       const result = await handleGetPage(mockProjectName, mockCosenseSid, params);
 
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Error details:');
-      expect(result.content[0].text).toContain(errorMessage);
+      expect(result.content[0]?.text).toContain('Error details:');
+      expect(result.content[0]?.text).toContain(errorMessage);
     });
   });
 });

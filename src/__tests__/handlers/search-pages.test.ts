@@ -63,12 +63,12 @@ describe('handleSearchPages', () => {
       const result = await handleSearchPages(mockProjectName, mockCosenseSid, params);
 
       expect(result.content).toHaveLength(1);
-      expect(result.content[0].type).toBe('text');
-      expect(result.content[0].text).toContain('Search query: test query');
-      expect(result.content[0].text).toContain('Total results: 2');
-      expect(result.content[0].text).toContain('Project: test-project');
-      expect(result.content[0].text).toContain('Test Page 1');
-      expect(result.content[0].text).toContain('Another Test Page');
+      expect(result.content[0]?.type).toBe('text');
+      expect(result.content[0]?.text).toContain('Search query: test query');
+      expect(result.content[0]?.text).toContain('Total results: 2');
+      expect(result.content[0]?.text).toContain('Project: test-project');
+      expect(result.content[0]?.text).toContain('Test Page 1');
+      expect(result.content[0]?.text).toContain('Another Test Page');
 
       expect(mockedCosense.searchPages).toHaveBeenCalledWith(
         mockProjectName,
@@ -88,8 +88,8 @@ describe('handleSearchPages', () => {
       const params = { query: 'basic test' };
       const result = await handleSearchPages(mockProjectName, mockCosenseSid, params);
 
-      expect(result.content[0].text).toContain('Search query: basic test');
-      expect(result.content[0].text).toContain('Total results: 1');
+      expect(result.content[0]?.text).toContain('Search query: basic test');
+      expect(result.content[0]?.text).toContain('Total results: 1');
     });
   });
 
@@ -102,8 +102,8 @@ describe('handleSearchPages', () => {
       const result = await handleSearchPages(mockProjectName, mockCosenseSid, params);
 
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Error details:');
-      expect(result.content[0].text).toContain(errorMessage);
+      expect(result.content[0]?.text).toContain('Error details:');
+      expect(result.content[0]?.text).toContain(errorMessage);
     });
   });
 });

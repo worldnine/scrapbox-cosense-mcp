@@ -27,9 +27,9 @@ describe('handleCreatePage', () => {
       const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
 
       expect(result.content).toHaveLength(1);
-      expect(result.content[0].type).toBe('text');
-      expect(result.content[0].text).toContain('Opening new page: New Page');
-      expect(result.content[0].text).toContain('URL: https://scrapbox.io/test-project/New%20Page');
+      expect(result.content[0]?.type).toBe('text');
+      expect(result.content[0]?.text).toContain('Opening new page: New Page');
+      expect(result.content[0]?.text).toContain('URL: https://scrapbox.io/test-project/New%20Page');
 
       expect(mockedCosense.createPageUrl).toHaveBeenCalledWith(
         mockProjectName,
@@ -46,7 +46,7 @@ describe('handleCreatePage', () => {
       
       const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
 
-      expect(result.content[0].text).toContain('Opening new page: New Page');
+      expect(result.content[0]?.text).toContain('Opening new page: New Page');
       expect(mockedCosense.createPageUrl).toHaveBeenCalled();
     });
   });
@@ -62,8 +62,8 @@ describe('handleCreatePage', () => {
       const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
 
       expect(result.isError).toBe(true);
-      expect(result.content[0].text).toContain('Error details:');
-      expect(result.content[0].text).toContain(errorMessage);
+      expect(result.content[0]?.text).toContain('Error details:');
+      expect(result.content[0]?.text).toContain(errorMessage);
     });
   });
 
@@ -73,9 +73,9 @@ describe('handleCreatePage', () => {
       const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
 
       expect(result.content).toHaveLength(1);
-      expect(result.content[0].type).toBe('text');
+      expect(result.content[0]?.type).toBe('text');
       
-      const outputLines = result.content[0].text.split('\n');
+      const outputLines = result.content[0]?.text.split('\n') || [];
       expect(outputLines).toEqual([
         'Opening new page: New Page',
         'URL: https://scrapbox.io/test-project/New%20Page'
