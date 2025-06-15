@@ -1,0 +1,39 @@
+name: Pull Request CI
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run ESLint
+      run: npm run lint
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Build project
+      run: npm run build
+      
+    - name: Check build output
+      run: |
+        if [ ! -f "build/index.js" ]; then
+          echo "Build failed: build/index.js not found"
+          exit 1
+        fi
+        echo "Build successful: build/index.js created"
