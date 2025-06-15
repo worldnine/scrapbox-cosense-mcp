@@ -36,6 +36,7 @@ MCP server for [cosense/scrapbox](https://cosen.se).
     - Input: Page title, optional markdown body text, optional project name
     - Output: Returns the page creation URL without opening browser
     - Note: Markdown content is converted to Scrapbox format
+    - Feature: Automatically converts numbered lists to bullet lists (configurable)
 - `get_page_url`
   - Generate URL for a page in the project
     - Input: Page title, optional project name
@@ -113,6 +114,7 @@ This server uses the following environment variables:
 - `COSENSE_PAGE_LIMIT`: Initial page fetch limit (1-1000, default: 100)
 - `COSENSE_SORT_METHOD`: Initial page fetch order (updated/created/accessed/linked/views/title, default: updated)
 - `COSENSE_TOOL_SUFFIX`: Tool name suffix for multiple server instances (e.g., "main" creates "get_page_main")
+- `COSENSE_CONVERT_NUMBERED_LISTS`: Convert numbered lists to bullet lists in Markdown (true/false, default: false)
 
 #### Environment Variable Behavior
 
@@ -319,6 +321,7 @@ When running multiple server instances, check the debug logs for:
     - 入力: ページタイトル、オプションのマークダウン本文テキスト、オプションのプロジェクト名
     - 出力: ブラウザを開かずにページ作成URLを返す
     - 注意: マークダウンコンテンツはScrapbox形式に変換されます
+    - 機能: 数字付きリストを自動的に箇条書きに変換（設定可能）
 - `get_page_url`
   - プロジェクト内のページのURLを生成
     - 入力: ページタイトル、オプションのプロジェクト名
