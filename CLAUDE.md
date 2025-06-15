@@ -65,7 +65,6 @@ See README.md for complete environment variable documentation. Key variables for
 - `COSENSE_SORT_METHOD`: Initial sort method (default: "updated")
 - `COSENSE_TOOL_SUFFIX`: Tool name suffix for multiple server instances (e.g., "main" creates "get_page_main")
 - `COSENSE_CONVERT_NUMBERED_LISTS`: Convert numbered lists to bullet lists (default: true)
-- `COSENSE_REMOVE_TITLE_FROM_BODY`: Remove first heading from body in create_page (default: true)
 
 ### Architecture Notes
 
@@ -91,9 +90,9 @@ See README.md for complete environment variable documentation. Key variables for
 **Markdown Conversion Improvements (Latest)**
 - Fixed numbered list conversion issue where Scrapbox misinterprets markdown numbered lists
 - Added automatic conversion of numbered lists to bullet lists (configurable via COSENSE_CONVERT_NUMBERED_LISTS)
-- Added option to remove title from body to prevent duplication (configurable via COSENSE_REMOVE_TITLE_FROM_BODY)
 - Preserves nested list structure while removing numbers
-- All tests passing (138/138), including new comprehensive list conversion tests
+- Improved create_page tool description to prevent title duplication through better prompting
+- All tests passing (131/131), including new comprehensive list conversion tests
 
 **Multiple Project Support (v0.2.0 - Released)**
 - Added optional `projectName` parameter to all MCP tools for single-server multi-project usage

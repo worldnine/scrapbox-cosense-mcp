@@ -143,64 +143,6 @@ describe('convertMarkdownToScrapbox - 数字付きリスト変換', () => {
     });
   });
 
-  describe('タイトル除去機能', () => {
-    test('最初の見出しが除去される', async () => {
-      const markdown = `# Title
-
-Content here`;
-      
-      const md2sbOutput = `[**** Title]
-
-Content here
-`;
-      
-      const expectedOutput = `Content here
-`;
-
-      mockMd2sb.mockResolvedValue(md2sbOutput);
-      const result = await convertMarkdownToScrapbox(markdown, {
-        removeTitle: true
-      });
-      
-      expect(result).toBe(expectedOutput);
-    });
-
-    test('異なるレベルの見出しも除去される', async () => {
-      const markdown = `## Subtitle
-
-Content`;
-      
-      const md2sbOutput = `[*** Subtitle]
-
-Content
-`;
-      
-      const expectedOutput = `Content
-`;
-
-      mockMd2sb.mockResolvedValue(md2sbOutput);
-      const result = await convertMarkdownToScrapbox(markdown, {
-        removeTitle: true
-      });
-      
-      expect(result).toBe(expectedOutput);
-    });
-
-    test('見出しがない場合はそのまま', async () => {
-      const markdown = `Just content without heading`;
-      
-      const md2sbOutput = `Just content without heading
-`;
-
-      mockMd2sb.mockResolvedValue(md2sbOutput);
-      const result = await convertMarkdownToScrapbox(markdown, {
-        removeTitle: true
-      });
-      
-      expect(result).toBe(md2sbOutput);
-    });
-  });
-
   describe('複合ケース', () => {
     test('肉じゃがレシピのような複雑な構造が正しく変換される', async () => {
       const markdown = `# 肉じゃがの作り方
@@ -224,7 +166,9 @@ Content
   1. だし汁：300ml
 `;
       
-      const expectedOutput = `[*** 材料（4人分）]
+      const expectedOutput = `[**** 肉じゃがの作り方]
+
+[*** 材料（4人分）]
 
  [* 主材料]
   牛肉（薄切り）：200g
@@ -235,8 +179,7 @@ Content
 
       mockMd2sb.mockResolvedValue(md2sbOutput);
       const result = await convertMarkdownToScrapbox(markdown, {
-        convertNumberedLists: true,
-        removeTitle: true
+        convertNumberedLists: true
       });
       
       expect(result).toBe(expectedOutput);

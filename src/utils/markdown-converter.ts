@@ -14,30 +14,15 @@ function convertNumberedListToBullet(text: string | null | undefined): string {
   return text.replace(/^(\s+)\d+\.\s/gm, '$1');
 }
 
-/**
- * 最初の見出し行を除去（タイトル重複回避用）
- * 例: "[**** タイトル]\n\n本文" → "本文"
- */
-function removeFirstHeading(text: string | null | undefined): string {
-  if (text == null) {
-    return '';
-  }
-  // Scrapbox形式の見出し（[* ...]から[**** ...]まで）を除去
-  // 見出しの後の改行も含めて除去
-  return text.replace(/^\[\*+\s[^\]]+\]\n\n?/, '');
-}
-
 export async function convertMarkdownToScrapbox(
   markdown: string,
   options?: {
     convertNumberedLists?: boolean;
-    removeTitle?: boolean;
   }
 ): Promise<string> {
   // デフォルトオプション
   const opts = {
     convertNumberedLists: options?.convertNumberedLists ?? true,
-    removeTitle: options?.removeTitle ?? false,
     ...options
   };
 
@@ -64,11 +49,6 @@ export async function convertMarkdownToScrapbox(
   // 数字付きリストを箇条書きに変換（オプション）
   if (opts.convertNumberedLists) {
     result = convertNumberedListToBullet(result);
-  }
-  
-  // タイトル行を除去（オプション）
-  if (opts.removeTitle) {
-    result = removeFirstHeading(result);
   }
   
   return result;

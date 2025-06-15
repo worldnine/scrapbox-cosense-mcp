@@ -66,32 +66,6 @@ describe('convertMarkdownToScrapbox', () => {
       expect(result).toBe(md2sbOutput);
     });
 
-    test('タイトルを除去できること', async () => {
-      const markdown = '# Title\n\nContent';
-      const md2sbOutput = '[**** Title]\n\nContent';
-      const expectedScrapbox = 'Content';
-      
-      mockMd2sb.mockResolvedValue(md2sbOutput);
-
-      const result = await convertMarkdownToScrapbox(markdown, { removeTitle: true });
-
-      expect(result).toBe(expectedScrapbox);
-    });
-
-    test('複数のオプションを同時に使用できること', async () => {
-      const markdown = '# Title\n\n1. Item';
-      const md2sbOutput = '[**** Title]\n\n 1. Item';
-      const expectedScrapbox = ' Item';
-      
-      mockMd2sb.mockResolvedValue(md2sbOutput);
-
-      const result = await convertMarkdownToScrapbox(markdown, { 
-        convertNumberedLists: true,
-        removeTitle: true 
-      });
-
-      expect(result).toBe(expectedScrapbox);
-    });
 
     test('空文字列が変換されること', async () => {
       const markdown = '';
