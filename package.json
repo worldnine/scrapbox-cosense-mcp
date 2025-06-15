@@ -1,6 +1,6 @@
 {
   "name": "scrapbox-cosense-mcp",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "MCP server for cosense",
   "private": false,
   "license": "MIT",
@@ -19,6 +19,10 @@
     "test": "jest"
   },
   "dependencies": {
+    "@cosense/std": "npm:@jsr/cosense__std@^0.29.8",
+    "@cosense/types": "npm:@jsr/cosense__types@^0.10.4",
+    "@jsr/cosense__std": "^0.29.14",
+    "@jsr/cosense__types": "^0.10.8",
     "@modelcontextprotocol/sdk": "0.6.0",
     "@whatwg-node/fetch": "^0.10.1",
     "md2sb": "^5.1.2"
