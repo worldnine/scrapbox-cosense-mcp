@@ -155,11 +155,14 @@ For accessing private Scrapbox projects, you need to obtain the `connect.sid` co
 5. **Find and copy the connect.sid cookie**
    - Look for a cookie named `connect.sid`
    - Click on it to see its value
-   - Copy the entire value (it should look like: `s%3Axxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`)
+   - **Important**: The browser displays the URL-encoded value, but you need to use the **decoded** value
+   - Browser shows: `s%3Axxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+   - You should use: `s:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` (note the `:` after `s`)
 
 6. **Set the environment variable**
-   - Use the copied value as your `COSENSE_SID` environment variable
-   - Example: `COSENSE_SID=s%3Axxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+   - Use the **decoded** value (with `:` instead of `%3A`) as your `COSENSE_SID` environment variable
+   - **Correct format**: `COSENSE_SID=s:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+   - **Incorrect format**: `COSENSE_SID=s%3Axxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
 
 **Important Notes:**
 - Keep your `connect.sid` cookie value secure and never share it publicly
@@ -435,11 +438,14 @@ get_page_url を使用してページ「プロジェクト計画」のURLを取�
 5. **connect.sid Cookieを見つけてコピー**
    - `connect.sid` という名前のCookieを探します
    - それをクリックして値を確認します
-   - 値をすべてコピーします（形式例: `s%3Axxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`）
+   - **重要**: ブラウザはURLエンコードされた値を表示しますが、実際には**デコードされた値**を使用する必要があります
+   - ブラウザ表示: `s%3Axxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+   - 使用すべき値: `s:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`（`s`の後は`:`です）
 
 6. **環境変数に設定**
-   - コピーした値を `COSENSE_SID` 環境変数として使用します
-   - 例: `COSENSE_SID=s%3Axxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+   - **デコードされた値**（`%3A`の代わりに`:`）を `COSENSE_SID` 環境変数として使用します
+   - **正しい形式**: `COSENSE_SID=s:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+   - **間違った形式**: `COSENSE_SID=s%3Axxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
 
 **重要な注意事項:**
 - `connect.sid` Cookieの値は機密情報のため、安全に管理し、公開しないでください
