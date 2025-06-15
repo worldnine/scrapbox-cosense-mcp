@@ -265,6 +265,38 @@ Auto-rebuild during development:
 npm run watch
 ```
 
+Run tests:
+
+```bash
+npm test
+```
+
+Run linting:
+
+```bash
+npm run lint
+```
+
+### Quality Management
+
+This project includes automated quality checks to ensure code reliability:
+
+- **ESLint**: TypeScript-aware linting with console.log warnings
+- **GitHub Actions**: Automated CI/CD pipeline for pull requests
+- **Branch Protection**: Main branch requires PR and passing checks
+- **Test Suite**: 142+ tests covering all functionality
+
+#### Contributing Guidelines
+
+1. Create a feature branch from main
+2. Make your changes with appropriate tests
+3. Run `npm run lint` and `npm test` locally
+4. Create a pull request
+5. CI will automatically run quality checks
+6. Merge only after all checks pass
+
+The quality management system prevents debug logs and broken code from reaching production.
+
 ### Debugging
 
 Since MCP servers communicate via stdio, debugging can be challenging. This server includes comprehensive debug logging to help troubleshoot issues.
@@ -553,6 +585,38 @@ npm run build
 ```bash
 npm run watch
 ```
+
+テストの実行:
+
+```bash
+npm test
+```
+
+リンティングの実行:
+
+```bash
+npm run lint
+```
+
+### 品質管理
+
+このプロジェクトでは、コードの信頼性を確保するための自動品質チェックが導入されています：
+
+- **ESLint**: TypeScript対応のリンティング、console.log使用時の警告
+- **GitHub Actions**: プルリクエスト用の自動CI/CDパイプライン
+- **ブランチ保護**: mainブランチへはPRとチェック通過が必須
+- **テストスイート**: 142+のテストで全機能をカバー
+
+#### 貢献ガイドライン
+
+1. mainから機能ブランチを作成
+2. 適切なテストと共に変更を実装
+3. ローカルで `npm run lint` と `npm test` を実行
+4. プルリクエストを作成
+5. CIが自動的に品質チェックを実行
+6. 全チェック通過後にマージ
+
+この品質管理システムにより、デバッグログや壊れたコードの本番環境への混入を防げます。
 
 ### デバッグ方法
 
