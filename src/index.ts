@@ -260,6 +260,32 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["query"],
         },
       },
+      {
+        name: getToolName("insert_lines"),
+        description: `Insert text after a specified line in a Scrapbox page on ${SERVICE_LABEL}. If target line not found, text is appended to the end of the page. Uses ${projectName} project as default if projectName is not specified.`,
+        inputSchema: {
+          type: "object",
+          properties: {
+            pageTitle: {
+              type: "string",
+              description: "Title of the page to modify",
+            },
+            targetLineText: {
+              type: "string",
+              description: "Text content of the line after which to insert new text. If not found, text will be appended to the end of the page.",
+            },
+            text: {
+              type: "string",
+              description: "Text to insert. Can contain multiple lines separated by newline characters.",
+            },
+            projectName: {
+              type: "string",
+              description: `Target project name. If not specified, defaults to '${projectName}'.`,
+            },
+          },
+          required: ["pageTitle", "targetLineText", "text"],
+        },
+      },
     ];
   
   

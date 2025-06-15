@@ -41,6 +41,11 @@ MCP server for [cosense/scrapbox](https://cosen.se).
   - Generate URL for a page in the project
     - Input: Page title, optional project name
     - Output: Direct URL to the specified page
+- `insert_lines`
+  - Insert text after a specified line in a page
+    - Input: Page title, target line text, text to insert, optional project name
+    - Output: Success message with insertion details
+    - Behavior: If target line not found, text is appended to the end of the page
 
 ### Installation
 
@@ -326,6 +331,11 @@ When running multiple server instances, check the debug logs for:
   - プロジェクト内のページのURLを生成
     - 入力: ページタイトル、オプションのプロジェクト名
     - 出力: 指定されたページへの直接URL
+- `insert_lines`
+  - ページの指定した行の後にテキストを挿入
+    - 入力: ページタイトル、対象行のテキスト、挿入するテキスト、オプションのプロジェクト名
+    - 出力: 挿入の詳細を含む成功メッセージ
+    - 動作: 対象行が見つからない場合は、ページの末尾にテキストが追加されます
 
 ## インストール方法
 
