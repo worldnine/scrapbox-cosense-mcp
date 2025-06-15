@@ -17,7 +17,14 @@ export async function handleCreatePage(
     const title = String(params.title);
     const body = params.body;
     
-    const convertedBody = body ? await convertMarkdownToScrapbox(body) : undefined;
+    // 環境変数から設定を取得
+    const convertNumberedLists = process.env.COSENSE_CONVERT_NUMBERED_LISTS !== 'false';
+    const removeTitle = process.env.COSENSE_REMOVE_TITLE_FROM_BODY !== 'false';
+    
+    const convertedBody = body ? await convertMarkdownToScrapbox(body, {
+      convertNumberedLists,
+      removeTitle
+    }) : undefined;
     const url = createPageUrl(projectName, title, convertedBody);
     
     return {

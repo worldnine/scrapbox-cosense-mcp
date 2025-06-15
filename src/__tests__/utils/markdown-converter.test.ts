@@ -1,7 +1,9 @@
 import { convertMarkdownToScrapbox } from '@/utils/markdown-converter.js';
 
 // md2sbライブラリをモック
-jest.mock('md2sb', () => jest.fn());
+jest.mock('md2sb', () => ({
+  default: jest.fn()
+}));
 
 describe('convertMarkdownToScrapbox', () => {
   let mockMd2sb: jest.Mock;
@@ -10,7 +12,8 @@ describe('convertMarkdownToScrapbox', () => {
     jest.clearAllMocks();
     
     // md2sbモジュールのモック
-    mockMd2sb = require('md2sb') as jest.Mock;
+    const md2sbModule = require('md2sb');
+    mockMd2sb = md2sbModule.default;
   });
 
   describe('正常ケース', () => {
@@ -25,6 +28,69 @@ describe('convertMarkdownToScrapbox', () => {
       expect(result).toBe(expectedScrapbox);
       expect(mockMd2sb).toHaveBeenCalledWith(markdown);
       expect(mockMd2sb).toHaveBeenCalledTimes(1);
+    });
+
+    test('数字付きリストが箇条書きに変換されること', async () => {
+      const markdown = '1. First\n2. Second';
+      const md2sbOutput = ' 1. First\n 2. Second';
+      const expectedScrapbox = ' First\n Second';
+      
+      mockMd2sb.mockResolvedValue(md2sbOutput);
+
+      const result = await convertMarkdownToScrapbox(markdown);
+
+      expect(result).toBe(expectedScrapbox);
+      expect(mockMd2sb).toHaveBeenCalledWith(markdown);
+    });
+
+    test('ネストした数字付きリストが正しく変換されること', async () => {
+      const markdown = '1. Parent\n   1. Child';
+      const md2sbOutput = ' 1. Parent\n  1. Child';
+      const expectedScrapbox = ' Parent\n  Child';
+      
+      mockMd2sb.mockResolvedValue(md2sbOutput);
+
+      const result = await convertMarkdownToScrapbox(markdown);
+
+      expect(result).toBe(expectedScrapbox);
+    });
+
+    test('数字付きリスト変換が無効化できること', async () => {
+      const markdown = '1. First\n2. Second';
+      const md2sbOutput = ' 1. First\n 2. Second';
+      
+      mockMd2sb.mockResolvedValue(md2sbOutput);
+
+      const result = await convertMarkdownToScrapbox(markdown, { convertNumberedLists: false });
+
+      expect(result).toBe(md2sbOutput);
+    });
+
+    test('タイトルを除去できること', async () => {
+      const markdown = '# Title\n\nContent';
+      const md2sbOutput = '[**** Title]\n\nContent';
+      const expectedScrapbox = 'Content';
+      
+      mockMd2sb.mockResolvedValue(md2sbOutput);
+
+      const result = await convertMarkdownToScrapbox(markdown, { removeTitle: true });
+
+      expect(result).toBe(expectedScrapbox);
+    });
+
+    test('複数のオプションを同時に使用できること', async () => {
+      const markdown = '# Title\n\n1. Item';
+      const md2sbOutput = '[**** Title]\n\n 1. Item';
+      const expectedScrapbox = ' Item';
+      
+      mockMd2sb.mockResolvedValue(md2sbOutput);
+
+      const result = await convertMarkdownToScrapbox(markdown, { 
+        convertNumberedLists: true,
+        removeTitle: true 
+      });
+
+      expect(result).toBe(expectedScrapbox);
     });
 
     test('空文字列が変換されること', async () => {
@@ -160,7 +226,7 @@ console.log('code');
 
       const result = await convertMarkdownToScrapbox(markdown);
 
-      expect(result).toBeNull();
+      expect(result).toBe('');
       expect(mockMd2sb).toHaveBeenCalledWith(markdown);
     });
 
@@ -171,7 +237,7 @@ console.log('code');
 
       const result = await convertMarkdownToScrapbox(markdown);
 
-      expect(result).toBeUndefined();
+      expect(result).toBe('');
       expect(mockMd2sb).toHaveBeenCalledWith(markdown);
     });
   });
