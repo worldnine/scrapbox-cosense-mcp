@@ -17,7 +17,8 @@ export default {
     '^@/(.*)$': '<rootDir>/src/$1'
   },
   testMatch: [
-    '**/__tests__/**/*.test.ts'
+    '**/__tests__/**/*.test.ts',
+    '**/__tests__/**/*.integration.test.ts'
   ],
   transformIgnorePatterns: [
     'node_modules/(?!(@whatwg-node/fetch)/)'
