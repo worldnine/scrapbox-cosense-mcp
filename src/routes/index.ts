@@ -5,6 +5,7 @@ import { handleGetPage } from './handlers/get-page.js';
 import { handleSearchPages } from './handlers/search-pages.js';
 import { handleCreatePage } from './handlers/create-page.js';
 import { handleGetPageUrl } from './handlers/get-page-url.js';
+import { handleInsertLines } from './handlers/insert-lines.js';
 
 // ツール名正規化ヘルパー
 function normalizeToolName(toolName: string, toolSuffix?: string): string {
@@ -75,6 +76,18 @@ export function setupRoutes(
           cosenseSid,
           {
             title: String(request.params.arguments?.title),
+            projectName: request.params.arguments?.projectName as string | undefined
+          }
+        );
+
+      case "insert_lines":
+        return handleInsertLines(
+          projectName,
+          cosenseSid,
+          {
+            pageTitle: String(request.params.arguments?.pageTitle),
+            targetLineText: String(request.params.arguments?.targetLineText),
+            text: String(request.params.arguments?.text),
             projectName: request.params.arguments?.projectName as string | undefined
           }
         );
