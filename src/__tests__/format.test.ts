@@ -43,13 +43,15 @@ describe('format utilities', () => {
     test('updated の値を正しく取得すること', () => {
       const result = getSortValue(mockPage, 'updated');
       expect(result.value).toBe(1700001000);
-      expect(result.formatted).toBe('2023/11/15'); // Unix timestamp converted
+      // Timestamp 1700001000 converts to 2023/11/14 in UTC, 2023/11/15 in JST
+      expect(result.formatted).toMatch(/2023\/11\/(14|15)/);
     });
 
     test('created の値を正しく取得すること', () => {
       const result = getSortValue(mockPage, 'created');
       expect(result.value).toBe(1700000000);
-      expect(result.formatted).toBe('2023/11/15');
+      // Timestamp 1700000000 converts to 2023/11/14 in UTC, 2023/11/15 in JST
+      expect(result.formatted).toMatch(/2023\/11\/(14|15)/);
     });
 
     test('linked の値を正しく取得すること', () => {
