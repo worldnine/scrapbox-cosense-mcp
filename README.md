@@ -104,7 +104,7 @@ This server uses the following environment variables:
 #### Required Environment Variables
 
 - `COSENSE_PROJECT_NAME`: Project name
-- `COSENSE_SID`: Session ID for Scrapbox/Cosense authentication (required for private projects)
+- `COSENSE_SID`: Session ID for Scrapbox/Cosense authentication (required for private projects) - [See how to get this cookie](#how-to-get-cosense_sid-cookie)
 
 #### Optional Environment Variables
 
@@ -117,7 +117,7 @@ This server uses the following environment variables:
 #### Environment Variable Behavior
 
 - **COSENSE_PROJECT_NAME**: Required environment variable. Server will exit with an error if not set.
-- **COSENSE_SID**: Required for accessing private projects. If not set, only public projects are accessible.
+- **COSENSE_SID**: Required for accessing private projects. If not set, only public projects are accessible. [See detailed instructions](#how-to-get-cosense_sid-cookie) for obtaining this cookie.
 - **API_DOMAIN**:
   - Uses "scrapbox.io" if not set
   - While unverified with domains other than "scrapbox.io" in the author's environment, this option exists in case some environments require "cosen.se"
@@ -129,6 +129,45 @@ This server uses the following environment variables:
   - Uses 'updated' if not set
   - Uses 'updated' if value is invalid
   - Does not affect list_pages tool behavior (only used for initial resource fetch)
+
+### How to Get COSENSE_SID Cookie
+
+For accessing private Scrapbox projects, you need to obtain the `connect.sid` cookie from your browser. Follow these steps:
+
+1. **Navigate to your Scrapbox project**
+   - Open your browser and go to `https://scrapbox.io/YOUR_PROJECT_NAME`
+   - Replace `YOUR_PROJECT_NAME` with your actual project name
+
+2. **Log in to Scrapbox**
+   - Make sure you're logged in to your Scrapbox account
+   - Verify you can access your private project
+
+3. **Open Developer Tools**
+   - **Windows/Linux**: Press `F12` or `Ctrl+Shift+I`
+   - **macOS**: Press `Cmd+Option+I`
+   - **Alternative**: Right-click on the page and select "Inspect" or "Inspect Element"
+
+4. **Navigate to Cookies**
+   - In the Developer Tools, look for the **"Application"** tab (Chrome/Edge) or **"Storage"** tab (Firefox)
+   - In the left sidebar, expand **"Cookies"**
+   - Click on `https://scrapbox.io`
+
+5. **Find and copy the connect.sid cookie**
+   - Look for a cookie named `connect.sid`
+   - Click on it to see its value
+   - **Important**: The browser displays the URL-encoded value, but you need to use the **decoded** value
+   - Browser shows: `s%3Axxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+   - You should use: `s:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx` (note the `:` after `s`)
+
+6. **Set the environment variable**
+   - Use the **decoded** value (with `:` instead of `%3A`) as your `COSENSE_SID` environment variable
+   - **Correct format**: `COSENSE_SID=s:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+   - **Incorrect format**: `COSENSE_SID=s%3Axxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+
+**Important Notes:**
+- Keep your `connect.sid` cookie value secure and never share it publicly
+- The cookie may expire after some time; you'll need to obtain a new one if authentication fails
+- This cookie provides access to your private projects, so treat it like a password
 
 ### Multiple Project Support (Advanced)
 
@@ -348,7 +387,7 @@ get_page_url を使用してページ「プロジェクト計画」のURLを取�
 ### 必須の環境変数
 
 - `COSENSE_PROJECT_NAME`: プロジェクト名
-- `COSENSE_SID`: Scrapbox/Cosenseの認証用セッションID（プライベートプロジェクトの場合は必須）
+- `COSENSE_SID`: Scrapbox/Cosenseの認証用セッションID（プライベートプロジェクトの場合は必須） - [Cookieの取得方法](#cosense_sid-cookieの取得方法)
 
 ### オプションの環境変数
 
@@ -361,7 +400,7 @@ get_page_url を使用してページ「プロジェクト計画」のURLを取�
 ### 環境変数の挙動について
 
 - **COSENSE_PROJECT_NAME**: 必須の環境変数です。未設定の場合、サーバーは起動時にエラーで終了します。
-- **COSENSE_SID**: プライベートプロジェクトへのアクセスに必要です。未設定の場合、パブリックプロジェクトのみアクセス可能です。
+- **COSENSE_SID**: プライベートプロジェクトへのアクセスに必要です。未設定の場合、パブリックプロジェクトのみアクセス可能です。[詳細な取得手順](#cosense_sid-cookieの取得方法)をご確認ください。
 - **API_DOMAIN**:
   - 未設定時は"scrapbox.io"を使用
   - 作者の環境では"scrapbox.io"以外の値は未検証ですが、"cosen.se"でないと動作しない環境が存在する可能性があるため念のためのオプションです。
@@ -373,6 +412,45 @@ get_page_url を使用してページ「プロジェクト計画」のURLを取�
   - 未設定時は'updated'を使用
   - 無効な値の場合は'updated'を使用
   - list_pagesツールの動作には影響しません（初期リソース取得時のみ使用）
+
+### COSENSE_SID Cookieの取得方法
+
+プライベートなScrapboxプロジェクトにアクセスするには、ブラウザから `connect.sid` Cookieを取得する必要があります。以下の手順に従ってください：
+
+1. **Scrapboxプロジェクトにアクセス**
+   - ブラウザで `https://scrapbox.io/あなたのプロジェクト名` を開きます
+   - `あなたのプロジェクト名` を実際のプロジェクト名に置き換えてください
+
+2. **Scrapboxにログイン**
+   - Scrapboxアカウントにログインしていることを確認してください
+   - プライベートプロジェクトにアクセスできることを確認してください
+
+3. **開発者ツールを開く**
+   - **Windows/Linux**: `F12` キーまたは `Ctrl+Shift+I` を押します
+   - **macOS**: `Cmd+Option+I` を押します
+   - **別の方法**: ページ上で右クリックして「検証」または「要素を調査」を選択
+
+4. **Cookieを確認**
+   - 開発者ツールで **「Application」** タブ（Chrome/Edge）または **「ストレージ」** タブ（Firefox）を探します
+   - 左側のサイドバーで **「Cookies」** を展開します
+   - `https://scrapbox.io` をクリックします
+
+5. **connect.sid Cookieを見つけてコピー**
+   - `connect.sid` という名前のCookieを探します
+   - それをクリックして値を確認します
+   - **重要**: ブラウザはURLエンコードされた値を表示しますが、実際には**デコードされた値**を使用する必要があります
+   - ブラウザ表示: `s%3Axxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+   - 使用すべき値: `s:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`（`s`の後は`:`です）
+
+6. **環境変数に設定**
+   - **デコードされた値**（`%3A`の代わりに`:`）を `COSENSE_SID` 環境変数として使用します
+   - **正しい形式**: `COSENSE_SID=s:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+   - **間違った形式**: `COSENSE_SID=s%3Axxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+
+**重要な注意事項:**
+- `connect.sid` Cookieの値は機密情報のため、安全に管理し、公開しないでください
+- Cookieは時間が経つと期限切れになる場合があります。認証エラーが発生した場合は新しいCookieを取得してください
+- このCookieはプライベートプロジェクトへのアクセス権を提供するため、パスワードと同様に扱ってください
 
 ## 複数プロジェクト対応（高度な機能）
 
