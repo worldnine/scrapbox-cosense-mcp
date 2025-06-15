@@ -262,7 +262,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: getToolName("insert_lines"),
-        description: `Insert text after a specified line in a Scrapbox page on ${SERVICE_LABEL}. Directly modifies the page content via WebSocket API. Requires COSENSE_SID authentication. Uses ${projectName} project as default if projectName is not specified.`,
+        description: `Insert text after a specified line in a Scrapbox page on ${SERVICE_LABEL}. If target line not found, text is appended to the end of the page. Uses ${projectName} project as default if projectName is not specified.`,
         inputSchema: {
           type: "object",
           properties: {
