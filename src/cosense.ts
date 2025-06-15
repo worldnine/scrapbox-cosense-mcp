@@ -101,14 +101,6 @@ async function getPage(
   try {
     const url = `https://${API_DOMAIN}/api/pages/${projectName}/${encodeURIComponent(pageName)}`;
     
-    // デバッグ情報をログ出力
-    console.log(`[DEBUG] API Request - getPage:
-  URL: ${url}
-  Project: ${projectName}
-  Page: ${pageName}
-  SID Present: ${sid ? 'yes' : 'no'}
-  API Domain: ${API_DOMAIN}
-`);
 
     const response = sid
       ? await fetch(url, {
@@ -117,12 +109,6 @@ async function getPage(
       : await fetch(url);
 
     if (!response.ok) {
-      console.error(`[DEBUG] API Error - getPage:
-  Status: ${response.status} ${response.statusText}
-  URL: ${url}
-  Project: ${projectName}
-  Page: ${pageName}
-`);
       return null;
     }
 
@@ -130,7 +116,6 @@ async function getPage(
     
     // レスポンスの型チェック
     if (!page || typeof page !== 'object') {
-      console.error('Invalid page response format: not an object');
       return null;
     }
 
@@ -166,7 +151,6 @@ async function getPage(
 
     return typedPage;
   } catch (error) {
-    console.error('Error fetching page:', error);
     return null;
   }
 }
@@ -275,13 +259,6 @@ async function listPages(
 
     const url = `https://${API_DOMAIN}/api/pages/${projectName}?${params}`;
     
-    // デバッグ情報をログ出力
-    console.log(`[DEBUG] API Request - listPages:
-  URL: ${url}
-  Project: ${projectName}
-  Options: ${JSON.stringify(options)}
-  SID Present: ${sid ? 'yes' : 'no'}
-`);
     
     // デバッグ情報を含めるための変数
     const debugInfo: DebugInfo = {

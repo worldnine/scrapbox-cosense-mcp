@@ -37,7 +37,6 @@ const initialPageLimit: number = (() => {
     DEFAULT_PAGE_LIMIT;
 
   if (isNaN(limit) || limit < MIN_PAGE_LIMIT || limit > MAX_PAGE_LIMIT) {
-    console.error(`Invalid COSENSE_PAGE_LIMIT: ${process.env.COSENSE_PAGE_LIMIT}, using default: ${DEFAULT_PAGE_LIMIT}`);
     return DEFAULT_PAGE_LIMIT;
   }
   return limit;
@@ -48,7 +47,6 @@ const initialSortMethod: string = (() => {
 
   if (!sort) return DEFAULT_SORT_METHOD;
   if (!VALID_SORT_METHODS.includes(sort as any)) {
-    console.error(`Invalid COSENSE_SORT_METHOD: ${sort}, using default: ${DEFAULT_SORT_METHOD}`);
     return DEFAULT_SORT_METHOD;
   }
   return sort;
@@ -58,15 +56,6 @@ if (!projectName) {
   throw new Error("COSENSE_PROJECT_NAME is not set");
 }
 
-// デバッグ情報をログ出力
-console.log(`[DEBUG] Server Configuration:
-  Project: ${projectName}
-  Tool Suffix: ${TOOL_SUFFIX || 'none'}
-  Service Label: ${SERVICE_LABEL}
-  SID Present: ${cosenseSid ? 'yes' : 'no'}
-  Page Limit: ${initialPageLimit}
-  Sort Method: ${initialSortMethod}
-`);
 
 // resourcesの初期化（100件取得してソート）
 const resources = await (async () => {
@@ -94,7 +83,6 @@ const resources = await (async () => {
       }));
 
   } catch (error) {
-    console.error('Failed to initialize resources:', error);
     return [];  // 空の配列を返してサーバーは起動を継続
   }
 })();
@@ -274,11 +262,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
     ];
   
-  // デバッグ情報をログ出力
-  console.log(`[DEBUG] Generated Tools:
-${tools.map(tool => `  - ${tool.name}`).join('\n')}
-  Total: ${tools.length} tools
-`);
   
   return { tools };
 });
@@ -296,11 +279,6 @@ async function main() {
   await server.connect(transport);
 }
 
-main().catch((error) => {
-  console.error([
-    'Fatal Error:',
-    `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
-    `Timestamp: ${new Date().toISOString()}`
-  ].join('\n'));
+main().catch(() => {
   process.exit(1);
 });
