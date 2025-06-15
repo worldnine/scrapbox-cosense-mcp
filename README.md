@@ -114,7 +114,7 @@ This server uses the following environment variables:
 - `COSENSE_PAGE_LIMIT`: Initial page fetch limit (1-1000, default: 100)
 - `COSENSE_SORT_METHOD`: Initial page fetch order (updated/created/accessed/linked/views/title, default: updated)
 - `COSENSE_TOOL_SUFFIX`: Tool name suffix for multiple server instances (e.g., "main" creates "get_page_main")
-- `COSENSE_CONVERT_NUMBERED_LISTS`: Convert numbered lists to bullet lists in Markdown (true/false, default: true)
+- `COSENSE_CONVERT_NUMBERED_LISTS`: Convert numbered lists to bullet lists in Markdown (true/false, default: false)
 
 #### Environment Variable Behavior
 

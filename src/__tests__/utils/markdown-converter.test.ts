@@ -30,41 +30,43 @@ describe('convertMarkdownToScrapbox', () => {
       expect(mockMd2sb).toHaveBeenCalledTimes(1);
     });
 
-    test('数字付きリストが箇条書きに変換されること', async () => {
+    test('数字付きリストがデフォルトでは変換されないこと', async () => {
+      const markdown = '1. First\n2. Second';
+      const md2sbOutput = ' 1. First\n 2. Second';
+      
+      mockMd2sb.mockResolvedValue(md2sbOutput);
+
+      const result = await convertMarkdownToScrapbox(markdown);
+
+      expect(result).toBe(md2sbOutput);
+      expect(mockMd2sb).toHaveBeenCalledWith(markdown);
+    });
+
+    test('数字付きリストを明示的に箇条書きに変換できること', async () => {
       const markdown = '1. First\n2. Second';
       const md2sbOutput = ' 1. First\n 2. Second';
       const expectedScrapbox = ' First\n Second';
       
       mockMd2sb.mockResolvedValue(md2sbOutput);
 
-      const result = await convertMarkdownToScrapbox(markdown);
+      const result = await convertMarkdownToScrapbox(markdown, { convertNumberedLists: true });
 
       expect(result).toBe(expectedScrapbox);
       expect(mockMd2sb).toHaveBeenCalledWith(markdown);
     });
 
-    test('ネストした数字付きリストが正しく変換されること', async () => {
+    test('ネストした数字付きリストが箇条書きに変換されること', async () => {
       const markdown = '1. Parent\n   1. Child';
       const md2sbOutput = ' 1. Parent\n  1. Child';
       const expectedScrapbox = ' Parent\n  Child';
       
       mockMd2sb.mockResolvedValue(md2sbOutput);
 
-      const result = await convertMarkdownToScrapbox(markdown);
+      const result = await convertMarkdownToScrapbox(markdown, { convertNumberedLists: true });
 
       expect(result).toBe(expectedScrapbox);
     });
 
-    test('数字付きリスト変換が無効化できること', async () => {
-      const markdown = '1. First\n2. Second';
-      const md2sbOutput = ' 1. First\n 2. Second';
-      
-      mockMd2sb.mockResolvedValue(md2sbOutput);
-
-      const result = await convertMarkdownToScrapbox(markdown, { convertNumberedLists: false });
-
-      expect(result).toBe(md2sbOutput);
-    });
 
 
     test('空文字列が変換されること', async () => {

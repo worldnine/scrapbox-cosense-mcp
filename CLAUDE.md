@@ -64,7 +64,7 @@ See README.md for complete environment variable documentation. Key variables for
 - `COSENSE_PAGE_LIMIT`: Initial page fetch limit (1-1000, default: 100)
 - `COSENSE_SORT_METHOD`: Initial sort method (default: "updated")
 - `COSENSE_TOOL_SUFFIX`: Tool name suffix for multiple server instances (e.g., "main" creates "get_page_main")
-- `COSENSE_CONVERT_NUMBERED_LISTS`: Convert numbered lists to bullet lists (default: true)
+- `COSENSE_CONVERT_NUMBERED_LISTS`: Convert numbered lists to bullet lists (default: false)
 
 ### Architecture Notes
 

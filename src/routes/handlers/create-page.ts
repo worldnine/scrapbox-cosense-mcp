@@ -18,7 +18,7 @@ export async function handleCreatePage(
     const body = params.body;
     
     // 環境変数から設定を取得
-    const convertNumberedLists = process.env.COSENSE_CONVERT_NUMBERED_LISTS !== 'false';
+    const convertNumberedLists = process.env.COSENSE_CONVERT_NUMBERED_LISTS === 'true';
     
     const convertedBody = body ? await convertMarkdownToScrapbox(body, {
       convertNumberedLists

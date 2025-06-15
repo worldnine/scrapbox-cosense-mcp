@@ -31,7 +31,9 @@ describe('convertMarkdownToScrapbox - 数字付きリスト変換', () => {
 `;
 
       mockMd2sb.mockResolvedValue(md2sbOutput);
-      const result = await convertMarkdownToScrapbox(markdown);
+      const result = await convertMarkdownToScrapbox(markdown, {
+        convertNumberedLists: true
+      });
       
       expect(result).toBe(expectedOutput);
     });
@@ -55,7 +57,9 @@ describe('convertMarkdownToScrapbox - 数字付きリスト変換', () => {
 `;
 
       mockMd2sb.mockResolvedValue(md2sbOutput);
-      const result = await convertMarkdownToScrapbox(markdown);
+      const result = await convertMarkdownToScrapbox(markdown, {
+        convertNumberedLists: true
+      });
       
       expect(result).toBe(expectedOutput);
     });
@@ -79,7 +83,9 @@ describe('convertMarkdownToScrapbox - 数字付きリスト変換', () => {
 `;
 
       mockMd2sb.mockResolvedValue(md2sbOutput);
-      const result = await convertMarkdownToScrapbox(markdown);
+      const result = await convertMarkdownToScrapbox(markdown, {
+        convertNumberedLists: true
+      });
       
       expect(result).toBe(expectedOutput);
     });
@@ -97,7 +103,9 @@ describe('convertMarkdownToScrapbox - 数字付きリスト変換', () => {
 `;
 
       mockMd2sb.mockResolvedValue(md2sbOutput);
-      const result = await convertMarkdownToScrapbox(markdown);
+      const result = await convertMarkdownToScrapbox(markdown, {
+        convertNumberedLists: true
+      });
       
       expect(result).toBe(expectedOutput);
     });
@@ -121,12 +129,14 @@ describe('convertMarkdownToScrapbox - 数字付きリスト変換', () => {
 `;
 
       mockMd2sb.mockResolvedValue(md2sbOutput);
-      const result = await convertMarkdownToScrapbox(markdown);
+      const result = await convertMarkdownToScrapbox(markdown, {
+        convertNumberedLists: true
+      });
       
       expect(result).toBe(expectedOutput);
     });
 
-    test('変換を無効化した場合は番号が残る', async () => {
+    test('デフォルトでは番号が残る', async () => {
       const markdown = `1. First item
 2. Second item`;
       
@@ -135,9 +145,7 @@ describe('convertMarkdownToScrapbox - 数字付きリスト変換', () => {
 `;
 
       mockMd2sb.mockResolvedValue(md2sbOutput);
-      const result = await convertMarkdownToScrapbox(markdown, {
-        convertNumberedLists: false
-      });
+      const result = await convertMarkdownToScrapbox(markdown);
       
       expect(result).toBe(md2sbOutput);
     });

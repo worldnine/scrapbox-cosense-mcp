@@ -22,7 +22,7 @@ export async function convertMarkdownToScrapbox(
 ): Promise<string> {
   // デフォルトオプション
   const opts = {
-    convertNumberedLists: options?.convertNumberedLists ?? true,
+    convertNumberedLists: options?.convertNumberedLists ?? false,
     ...options
   };
 
