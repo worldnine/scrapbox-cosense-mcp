@@ -174,7 +174,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             body: {
               type: "string",
-              description: "Content in markdown format that will be converted to Scrapbox format. Supports standard markdown syntax including links, code blocks, lists, and emphasis.",
+              description: "Content in markdown format. Avoid duplicating the title in the body since it's automatically displayed at the top. Supports links, code blocks, lists, and emphasis.",
             },
             projectName: {
               type: "string",
