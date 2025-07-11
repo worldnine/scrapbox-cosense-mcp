@@ -51,10 +51,15 @@ export async function handleCreatePage(
       const lines = convertedBody ? convertedBody.split('\n') : [];
       const allLines = [title, ...lines];
       
-      await patch(projectName, title, (existingLines: BaseLine[]) => {
+      // デバッグ情報を保存
+      let patchResult;
+      let actualLines;
+      
+      patchResult = await patch(projectName, title, (existingLines: BaseLine[]) => {
         // 新規ページの場合（existingLinesが空配列）
         if (existingLines.length === 0) {
-          return allLines.map(text => ({ text }));
+          actualLines = allLines.map(text => ({ text }));
+          return actualLines;
         }
         // 既存ページの場合は何もしない（操作をキャンセル）
         return undefined;
@@ -72,6 +77,11 @@ export async function handleCreatePage(
             `Project: ${projectName}`,
             `Title: ${title}`,
             `Lines: ${allLines.length}`,
+            `Body lines: ${lines.length}`,
+            `Original body: ${body || '(none)'}`,
+            `Converted body: ${convertedBody || '(none)'}`,
+            `All lines: ${JSON.stringify(allLines)}`,
+            `Patch result: ${patchResult || 'undefined'}`,
             `URL: ${url}`,
             `Timestamp: ${new Date().toISOString()}`
           ].join('\n')
