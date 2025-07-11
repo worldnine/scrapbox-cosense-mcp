@@ -21,7 +21,7 @@ This is an MCP (Model Context Protocol) server for Scrapbox/Cosense that provide
 - `get_page`: Retrieve page content, metadata, and links
 - `list_pages`: Browse and list pages with flexible sorting and pagination. Returns page metadata and first 5 lines of content. Max 1000 pages per request.
 - `search_pages`: Search for content within pages using keywords or phrases. Returns matching pages with highlighted search terms and content snippets. Limited to 100 results (API limitation).
-- `create_page`: Create new pages with optional markdown body conversion to Scrapbox format. Returns the page creation URL without opening browser.
+- `create_page`: Create new pages using WebSocket API with markdown body conversion to Scrapbox format. Creates pages immediately and returns success confirmation with URL. Requires COSENSE_SID for authentication.
 - `get_page_url`: Generate direct URL for a page from its title. Useful for creating links or sharing page references.
 - `insert_lines`: Insert text after a specified line in a page. If target line not found, text is appended to the end of the page.
 
@@ -149,12 +149,21 @@ The server entry point (`src/index.ts`) initializes resources, sets up MCP handl
 
 ## Recent Development
 
-**WebSocket API Support (v0.3.0 - Latest)**
+**WebSocket Page Creation Support (v0.4.0 - Latest)**
+- Enhanced `create_page` tool with WebSocket API for immediate page creation with body content
+- Fixed critical issue where page body content was not being posted to created pages
+- Added `createActually` parameter to control WebSocket API usage (default: true)
+- Implemented proper authentication checks requiring COSENSE_SID for page creation
+- Maintained backward compatibility with URL-only generation mode (createActually: false)
+- Added comprehensive debugging and error handling for WebSocket operations
+- All tests passing (146/146), TypeScript compilation successful
+- Verified working implementation with actual Scrapbox project integration
+
+**WebSocket API Foundation (v0.3.0)**
 - Added `insert_lines` tool with WebSocket API support for direct page modification
 - Integrated `@cosense/std` and `@cosense/types` libraries for WebSocket functionality
 - Implemented line insertion logic with fallback to append mode if target line not found
-- Added comprehensive test suite for insert_lines handler with proper mocking
-- Created `docs/COSENSE_API_SPEC.md` for documenting Scrapbox/Cosense API specifications
+- Added comprehensive test suite for WebSocket handlers with proper mocking
+- Created WebSocket API documentation and specifications
 - Enhanced authentication requirements documentation for WebSocket operations
-- All tests passing (142/142), TypeScript compilation successful
 - Follows yosider/cosense-mcp-server implementation pattern for compatibility
