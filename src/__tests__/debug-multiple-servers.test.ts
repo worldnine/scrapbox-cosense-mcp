@@ -5,9 +5,9 @@ describe('Multiple Servers Debug Tests', () => {
   describe('Environment Variable Parsing', () => {
     test('should correctly parse COSENSE_PROJECT_NAME', () => {
       const testCases = [
-        { projectName: 'ecl', expected: 'ecl' },
-        { projectName: 'infosign', expected: 'infosign' },
-        { projectName: 'villagepump', expected: 'villagepump' }
+        { projectName: 'test-project-1', expected: 'test-project-1' },
+        { projectName: 'test-project-2', expected: 'test-project-2' },
+        { projectName: 'test-project-3', expected: 'test-project-3' }
       ];
 
       testCases.forEach(({ projectName, expected }) => {
@@ -31,8 +31,8 @@ describe('Multiple Servers Debug Tests', () => {
 
     test('should handle COSENSE_TOOL_SUFFIX variations', () => {
       const suffixCases = [
-        { suffix: 'ecl', expected: 'ecl' },
-        { suffix: 'infosign', expected: 'infosign' },
+        { suffix: 'test-project-1', expected: 'test-project-1' },
+        { suffix: 'test-project-2', expected: 'test-project-2' },
         { suffix: undefined, expected: undefined },
         { suffix: '', expected: '' }
       ];
@@ -55,8 +55,8 @@ describe('Multiple Servers Debug Tests', () => {
 
     test('should generate unique tool names for each server', () => {
       const serverConfigs = [
-        { project: 'ecl', suffix: 'ecl' },
-        { project: 'infosign', suffix: 'infosign' }
+        { project: 'test-project-1', suffix: 'test-project-1' },
+        { project: 'test-project-2', suffix: 'test-project-2' }
       ];
 
       const baseTools = ['get_page', 'list_pages', 'search_pages', 'create_page', 'get_page_url'];
@@ -123,17 +123,17 @@ describe('Multiple Servers Debug Tests', () => {
     test('should simulate different project access scenarios', async () => {
       const projectConfigs = [
         {
-          name: 'ecl',
+          name: 'test-project-1',
           sid: 's:DUMMY_SID_FOR_TESTING_SERVER1.DUMMY_SIGNATURE_PART_1',
           expected: 'private-project'
         },
         {
-          name: 'infosign', 
+          name: 'test-project-2', 
           sid: 's:DUMMY_SID_FOR_TESTING_SERVER2.DUMMY_SIGNATURE_PART_2',
           expected: 'private-project'
         },
         {
-          name: 'villagepump',
+          name: 'test-project-3',
           sid: undefined,
           expected: 'public-project'
         }
@@ -153,20 +153,20 @@ describe('Multiple Servers Debug Tests', () => {
     test('should validate complete MCP server configuration', () => {
       const mockConfigs = [
         {
-          serverName: 'ecl-scrapbox-mcp',
+          serverName: 'test-project-1-scrapbox-mcp',
           env: {
-            COSENSE_PROJECT_NAME: 'ecl',
+            COSENSE_PROJECT_NAME: 'test-project-1',
             COSENSE_SID: 's:DUMMY_SID_FOR_TESTING_SERVER1.DUMMY_SIGNATURE_PART_1',
-            COSENSE_TOOL_SUFFIX: 'ecl',
+            COSENSE_TOOL_SUFFIX: 'test-project-1',
             SERVICE_LABEL: 'scrapbox'
           }
         },
         {
-          serverName: 'infosign-scrapbox-mcp',
+          serverName: 'test-project-2-scrapbox-mcp',
           env: {
-            COSENSE_PROJECT_NAME: 'infosign',
+            COSENSE_PROJECT_NAME: 'test-project-2',
             COSENSE_SID: 's:DUMMY_SID_FOR_TESTING_SERVER2.DUMMY_SIGNATURE_PART_2',
-            COSENSE_TOOL_SUFFIX: 'infosign', 
+            COSENSE_TOOL_SUFFIX: 'test-project-2', 
             SERVICE_LABEL: 'scrapbox'
           }
         }
