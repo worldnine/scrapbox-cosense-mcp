@@ -168,6 +168,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: "string",
               description: `Target project name. If not specified, defaults to '${projectName}'.`,
             },
+            createActually: {
+              type: "boolean",
+              description: "Whether to actually create the page using WebSocket API. If true (default), creates the page immediately. If false, returns only the creation URL.",
+            },
           },
           required: ["title"],
         },
