@@ -47,22 +47,14 @@ export async function handleCreatePage(
         };
       }
 
-      // WebSocket経由で新規ページを作成
+      // ハイブリッド方式: URL作成 → WebSocket更新
       const lines = convertedBody ? convertedBody.split('\n') : [];
       const allLines = [title, ...lines];
       
-      // デバッグ情報を保存
-      let patchResult;
-      let actualLines;
-      
-      patchResult = await patch(projectName, title, (existingLines: BaseLine[]) => {
-        // 新規ページの場合（existingLinesが空配列）
-        if (existingLines.length === 0) {
-          actualLines = allLines.map(text => ({ text }));
-          return actualLines;
-        }
-        // 既存ページの場合は何もしない（操作をキャンセル）
-        return undefined;
+      // WebSocket経由でページ作成・更新
+      await patch(projectName, title, (_existingLines: BaseLine[]) => {
+        // 空ページまたは既存ページの場合、内容を置き換える
+        return allLines.map(text => ({ text }));
       }, {
         sid: cosenseSid
       });
@@ -77,11 +69,6 @@ export async function handleCreatePage(
             `Project: ${projectName}`,
             `Title: ${title}`,
             `Lines: ${allLines.length}`,
-            `Body lines: ${lines.length}`,
-            `Original body: ${body || '(none)'}`,
-            `Converted body: ${convertedBody || '(none)'}`,
-            `All lines: ${JSON.stringify(allLines)}`,
-            `Patch result: ${patchResult || 'undefined'}`,
             `URL: ${url}`,
             `Timestamp: ${new Date().toISOString()}`
           ].join('\n')
