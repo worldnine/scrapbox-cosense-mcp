@@ -8,16 +8,16 @@ jest.mock('@/utils/markdown-converter.js', () => ({
 }));
 // @cosense/stdライブラリ全体をモック
 jest.mock('@cosense/std/websocket', () => ({
-  push: jest.fn()
+  patch: jest.fn()
 }));
 
 const mockedCosense = cosense as jest.Mocked<typeof cosense>;
 
-// pushのモックを動的に取得
-let mockedPush: jest.MockedFunction<typeof import('@cosense/std/websocket').push>;
+// patchのモックを動的に取得
+let mockedPatch: jest.MockedFunction<typeof import('@cosense/std/websocket').patch>;
 beforeAll(async () => {
   const websocketModule = await import('@cosense/std/websocket');
-  mockedPush = websocketModule.push as jest.MockedFunction<typeof import('@cosense/std/websocket').push>;
+  mockedPatch = websocketModule.patch as jest.MockedFunction<typeof import('@cosense/std/websocket').patch>;
 });
 
 describe('handleCreatePage', () => {
@@ -35,7 +35,7 @@ describe('handleCreatePage', () => {
 
   describe('正常ケース', () => {
     test('タイトルのみでページを作成できること（WebSocket API）', async () => {
-      mockedPush.mockResolvedValue(undefined);
+      mockedPatch.mockResolvedValue(undefined);
       const params = { title: 'New Page' };
       const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
 
@@ -45,7 +45,7 @@ describe('handleCreatePage', () => {
       expect(result.content[0]?.text).toContain('Title: New Page');
       expect(result.content[0]?.text).toContain('Lines: 1');
 
-      expect(mockedPush).toHaveBeenCalledWith(
+      expect(mockedPatch).toHaveBeenCalledWith(
         mockProjectName,
         'New Page',
         expect.any(Function),
@@ -62,7 +62,7 @@ describe('handleCreatePage', () => {
       expect(result.content[0]?.text).toContain('Created page: New Page');
       expect(result.content[0]?.text).toContain('URL: https://scrapbox.io/test-project/New%20Page');
 
-      expect(mockedPush).not.toHaveBeenCalled();
+      expect(mockedPatch).not.toHaveBeenCalled();
       expect(mockedCosense.createPageUrl).toHaveBeenCalledWith(
         mockProjectName,
         'New Page',
@@ -71,7 +71,7 @@ describe('handleCreatePage', () => {
     });
 
     test('本文付きでページを作成できること（WebSocket API）', async () => {
-      mockedPush.mockResolvedValue(undefined);
+      mockedPatch.mockResolvedValue(undefined);
       const params = { 
         title: 'New Page',
         body: '# Header\nContent'
@@ -81,7 +81,7 @@ describe('handleCreatePage', () => {
 
       expect(result.content[0]?.text).toContain('Successfully created page');
       expect(result.content[0]?.text).toContain('Lines: 3'); // title + 2 lines
-      expect(mockedPush).toHaveBeenCalled();
+      expect(mockedPatch).toHaveBeenCalled();
     });
   });
 
@@ -93,12 +93,12 @@ describe('handleCreatePage', () => {
       expect(result.isError).toBe(true);
       expect(result.content[0]?.text).toContain('Error: Authentication required');
       expect(result.content[0]?.text).toContain('COSENSE_SID environment variable is required');
-      expect(mockedPush).not.toHaveBeenCalled();
+      expect(mockedPatch).not.toHaveBeenCalled();
     });
 
     test('WebSocket APIでエラーが発生した場合にエラーレスポンスを返すこと', async () => {
       const errorMessage = 'WebSocket error';
-      mockedPush.mockRejectedValue(new Error(errorMessage));
+      mockedPatch.mockRejectedValue(new Error(errorMessage));
 
       const params = { title: 'New Page' };
       const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
@@ -125,7 +125,7 @@ describe('handleCreatePage', () => {
 
   describe('出力フォーマット', () => {
     test('WebSocket API成功レスポンスのフォーマットが正しいこと', async () => {
-      mockedPush.mockResolvedValue(undefined);
+      mockedPatch.mockResolvedValue(undefined);
       const params = { title: 'New Page' };
       const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
 

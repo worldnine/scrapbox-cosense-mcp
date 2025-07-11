@@ -1,7 +1,7 @@
 import { createPageUrl } from "../../cosense.js";
 import { convertMarkdownToScrapbox } from '../../utils/markdown-converter.js';
-import { push } from '@cosense/std/websocket';
-import type { Change } from '@cosense/types/websocket';
+import { patch } from '@cosense/std/websocket';
+import type { BaseLine } from '@cosense/types/rest';
 
 export interface CreatePageParams {
   title: string;
@@ -51,25 +51,13 @@ export async function handleCreatePage(
       const lines = convertedBody ? convertedBody.split('\n') : [];
       const allLines = [title, ...lines];
       
-      await push(projectName, title, (page, attempts, _prev, reason) => {
-        // ページが存在しない場合、新規作成
-        if (reason === "NotFoundError" || attempts === 1) {
-          const changes: Change[] = [];
-          let prevId = "_head";
-          
-          for (const [index, text] of allLines.entries()) {
-            const lineId = `line_${Date.now()}_${index}`;
-            changes.push({
-              _insert: prevId,
-              lines: { id: lineId, text }
-            });
-            prevId = lineId;
-          }
-          
-          return changes;
+      await patch(projectName, title, (existingLines: BaseLine[]) => {
+        // 新規ページの場合（existingLinesが空配列）
+        if (existingLines.length === 0) {
+          return allLines.map(text => ({ text }));
         }
-        // ページが既に存在する場合はキャンセル
-        return [];
+        // 既存ページの場合は何もしない（操作をキャンセル）
+        return undefined;
       }, {
         sid: cosenseSid
       });
