@@ -1,0 +1,36 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run security scan
+      run: npm run security:scan
+    
+    - name: Check for hardcoded secrets
+      run: |
+        echo "Scanning for potential secrets..."
+        if grep -r "password\|secret\|key\|token" src/ --include="*.ts" --include="*.js" | grep -v "// @ts-ignore" | grep -v "test" | grep -v "DUMMY" | grep -v "TEST"; then
+          echo "❌ Found potential secrets in code"
+          exit 1
+        else
+          echo "✅ No hardcoded secrets found"
+        fi

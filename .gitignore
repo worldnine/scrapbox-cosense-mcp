@@ -7,3 +7,13 @@ build/
 *.log
 .env*
 .DS_Store
+
+# セキュリティ関連ファイル
+**/cosense-sid*
+**/debug-real-*.test.ts
+**/*-credentials*
+**/*-secrets*
+**/test-data-real*
+
+# テストカバレッジ（機密情報が含まれる可能性）
+coverage/
