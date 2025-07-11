@@ -66,7 +66,8 @@ export function setupRoutes(
           {
             title: String(request.params.arguments?.title),
             body: (request.params.arguments?.body as string | undefined) ?? undefined,
-            projectName: request.params.arguments?.projectName as string | undefined
+            projectName: request.params.arguments?.projectName as string | undefined,
+            createActually: (request.params.arguments?.createActually as boolean | undefined) ?? undefined
           }
         );
 

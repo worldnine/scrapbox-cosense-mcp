@@ -32,11 +32,12 @@ MCP server for [cosense/scrapbox](https://cosen.se).
     - Max: 100 results (API limitation)
     - Supports: basic search, AND search, exclude search, exact phrases
 - `create_page`
-  - Create a new page in the project
-    - Input: Page title, optional markdown body text, optional project name
-    - Output: Returns the page creation URL without opening browser
+  - Create a new page in the project with WebSocket API
+    - Input: Page title, optional markdown body text, optional project name, optional createActually flag
+    - Output: Creates the page immediately and returns success confirmation with URL
     - Note: Markdown content is converted to Scrapbox format
     - Feature: Automatically converts numbered lists to bullet lists (configurable)
+    - Authentication: Requires COSENSE_SID for actual page creation
 - `get_page_url`
   - Generate URL for a page in the project
     - Input: Page title, optional project name
@@ -354,11 +355,12 @@ When running multiple server instances, check the debug logs for:
     - 最大: 100件（API制限）
     - サポート: 基本検索、AND検索、除外検索、完全一致フレーズ
 - `create_page`
-  - プロジェクトに新しいページを作成
-    - 入力: ページタイトル、オプションのマークダウン本文テキスト、オプションのプロジェクト名
-    - 出力: ブラウザを開かずにページ作成URLを返す
+  - WebSocket APIを使ってプロジェクトに新しいページを作成
+    - 入力: ページタイトル、オプションのマークダウン本文テキスト、オプションのプロジェクト名、オプションのcreateActuallyフラグ
+    - 出力: ページを即座に作成し、成功確認とURLを返す
     - 注意: マークダウンコンテンツはScrapbox形式に変換されます
     - 機能: 数字付きリストを自動的に箇条書きに変換（設定可能）
+    - 認証: 実際のページ作成にはCOSENSE_SIDが必要
 - `get_page_url`
   - プロジェクト内のページのURLを生成
     - 入力: ページタイトル、オプションのプロジェクト名

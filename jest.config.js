@@ -21,6 +21,6 @@ export default {
     '**/__tests__/**/*.integration.test.ts'
   ],
   transformIgnorePatterns: [
-    'node_modules/(?!(@whatwg-node/fetch)/)'
+    'node_modules/(?!(@whatwg-node/fetch|@cosense/std|@cosense/types|@jsr/cosense__std|@jsr/cosense__types)/)'
   ]
 };

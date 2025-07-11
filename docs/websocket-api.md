@@ -46,7 +46,25 @@ interface Line {
 - WebSocket接続時に認証情報を渡す
 - 環境変数`COSENSE_SID`から取得
 
-### 行挿入ロジック
+### ページ作成・編集ロジック
+
+#### create_page実装方法
+1. マークダウンをScrapbox記法に変換
+2. タイトル + 本文行の配列を作成
+3. WebSocket経由でページを作成/更新
+4. 既存ページの場合は内容を置き換え
+
+```typescript
+// マークダウン変換
+const convertedBody = body ? await convertMarkdownToScrapbox(body) : undefined;
+const lines = convertedBody ? convertedBody.split('\n') : [];
+const allLines = [title, ...lines];
+
+// WebSocket経由でページ作成・更新
+await patch(projectName, title, (_existingLines: BaseLine[]) => {
+  return allLines.map(text => ({ text }));
+}, { sid: cosenseSid });
+```
 
 #### insert_lines実装方法
 1. 現在のページ行を取得
@@ -111,4 +129,5 @@ return [
 ---
 
 ## 更新履歴
+- 2025-07-11: create_page実装でWebSocket API対応を追加
 - 2025-06-15: 初版作成（insert_lines実装時の調査結果）
