@@ -1,5 +1,6 @@
 import { patch } from '@cosense/std/websocket';
 import type { BaseLine } from '@cosense/types/rest';
+import { convertMarkdownToScrapbox } from '../../utils/markdown-converter.js';
 
 export interface InsertLinesParams {
   pageTitle: string;
@@ -33,6 +34,14 @@ export async function handleInsertLines(
       };
     }
 
+    // 環境変数から設定を取得
+    const convertNumberedLists = process.env.COSENSE_CONVERT_NUMBERED_LISTS === 'true';
+    
+    // マークダウンをScrapbox記法に変換
+    const convertedText = await convertMarkdownToScrapbox(params.text, {
+      convertNumberedLists
+    });
+
     // WebSocket経由でページを更新
     const result = await patch(projectName, params.pageTitle, (lines: BaseLine[]) => {
       // 対象行を検索
@@ -44,7 +53,7 @@ export async function handleInsertLines(
       const insertIndex = targetIndex >= 0 ? targetIndex + 1 : lines.length;
       
       // 新しいテキストを行に分割
-      const newLines = params.text.split('\n').map(text => ({ text }));
+      const newLines = convertedText.split('\n').map(text => ({ text }));
       
       // 行を再構築
       return [
@@ -57,7 +66,7 @@ export async function handleInsertLines(
     });
 
     // 成功時のレスポンス
-    const insertedLinesCount = params.text.split('\n').length;
+    const insertedLinesCount = convertedText.split('\n').length;
     const targetLineFound = result ? "found" : "not found (appended to end)";
     
     return {
