@@ -40,9 +40,9 @@ export async function handleGetPage(
       `Updated: ${formatYmd(new Date(readablePage.updated * 1000))}`,
       `Created user: ${readablePage.lastUpdateUser?.displayName || readablePage.user.displayName}`,
       `Last editor: ${readablePage.user.displayName}`,
-      `Other editors: ${readablePage.collaborators
-        .filter(collab => 
-          collab.id !== readablePage.user.id && 
+      `Other editors: ${(readablePage.collaborators ?? [])
+        .filter(collab =>
+          collab.id !== readablePage.user.id &&
           collab.id !== readablePage.lastUpdateUser?.id
         )
         .map(user => user.displayName)

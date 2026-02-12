@@ -114,6 +114,28 @@ describe('handleGetPage', () => {
     });
   });
 
+  describe('collaboratorsがundefinedの場合', () => {
+    test('collaboratorsがundefinedの場合でもエラーにならないこと', async () => {
+      const pageWithoutCollaborators = {
+        ...mockPageResponse,
+        collaborators: undefined as unknown as typeof mockPageResponse.collaborators,
+      };
+      const readableWithoutCollaborators = {
+        ...mockReadablePageResponse,
+        collaborators: undefined as unknown as typeof mockReadablePageResponse.collaborators,
+      };
+      mockedCosense.getPage.mockResolvedValue(pageWithoutCollaborators);
+      mockedCosense.toReadablePage.mockReturnValue(readableWithoutCollaborators);
+
+      const params = { pageTitle: 'Test Page' };
+      const result = await handleGetPage(mockProjectName, mockCosenseSid, params);
+
+      expect(result.isError).toBeUndefined();
+      expect(result.content[0]?.text).toContain('Title: Test Page');
+      expect(result.content[0]?.text).toContain('Other editors: ');
+    });
+  });
+
   describe('エラーケース', () => {
     test('ページが見つからない場合にエラーレスポンスを返すこと', async () => {
       mockedCosense.getPage.mockResolvedValue(null);

@@ -193,7 +193,7 @@ function toReadablePage(page: GetPageResponse): {
     updated: page.updated,
     user: page.user,
     lastUpdateUser: page.lastUpdateUser ?? undefined,
-    collaborators: page.collaborators,
+    collaborators: page.collaborators ?? [],
     links: page.links,
   };
 }
