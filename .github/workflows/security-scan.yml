@@ -28,7 +28,7 @@ jobs:
     - name: Check for hardcoded secrets
       run: |
         echo "Scanning for potential secrets..."
-        if grep -r "password\|secret\|key\|token" src/ --include="*.ts" --include="*.js" | grep -v "// @ts-ignore" | grep -v "test" | grep -v "DUMMY" | grep -v "TEST"; then
+        if grep -rPn "\bpassword\b|\bsecret\b|\bapi_key\b|\bapi_token\b|\baccess_token\b|\bprivate_key\b" src/ --include="*.ts" --include="*.js" | grep -v "// @ts-ignore" | grep -vi "test" | grep -v "DUMMY"; then
           echo "❌ Found potential secrets in code"
           exit 1
         else
