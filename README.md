@@ -65,7 +65,7 @@ Choose the installation method that best fits your environment:
 claude mcp add scrapbox-cosense-mcp \
   -e COSENSE_PROJECT_NAME=your_project \
   -e COSENSE_SID=your_sid \
-  -- npx github:worldnine/scrapbox-cosense-mcp
+  -- npx -y scrapbox-cosense-mcp
 ```
 
 #### Option C: Claude Desktop (JSON Configuration)
@@ -78,7 +78,7 @@ For Windows: `%APPDATA%/Claude/claude_desktop_config.json`
   "mcpServers": {
     "scrapbox-cosense-mcp": {
       "command": "npx",
-      "args": ["github:worldnine/scrapbox-cosense-mcp"],
+      "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "your_project_name",
         "COSENSE_SID": "your_sid"
@@ -102,7 +102,7 @@ The JSON configuration format is the same as Claude Desktop. Place it in the app
   "mcpServers": {
     "scrapbox-cosense-mcp": {
       "command": "npx",
-      "args": ["github:worldnine/scrapbox-cosense-mcp"],
+      "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "your_project_name",
         "COSENSE_SID": "your_sid"
@@ -254,7 +254,7 @@ For best user experience with multiple private projects, run separate MCP server
   "mcpServers": {
     "main-scrapbox": {
       "command": "npx",
-      "args": ["github:worldnine/scrapbox-cosense-mcp"],
+      "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "main-project",        // Actual project name for API calls
         "COSENSE_SID": "s:main_sid_here...",           // Session ID for this project
@@ -264,7 +264,7 @@ For best user experience with multiple private projects, run separate MCP server
     },
     "team-cosense": {
       "command": "npx",
-      "args": ["github:worldnine/scrapbox-cosense-mcp"],
+      "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "team-workspace",      // Actual project name for API calls
         "COSENSE_SID": "s:team_sid_here...",           // Session ID for this project
@@ -426,7 +426,7 @@ When running multiple server instances, check the debug logs for:
 claude mcp add scrapbox-cosense-mcp \
   -e COSENSE_PROJECT_NAME=your_project \
   -e COSENSE_SID=your_sid \
-  -- npx github:worldnine/scrapbox-cosense-mcp
+  -- npx -y scrapbox-cosense-mcp
 ```
 
 ### 方法C: Claude Desktop (JSON設定)
@@ -439,7 +439,7 @@ Windowsの場合: `%APPDATA%/Claude/claude_desktop_config.json`
   "mcpServers": {
     "scrapbox-cosense-mcp": {
       "command": "npx",
-      "args": ["github:worldnine/scrapbox-cosense-mcp"],
+      "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "your_project_name",
         "COSENSE_SID": "your_sid"
@@ -463,7 +463,7 @@ JSON設定の形式はClaude Desktopと同じです。各クライアントの�
   "mcpServers": {
     "scrapbox-cosense-mcp": {
       "command": "npx",
-      "args": ["github:worldnine/scrapbox-cosense-mcp"],
+      "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "your_project_name",
         "COSENSE_SID": "your_sid"
@@ -614,7 +614,7 @@ create_page を使用して、プロジェクト名「team-updates」に「週�
   "mcpServers": {
     "main-scrapbox": {
       "command": "npx",
-      "args": ["github:worldnine/scrapbox-cosense-mcp"],
+      "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "main-project",        // API呼び出しで使用される実際のプロジェクト名
         "COSENSE_SID": "s:main_sid_here...",           // このプロジェクト用のセッションID
@@ -624,7 +624,7 @@ create_page を使用して、プロジェクト名「team-updates」に「週�
     },
     "team-cosense": {
       "command": "npx",
-      "args": ["github:worldnine/scrapbox-cosense-mcp"],
+      "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "team-workspace",      // API呼び出しで使用される実際のプロジェクト名
         "COSENSE_SID": "s:team_sid_here...",           // このプロジェクト用のセッションID
