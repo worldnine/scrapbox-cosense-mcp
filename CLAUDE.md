@@ -149,7 +149,17 @@ The server entry point (`src/index.ts`) initializes resources, sets up MCP handl
 
 ## Recent Development
 
-**WebSocket Page Creation Support (v0.4.0 - Latest)**
+**MCP Resource Template & リソース改善 (v0.5.0 - Latest)**
+- `resources/list` を動的化: `listPagesBasic()` で最近のページを返す（ページネーションなし、COSENSE_PAGE_LIMIT件）
+- `cosense:///search/{query}` Resource Template を追加（MCP仕様準拠）
+  - 注意: Claude Desktopは `resources/templates/list` を呼び出さない（MCP公式の既知制約）。VS Codeなど対応クライアントで利用可能
+  - 全文検索は従来通り `search_pages` ツールを使用
+- `resources/read` が検索URI（`cosense:///search/{query}`）にも対応
+- `listPagesBasic()` 軽量ページ取得関数を追加（個別ページAPI呼び出し不要）
+- 検索結果は既存の `formatPageOutput()` でフォーマット
+- 既知の制限: `search/...` というタイトルのページは検索URIパターンと競合する可能性あり
+
+**WebSocket Page Creation Support (v0.4.0)**
 - Enhanced `create_page` tool with WebSocket API for immediate page creation with body content
 - Fixed critical issue where page body content was not being posted to created pages
 - Added `createActually` parameter to control WebSocket API usage (default: true)
