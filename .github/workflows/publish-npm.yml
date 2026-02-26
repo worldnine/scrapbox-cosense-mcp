@@ -1,0 +1,78 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: コードをチェックアウト
+      uses: actions/checkout@v4
+
+    - name: Node.js のセットアップ
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: 依存関係のインストール
+      run: npm ci
+
+    - name: リンティング
+      run: npm run lint
+
+    - name: テスト
+      run: npm test
+
+    - name: ビルド
+      run: npm run build
+
+    - name: ビルド成果物の確認
+      run: |
+        if [ ! -f "build/index.js" ]; then
+          echo "ビルド失敗: build/index.js が見つかりません"
+          exit 1
+        fi
+        echo "ビルド成功: build/index.js が作成されました"
+
+  publish:
+    needs: quality-check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: コードをチェックアウト
+      uses: actions/checkout@v4
+
+    - name: Node.js のセットアップ
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        registry-url: 'https://registry.npmjs.org'
+
+    - name: 依存関係のインストール
+      run: npm ci --ignore-scripts
+
+    - name: ビルド
+      run: npm run build
+
+    - name: タグとpackage.jsonのバージョン一致を確認
+      run: |
+        TAG_VERSION="${GITHUB_REF_NAME#v}"
+        PKG_VERSION=$(node -p "require('./package.json').version")
+        if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+          echo "エラー: タグ v${TAG_VERSION} と package.json ${PKG_VERSION} のバージョンが一致しません"
+          exit 1
+        fi
+        echo "バージョン一致: ${PKG_VERSION}"
+
+    - name: npm に公開
+      run: npm publish --provenance
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
