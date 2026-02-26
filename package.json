@@ -4,6 +4,10 @@
   "description": "MCP server for cosense",
   "private": false,
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/worldnine/scrapbox-cosense-mcp"
+  },
   "type": "module",
   "bin": {
     "scrapbox-cosense-mcp": "./build/index.js"
