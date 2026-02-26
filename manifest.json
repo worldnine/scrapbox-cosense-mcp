@@ -52,8 +52,8 @@
     "service_label": {
       "type": "string",
       "title": "Service Label",
-      "description": "Display name for this server (useful when running multiple instances)",
-      "default": "cosense (scrapbox)"
+      "description": "Name shown in tool descriptions. Scrapbox was renamed to Cosense — enter whichever name your team uses (e.g., 'cosense', 'scrapbox', 'our wiki').",
+      "default": "cosense"
     }
   }
 }
