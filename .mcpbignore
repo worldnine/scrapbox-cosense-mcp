@@ -1,9 +1,10 @@
 # ソースコード（ビルド済みファイルのみ必要）
-src/
+# node_modules内のsrc/を除外しないよう、ルート直下を明示的に指定
+/src
 tsconfig*.json
 
 # テスト・カバレッジ
-coverage/
+/coverage
 jest.config.js
 
 # CI/CD・GitHub設定
@@ -11,7 +12,7 @@ jest.config.js
 .claude/
 
 # ドキュメント（READMEとLICENSEは含める）
-docs/
+/docs
 
 # 開発設定
 eslint.config.js

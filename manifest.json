@@ -25,7 +25,7 @@
     "project_name": {
       "type": "string",
       "title": "Project Name",
-      "description": "Cosense/Scrapbox project name (e.g., 'help-ja')",
+      "description": "The project name from your URL: scrapbox.io/YOUR_PROJECT_NAME (e.g., 'my-project')",
       "required": true
     },
     "sid": {
