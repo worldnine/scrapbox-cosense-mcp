@@ -6,16 +6,16 @@ import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   ListResourcesRequestSchema,
+  ListResourceTemplatesRequestSchema,
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { listPages, getPage, toReadablePage } from "./cosense.js";
-import { formatYmd } from './utils/format.js';
+import { listPagesBasic, getPage, toReadablePage, searchPages } from "./cosense.js";
+import { formatYmd, formatPageOutput } from './utils/format.js';
 import { setupRoutes } from './routes/index.js';
 
 // 環境変数のデフォルト値と検証用の定数
-const FETCH_PAGE_LIMIT = 100;  // 固定で100件取得
-const DEFAULT_PAGE_LIMIT = FETCH_PAGE_LIMIT;  // デフォルトは取得上限と同じ
+const DEFAULT_PAGE_LIMIT = 100;
 const DEFAULT_SORT_METHOD = 'updated';
 const MIN_PAGE_LIMIT = 1;
 const MAX_PAGE_LIMIT = 1000;
@@ -57,36 +57,6 @@ if (!projectName) {
 }
 
 
-// resourcesの初期化（100件取得してソート）
-const resources = await (async () => {
-  try {
-    // 常に100件取得
-    const result = await listPages(
-      projectName, 
-      cosenseSid,
-      {
-        limit: FETCH_PAGE_LIMIT,  // 固定で100件
-        skip: 0,
-        sort: initialSortMethod,
-        excludePinned: process.env.COSENSE_EXCLUDE_PINNED === 'true'
-      }
-    );
-
-    // ソート済みのページから必要な件数だけを使用
-    return result.pages
-      .slice(0, Math.min(initialPageLimit, FETCH_PAGE_LIMIT))  // 環境変数で指定された件数か100件の小さい方
-      .map((page) => ({
-        uri: `cosense:///${page.title}`,
-        mimeType: "text/plain",
-        name: page.title,
-        description: `A text page: ${page.title}`,
-      }));
-
-  } catch (error) {
-    return [];  // 空の配列を返してサーバーは起動を継続
-  }
-})();
-
 const server = new Server(
   {
     name: "scrapbox-cosense-mcp",
@@ -101,16 +71,88 @@ const server = new Server(
   },
 );
 
+// resources/list: 最近のページを返す（COSENSE_PAGE_LIMIT件、デフォルト100）
 server.setRequestHandler(ListResourcesRequestSchema, async () => {
-  return {
-    resources,
-  };
+  try {
+    const result = await listPagesBasic(
+      projectName,
+      cosenseSid,
+      {
+        limit: initialPageLimit,
+        skip: 0,
+        sort: initialSortMethod,
+        excludePinned: process.env.COSENSE_EXCLUDE_PINNED === 'true'
+      }
+    );
+
+    const resources = result.pages.map((page) => ({
+      uri: `cosense:///${page.title}`,
+      mimeType: "text/plain" as const,
+      name: page.title,
+      description: `A text page: ${page.title}`,
+    }));
+
+    return { resources };
+  } catch {
+    return { resources: [] };
+  }
 });
+
+server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => ({
+  resourceTemplates: [{
+    uriTemplate: "cosense:///search/{query}",
+    name: `Search pages in ${projectName}`,
+    description: `${SERVICE_LABEL} の ${projectName} プロジェクトの全文検索。キーワード、AND検索、除外語（-word）、フレーズ検索（"phrase"）対応。最大100件。`,
+    mimeType: "text/plain",
+  }],
+}));
 
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   const url = new URL(request.params.uri);
-  const title = decodeURIComponent(url.pathname.replace(/^\//, ""));
-  
+  const path = decodeURIComponent(url.pathname.replace(/^\//, ""));
+
+  // 検索URIの判定: /search/{query} パターン
+  const searchMatch = path.match(/^search\/(.+)$/);
+  if (searchMatch) {
+    const query = searchMatch[1]!;
+    const searchResult = await searchPages(projectName, query, cosenseSid);
+
+    if (!searchResult || searchResult.count === 0) {
+      return {
+        contents: [{
+          uri: request.params.uri,
+          mimeType: "text/plain",
+          text: `Search query: ${query}\nTotal results: 0\nProject: ${projectName}\n\nNo pages found.`,
+        }],
+      };
+    }
+
+    const header = [
+      `Search query: ${query}`,
+      `Total results: ${searchResult.count}`,
+      `Project: ${projectName}`,
+      '',
+    ].join('\n');
+
+    const pageOutputs = searchResult.pages.map((page, index) =>
+      formatPageOutput(page, index, {
+        isSearchResult: true,
+        showMatches: true,
+        showSnippet: true,
+      })
+    );
+
+    return {
+      contents: [{
+        uri: request.params.uri,
+        mimeType: "text/plain",
+        text: header + pageOutputs.join('\n---\n'),
+      }],
+    };
+  }
+
+  // 既存のページ読み込み処理
+  const title = path;
   const getPageResult = await getPage(projectName, title, cosenseSid);
   if (!getPageResult) {
     throw new Error(`Page ${title} not found`);
@@ -123,8 +165,8 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
     `Created user: ${readablePage.lastUpdateUser?.displayName || readablePage.user.displayName}`,
     `Last editor: ${readablePage.user.displayName}`,
     `Other editors: ${readablePage.collaborators
-      .filter(collab => 
-        collab.id !== readablePage.user.id && 
+      .filter(collab =>
+        collab.id !== readablePage.user.id &&
         collab.id !== readablePage.lastUpdateUser?.id
       )
       .map(user => user.displayName)
@@ -132,8 +174,8 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
     '',
     readablePage.lines.map(line => line.text).join('\n'),
     '',
-    `Links:\n${getPageResult.links.length > 0 
-      ? getPageResult.links.map((link: string) => `- ${link}`).join('\n') 
+    `Links:\n${getPageResult.links.length > 0
+      ? getPageResult.links.map((link: string) => `- ${link}`).join('\n')
       : '(None)'}`
   ].join('\n');
 
