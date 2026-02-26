@@ -1,0 +1,33 @@
+name: Release MCPB
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-mcpb:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install all dependencies and build
+      run: npm ci && npm run build
+
+    - name: Re-install production dependencies only
+      run: rm -rf node_modules && npm install --omit=dev
+
+    - name: Pack MCPB
+      run: npx @anthropic-ai/mcpb pack . scrapbox-cosense-mcp.mcpb
+
+    - name: Upload MCPB to release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: scrapbox-cosense-mcp.mcpb
