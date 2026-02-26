@@ -20,7 +20,8 @@
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "security:scan": "grep -r 's:[A-Za-z0-9_-]\\{20,\\}\\.' src/ | grep -v DUMMY | grep -v TEST || echo 'No suspicious SID patterns found'",
-    "precommit": "npm run lint && npm run test && npm run security:scan"
+    "precommit": "npm run lint && npm run test && npm run security:scan",
+    "mcpb:pack": "npx @anthropic-ai/mcpb pack"
   },
   "dependencies": {
     "@cosense/std": "npm:@jsr/cosense__std@^0.29.8",

@@ -48,23 +48,31 @@ MCP server for [cosense/scrapbox](https://cosen.se).
     - Output: Success message with insertion details
     - Behavior: If target line not found, text is appended to the end of the page
 
-### Installation
+### Quick Start
+
+Choose the installation method that best fits your environment:
+
+#### Option A: Desktop Extension (.mcpb) — Easiest, No Terminal Required
+
+1. Download `scrapbox-cosense-mcp.mcpb` from [GitHub Releases](https://github.com/worldnine/scrapbox-cosense-mcp/releases)
+2. Double-click the downloaded file — Claude Desktop will open an install dialog
+3. Enter your project name (and Session ID for private projects) in the configuration form
+4. Done! The MCP tools are now available in Claude Desktop
+
+#### Option B: Claude Code (CLI)
 
 ```bash
-git clone https://github.com/worldnine/scrapbox-cosense-mcp.git
-cd scrapbox-cosense-mcp
-npm install
-npm run build
+claude mcp add scrapbox-cosense-mcp \
+  -e COSENSE_PROJECT_NAME=your_project \
+  -e COSENSE_SID=your_sid \
+  -- npx github:worldnine/scrapbox-cosense-mcp
 ```
 
-### Basic Setup
-
-To use with Claude Desktop, add the server configuration as follows:
+#### Option C: Claude Desktop (JSON Configuration)
 
 For MacOS: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
 For Windows: `%APPDATA%/Claude/claude_desktop_config.json`
 
-**Single Project Configuration:**
 ```json
 {
   "mcpServers": {
@@ -73,14 +81,44 @@ For Windows: `%APPDATA%/Claude/claude_desktop_config.json`
       "args": ["github:worldnine/scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "your_project_name",
-        "COSENSE_SID": "your_sid", // Required for private projects
-        "COSENSE_PAGE_LIMIT": "25", // Optional (default: 100)
-        "COSENSE_SORT_METHOD": "created", // Optional (default: "updated")
-        "SERVICE_LABEL": "scrapbox(cosense)" // Optional (default: "cosense(scrapbox)")
+        "COSENSE_SID": "your_sid"
       }
     }
   }
 }
+```
+
+#### Option D: Other MCP Clients (Cursor, Windsurf, etc.)
+
+The JSON configuration format is the same as Claude Desktop. Place it in the appropriate config file:
+
+| Client | Config File |
+|--------|-------------|
+| Cursor | `.cursor/mcp.json` (in project root) |
+| Windsurf | `~/.codeium/windsurf/mcp_config.json` |
+
+```json
+{
+  "mcpServers": {
+    "scrapbox-cosense-mcp": {
+      "command": "npx",
+      "args": ["github:worldnine/scrapbox-cosense-mcp"],
+      "env": {
+        "COSENSE_PROJECT_NAME": "your_project_name",
+        "COSENSE_SID": "your_sid"
+      }
+    }
+  }
+}
+```
+
+#### Option E: Build from Source
+
+```bash
+git clone https://github.com/worldnine/scrapbox-cosense-mcp.git
+cd scrapbox-cosense-mcp
+npm install
+npm run build
 ```
 
 ### Usage Examples
@@ -371,23 +409,31 @@ When running multiple server instances, check the debug logs for:
     - 出力: 挿入の詳細を含む成功メッセージ
     - 動作: 対象行が見つからない場合は、ページの末尾にテキストが追加されます
 
-## インストール方法
+## クイックスタート
+
+お使いの環境に合った方法を選んでください：
+
+### 方法A: Desktop Extension (.mcpb) — 最も簡単、ターミナル不要
+
+1. [GitHub Releases](https://github.com/worldnine/scrapbox-cosense-mcp/releases) から `scrapbox-cosense-mcp.mcpb` をダウンロード
+2. ダウンロードしたファイルをダブルクリック — Claude Desktopのインストールダイアログが開きます
+3. 設定フォームにプロジェクト名（プライベートプロジェクトの場合はセッションID）を入力
+4. 完了! MCPツールがClaude Desktopで使えるようになります
+
+### 方法B: Claude Code (CLI)
 
 ```bash
-git clone https://github.com/worldnine/scrapbox-cosense-mcp.git
-cd scrapbox-cosense-mcp
-npm install
-npm run build
+claude mcp add scrapbox-cosense-mcp \
+  -e COSENSE_PROJECT_NAME=your_project \
+  -e COSENSE_SID=your_sid \
+  -- npx github:worldnine/scrapbox-cosense-mcp
 ```
 
-## 基本設定
-
-Claude Desktopで使用するには、以下のようにサーバー設定を追加してください:
+### 方法C: Claude Desktop (JSON設定)
 
 MacOSの場合: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
 Windowsの場合: `%APPDATA%/Claude/claude_desktop_config.json`
 
-**単一プロジェクト設定:**
 ```json
 {
   "mcpServers": {
@@ -396,14 +442,44 @@ Windowsの場合: `%APPDATA%/Claude/claude_desktop_config.json`
       "args": ["github:worldnine/scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "your_project_name",
-        "COSENSE_SID": "your_sid", // プライベートプロジェクトの場合は必須
-        "COSENSE_PAGE_LIMIT": "25", // オプション（デフォルト: 100）
-        "COSENSE_SORT_METHOD": "created", // オプション（デフォルト: "updated"）
-        "SERVICE_LABEL": "scrapbox(cosense)" // オプション（デフォルト: "cosense(scrapbox)"）
+        "COSENSE_SID": "your_sid"
       }
     }
   }
 }
+```
+
+### 方法D: 他のMCPクライアント (Cursor, Windsurf等)
+
+JSON設定の形式はClaude Desktopと同じです。各クライアントの設定ファイルに記述してください：
+
+| クライアント | 設定ファイル |
+|-------------|-------------|
+| Cursor | `.cursor/mcp.json`（プロジェクトルート） |
+| Windsurf | `~/.codeium/windsurf/mcp_config.json` |
+
+```json
+{
+  "mcpServers": {
+    "scrapbox-cosense-mcp": {
+      "command": "npx",
+      "args": ["github:worldnine/scrapbox-cosense-mcp"],
+      "env": {
+        "COSENSE_PROJECT_NAME": "your_project_name",
+        "COSENSE_SID": "your_sid"
+      }
+    }
+  }
+}
+```
+
+### 方法E: ソースからビルド
+
+```bash
+git clone https://github.com/worldnine/scrapbox-cosense-mcp.git
+cd scrapbox-cosense-mcp
+npm install
+npm run build
 ```
 
 ## 使用例

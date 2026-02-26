@@ -1,0 +1,59 @@
+{
+  "manifest_version": "0.3",
+  "name": "scrapbox-cosense-mcp",
+  "version": "0.4.1",
+  "description": "MCP server for Cosense/Scrapbox - Read, search, create and edit pages",
+  "author": {
+    "name": "worldnine"
+  },
+  "server": {
+    "type": "node",
+    "entry_point": "build/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/build/index.js"],
+      "env": {
+        "COSENSE_PROJECT_NAME": "${user_config.project_name}",
+        "COSENSE_SID": "${user_config.sid}",
+        "COSENSE_PAGE_LIMIT": "${user_config.page_limit}",
+        "COSENSE_SORT_METHOD": "${user_config.sort_method}",
+        "SERVICE_LABEL": "${user_config.service_label}"
+      }
+    }
+  },
+  "user_config": {
+    "project_name": {
+      "type": "string",
+      "title": "Project Name",
+      "description": "The project name from your URL: scrapbox.io/YOUR_PROJECT_NAME (e.g., 'my-project')",
+      "required": true
+    },
+    "sid": {
+      "type": "string",
+      "title": "Session ID (COSENSE_SID)",
+      "description": "connect.sid cookie value for private projects. Leave empty for public projects.",
+      "required": false,
+      "sensitive": true
+    },
+    "page_limit": {
+      "type": "number",
+      "title": "Page Limit",
+      "description": "Number of pages to load initially (1-1000)",
+      "default": 100,
+      "min": 1,
+      "max": 1000
+    },
+    "sort_method": {
+      "type": "string",
+      "title": "Sort Method",
+      "description": "Initial page sort order: updated, created, accessed, linked, views, title",
+      "default": "updated"
+    },
+    "service_label": {
+      "type": "string",
+      "title": "Service Label",
+      "description": "Name shown in tool descriptions. Scrapbox was renamed to Cosense — enter whichever name your team uses (e.g., 'cosense', 'scrapbox', 'our wiki').",
+      "default": "cosense"
+    }
+  }
+}

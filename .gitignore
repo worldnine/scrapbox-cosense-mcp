@@ -17,3 +17,6 @@ build/
 
 # テストカバレッジ（機密情報が含まれる可能性）
 coverage/
+
+# Desktop Extensions ビルド成果物
+*.mcpb

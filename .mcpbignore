@@ -1,0 +1,19 @@
+# ソースコード（ビルド済みファイルのみ必要）
+# node_modules内のsrc/を除外しないよう、ルート直下を明示的に指定
+/src
+tsconfig*.json
+
+# テスト・カバレッジ
+/coverage
+jest.config.js
+
+# CI/CD・GitHub設定
+.github/
+.claude/
+
+# ドキュメント（READMEとLICENSEは含める）
+/docs
+
+# 開発設定
+eslint.config.js
+.node-version
