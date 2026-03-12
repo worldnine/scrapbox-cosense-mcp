@@ -35,16 +35,19 @@ export async function convertMarkdownToScrapbox(
   
   // md2sbを使用してマークダウンをScrapbox形式に変換
   let result = await md2sb(markdown);
-  
+
   // md2sbがnullまundefinedを返した場合の処理
   if (result == null) {
     return '';
   }
-  
+
   // 文字列以外の場合は文字列に変換
   if (typeof result !== 'string') {
     result = String(result);
   }
+
+  // Fix bare URLs being doubled by md2sb: [URL URL] → [URL]
+  result = result.replace(/\[(https?:\/\/[^\s\]]+)\s+\1\]/g, '[$1]');
   
   // 数字付きリストを箇条書きに変換（オプション）
   if (opts.convertNumberedLists) {

@@ -8,6 +8,7 @@ export interface CreatePageParams {
   body?: string | undefined;
   projectName?: string | undefined;
   createActually?: boolean | undefined;
+  format?: "markdown" | "scrapbox" | undefined;
 }
 
 export async function handleCreatePage(
@@ -23,10 +24,15 @@ export async function handleCreatePage(
     
     // 環境変数から設定を取得
     const convertNumberedLists = process.env.COSENSE_CONVERT_NUMBERED_LISTS === 'true';
-    
-    const convertedBody = body ? await convertMarkdownToScrapbox(body, {
-      convertNumberedLists
-    }) : undefined;
+
+    let convertedBody: string | undefined;
+    if (body) {
+      if (params.format === 'scrapbox') {
+        convertedBody = body;
+      } else {
+        convertedBody = await convertMarkdownToScrapbox(body, { convertNumberedLists });
+      }
+    }
     
     // WebSocket APIで実際にページを作成
     if (createActually) {

@@ -67,7 +67,8 @@ export function setupRoutes(
             title: String(request.params.arguments?.title),
             body: (request.params.arguments?.body as string | undefined) ?? undefined,
             projectName: request.params.arguments?.projectName as string | undefined,
-            createActually: (request.params.arguments?.createActually as boolean | undefined) ?? undefined
+            createActually: (request.params.arguments?.createActually as boolean | undefined) ?? undefined,
+            format: (request.params.arguments?.format as "markdown" | "scrapbox" | undefined) ?? undefined
           }
         );
 
@@ -89,7 +90,8 @@ export function setupRoutes(
             pageTitle: String(request.params.arguments?.pageTitle),
             targetLineText: String(request.params.arguments?.targetLineText),
             text: String(request.params.arguments?.text),
-            projectName: request.params.arguments?.projectName as string | undefined
+            projectName: request.params.arguments?.projectName as string | undefined,
+            format: (request.params.arguments?.format as "markdown" | "scrapbox" | undefined) ?? undefined
           }
         );
 
