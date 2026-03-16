@@ -7,6 +7,7 @@ export interface InsertLinesParams {
   targetLineText: string;
   text: string;
   projectName?: string | undefined;
+  format?: "markdown" | "scrapbox" | undefined;
 }
 
 export async function handleInsertLines(
@@ -36,11 +37,13 @@ export async function handleInsertLines(
 
     // 環境変数から設定を取得
     const convertNumberedLists = process.env.COSENSE_CONVERT_NUMBERED_LISTS === 'true';
-    
-    // マークダウンをScrapbox記法に変換
-    const convertedText = await convertMarkdownToScrapbox(params.text, {
-      convertNumberedLists
-    });
+
+    let convertedText: string;
+    if (params.format === 'scrapbox') {
+      convertedText = params.text;
+    } else {
+      convertedText = await convertMarkdownToScrapbox(params.text, { convertNumberedLists });
+    }
 
     // WebSocket経由でページを更新
     const result = await patch(projectName, params.pageTitle, (lines: BaseLine[]) => {

@@ -162,7 +162,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             body: {
               type: "string",
-              description: "Content in markdown format. Avoid duplicating the title in the body since it's automatically displayed at the top. Supports links, code blocks, lists, and emphasis.",
+              description: "Content in markdown format (default) or Scrapbox syntax (when format is 'scrapbox'). Avoid duplicating the title in the body since it's automatically displayed at the top. Supports links, code blocks, lists, and emphasis.",
             },
             projectName: {
               type: "string",
@@ -171,6 +171,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             createActually: {
               type: "boolean",
               description: "Whether to actually create the page using WebSocket API. If true (default), creates the page immediately. If false, returns only the creation URL.",
+            },
+            format: {
+              type: "string",
+              enum: ["markdown", "scrapbox"],
+              description: "Content format of the body. 'markdown' (default) converts Markdown to Scrapbox syntax. 'scrapbox' passes content through as-is, preserving Scrapbox-native indentation and syntax.",
             },
           },
           required: ["title"],
@@ -280,11 +285,16 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             },
             text: {
               type: "string",
-              description: "Text to insert. Can contain multiple lines separated by newline characters.",
+              description: "Text to insert in markdown format (default) or Scrapbox syntax (when format is 'scrapbox'). Can contain multiple lines separated by newline characters.",
             },
             projectName: {
               type: "string",
               description: `Target project name. If not specified, defaults to '${projectName}'.`,
+            },
+            format: {
+              type: "string",
+              enum: ["markdown", "scrapbox"],
+              description: "Content format of the text. 'markdown' (default) converts Markdown to Scrapbox syntax. 'scrapbox' passes content through as-is, preserving Scrapbox-native indentation and syntax.",
             },
           },
           required: ["pageTitle", "targetLineText", "text"],
