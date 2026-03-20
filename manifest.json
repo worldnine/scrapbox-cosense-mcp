@@ -1,7 +1,7 @@
 {
   "manifest_version": "0.3",
   "name": "scrapbox-cosense-mcp",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "MCP server for Cosense/Scrapbox - Read, search, create and edit pages",
   "author": {
     "name": "worldnine"

@@ -90,7 +90,7 @@ const resources = await (async () => {
 const server = new Server(
   {
     name: "scrapbox-cosense-mcp",
-    version: "0.1.0",
+    version: "0.5.0",
   },
   {
     capabilities: {

@@ -9,7 +9,7 @@ See README.md for basic installation and setup instructions. Key development com
 ```bash
 npm run build        # Build the server (TypeScript → JavaScript) - uses tsconfig.build.json
 npm run watch        # Auto-rebuild during development
-npm run test         # Run tests using Jest with comprehensive test suite (142+ tests)
+npm run test         # Run tests using Jest with comprehensive test suite (comprehensive test suite)
 npm run lint         # Run ESLint with TypeScript support and console.log warnings
 npm run inspector    # Debug with MCP Inspector
 ```
@@ -77,7 +77,7 @@ See README.md for complete environment variable documentation. Key variables for
 5. **Resource Management**: Initial resource loading with configurable limits
 6. **Cookie Authentication**: Uses Scrapbox session cookies for private project access
 7. **Modern Build System**: Dual TypeScript configurations for development and production
-8. **Comprehensive Testing**: 142+ tests with full type safety and coverage
+8. **Comprehensive Testing**: comprehensive test suite with full type safety and coverage
 9. **Code Quality**: ESLint with TypeScript support, automated CI/CD, branch protection
 10. **Quality Management**: Automated quality checks prevent debug logs and broken code from reaching production
 
@@ -97,7 +97,7 @@ See README.md for complete environment variable documentation. Key variables for
 - Added PR and Issue templates with quality checklists
 - Created comprehensive documentation structure (`docs/` folder)
 - Fixed timezone-dependent test failures for CI environment compatibility
-- All tests passing (142/142), zero linting errors, 6 acceptable warnings
+- All tests passing, zero linting errors, 6 acceptable warnings
 - Prevents debug logs and broken code from reaching production through automated checks
 
 **Markdown Conversion Improvements**
@@ -105,7 +105,7 @@ See README.md for complete environment variable documentation. Key variables for
 - Added automatic conversion of numbered lists to bullet lists (configurable via COSENSE_CONVERT_NUMBERED_LISTS)
 - Preserves nested list structure while removing numbers
 - Improved create_page tool description to prevent title duplication through better prompting
-- All tests passing (142/142), including new comprehensive list conversion tests
+- All tests passing, including new comprehensive list conversion tests
 
 **Multiple Project Support (v0.2.0 - Released)**
 - Added optional `projectName` parameter to all MCP tools for single-server multi-project usage
@@ -114,7 +114,7 @@ See README.md for complete environment variable documentation. Key variables for
 - Two approaches: recommended multiple servers vs. single server with optional parameters
 - Maintains full backward compatibility with existing configurations
 - Fixed md2sb module loading issue and added integration tests
-- All tests passing (126/126), TypeScript compilation successful
+- All tests passing, TypeScript compilation successful
 - Released as v0.2.0 with comprehensive documentation updates
 
 The server entry point (`src/index.ts`) initializes resources, sets up MCP handlers, and manages the stdio transport connection.
@@ -131,7 +131,7 @@ The server entry point (`src/index.ts`) initializes resources, sets up MCP handl
 
 ### Testing Infrastructure
 - **Jest with TypeScript**: Uses `ts-jest` with ESM support
-- **Comprehensive Coverage**: 142+ tests covering all handlers and utilities
+- **Comprehensive Coverage**: comprehensive test suite covering all handlers and utilities
 - **Path Alias Support**: Jest configured to resolve `@/` imports
 - **Type Safety**: Tests use optional chaining (`?.`) for `noUncheckedIndexedAccess` compatibility
 
@@ -156,7 +156,7 @@ The server entry point (`src/index.ts`) initializes resources, sets up MCP handl
 - Implemented proper authentication checks requiring COSENSE_SID for page creation
 - Maintained backward compatibility with URL-only generation mode (createActually: false)
 - Added comprehensive debugging and error handling for WebSocket operations
-- All tests passing (146/146), TypeScript compilation successful
+- All tests passing, TypeScript compilation successful
 - Verified working implementation with actual Scrapbox project integration
 
 **WebSocket API Foundation (v0.3.0)**
