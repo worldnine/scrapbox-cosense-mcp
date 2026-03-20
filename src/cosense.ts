@@ -337,6 +337,83 @@ async function listPages(
   }
 }
 
+// リソース一覧用の軽量ページ取得（個別getPage呼び出しなし）
+async function listPagesBasic(
+  projectName: string,
+  sid?: string,
+  options: { limit?: number | undefined; skip?: number | undefined; sort?: string | undefined; excludePinned?: boolean | undefined } = {}
+): Promise<ListPagesResponse & { debug?: DebugInfo }> {
+  try {
+    const { sort, excludePinned } = options;
+
+    const sortValue = options.sort || 'created';
+    const params = new URLSearchParams({
+      limit: (options.limit || 1000).toString(),
+      skip: (options.skip || 0).toString(),
+      sort: sortValue
+    });
+
+    const url = `https://${API_DOMAIN}/api/pages/${projectName}?${params}`;
+
+    const debugInfo: DebugInfo = {
+      request_url: url,
+      params: Object.fromEntries(params.entries())
+    };
+
+    const response = sid
+      ? await fetch(url, {
+          headers: { Cookie: `connect.sid=${sid}` },
+        })
+      : await fetch(url);
+
+    if (!response.ok) {
+      return {
+        limit: 0,
+        count: 0,
+        skip: 0,
+        projectName: projectName,
+        pages: [],
+        debug: {
+          ...debugInfo,
+          error: `API error: ${response.status} ${response.statusText}`
+        }
+      };
+    }
+
+    const pages = await response.json();
+
+    // ソートとフィルタリングを適用（getPageによるenrichmentなし）
+    const sortedPages = sortPages((pages as ListPagesResponse).pages, {
+      sort: sort ?? undefined,
+      excludePinned: excludePinned ?? undefined
+    });
+
+    return {
+      ...(pages as ListPagesResponse),
+      pages: sortedPages,
+      debug: {
+        ...debugInfo,
+        originalCount: (pages as ListPagesResponse).pages.length,
+        filteredCount: sortedPages.length,
+        appliedSort: sort || 'created',
+        excludedPinned: excludePinned || false
+      }
+    };
+
+  } catch (error) {
+    return {
+      limit: 0,
+      count: 0,
+      skip: 0,
+      projectName: projectName,
+      pages: [],
+      debug: {
+        error: error instanceof Error ? error.message : '不明なエラー'
+      }
+    };
+  }
+}
+
 function encodeScrapboxBody(body: string): string {
   // Scrapboxの本文用にエンコード
   return encodeURIComponent(body);
@@ -457,4 +534,4 @@ async function listPagesWithSort(
 export type { ListPagesResponse };
 
 // 関数のエクスポート
-export { getPage, listPages, listPagesWithSort, toReadablePage, createPageUrl, searchPages };
+export { getPage, listPages, listPagesBasic, listPagesWithSort, toReadablePage, createPageUrl, searchPages };
