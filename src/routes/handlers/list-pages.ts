@@ -1,6 +1,6 @@
 import { type ListPagesResponse } from "../../cosense.js";
 import { listPages, listPagesWithSort } from "../../cosense.js";
-import { formatPageOutput, formatPageCompact, getSortDescription, getSortValue } from '../../utils/format.js';
+import { formatPageOutput, formatPageCompact, formatError, getSortDescription, getSortValue } from '../../utils/format.js';
 
 export interface ListPagesParams {
   sort?: string;
@@ -102,22 +102,17 @@ export async function handleListPages(
       }]
     };
   } catch (error) {
-    return {
-      content: [{
-        type: "text",
-        text: [
-          'Error details:',
-          `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          `Operation: list_pages`,
-          `Project: ${params.projectName || defaultProjectName}`,
-          `Sort: ${params.sort || 'default'}`,
-          `Limit: ${params.limit || 'default'}`,
-          `Skip: ${params.skip || '0'}`,
-          `ExcludePinned: ${params.excludePinned}`,
-          `Timestamp: ${new Date().toISOString()}`
-        ].join('\n')
-      }],
-      isError: true
-    };
+    return formatError(
+      error instanceof Error ? error.message : 'Unknown error',
+      {
+        Operation: 'list_pages',
+        Project: params.projectName || defaultProjectName,
+        Sort: params.sort || 'default',
+        Limit: String(params.limit || 'default'),
+        Skip: String(params.skip || '0'),
+        Timestamp: new Date().toISOString(),
+      },
+      params.compact
+    );
   }
 }

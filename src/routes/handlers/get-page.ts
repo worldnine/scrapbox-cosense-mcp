@@ -1,5 +1,5 @@
 import { getPage, toReadablePage } from "../../cosense.js";
-import { formatYmd } from '../../utils/format.js';
+import { formatYmd, formatError } from '../../utils/format.js';
 
 export interface GetPageParams {
   pageTitle: string;
@@ -15,24 +15,29 @@ export async function handleGetPage(
   try {
     const projectName = params.projectName || defaultProjectName;
     const page = await getPage(projectName, params.pageTitle, cosenseSid);
-    
+
     if (!page) {
-      return {
-        content: [{
-          type: "text",
-          text: [
-            `Error: Page "${params.pageTitle}" not found`,
-            `Operation: get_page`,
-            `Project: ${params.projectName || defaultProjectName}`,
-            `Status: 404`,
-            `Timestamp: ${new Date().toISOString()}`
-          ].join('\n')
-        }],
-        isError: true
-      };
+      return formatError(`Page "${params.pageTitle}" not found`, {
+        Operation: 'get_page',
+        Project: projectName,
+        Status: '404',
+        Timestamp: new Date().toISOString(),
+      }, params.compact);
     }
 
         const readablePage = toReadablePage(page);
+
+    // ページが未保存（persistent=false）かつタイトル行のみの場合は未作成として扱う
+    const hasContent = readablePage.lines.length > 1
+      || readablePage.links.length > 0;
+    if (!hasContent && page.persistent === false) {
+      return formatError(`Page "${params.pageTitle}" not found`, {
+        Operation: 'get_page',
+        Project: projectName,
+        Status: '404',
+        Timestamp: new Date().toISOString(),
+      }, params.compact);
+    }
 
     const contentText = readablePage.lines.map(line => line.text).join('\n');
     let fullText: string;
@@ -72,19 +77,15 @@ export async function handleGetPage(
       }]
     };
   } catch (error) {
-    return {
-      content: [{
-        type: "text",
-        text: [
-          'Error details:',
-          `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          `Operation: get_page`,
-          `Project: ${params.projectName || defaultProjectName}`,
-          `Page: ${params.pageTitle}`,
-          `Timestamp: ${new Date().toISOString()}`
-        ].join('\n')
-      }],
-      isError: true
-    };
+    return formatError(
+      error instanceof Error ? error.message : 'Unknown error',
+      {
+        Operation: 'get_page',
+        Project: params.projectName || defaultProjectName,
+        Page: params.pageTitle,
+        Timestamp: new Date().toISOString(),
+      },
+      params.compact
+    );
   }
 }

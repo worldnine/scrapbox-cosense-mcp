@@ -190,6 +190,10 @@ function requireProjectName(flags: Record<string, string | boolean>): string {
   return project;
 }
 
+function unescapeString(s: string): string {
+  return s.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+}
+
 function readFileContent(path: string): string {
   try {
     return readFileSync(path, 'utf-8');
@@ -272,7 +276,7 @@ export async function runCli(argv: string[]): Promise<void> {
       if (typeof flags['body-file'] === 'string') {
         body = readFileContent(flags['body-file']);
       } else if (typeof flags['body'] === 'string') {
-        body = flags['body'];
+        body = unescapeString(flags['body']);
       }
       result = await handleCreatePage(project, sid, {
         title,
@@ -305,7 +309,7 @@ export async function runCli(argv: string[]): Promise<void> {
         process.stderr.write('Error: Page title is required. Usage: scrapbox-cosense-mcp insert <title> --after=TEXT --text=TEXT\n');
         process.exit(2);
       }
-      const afterText = typeof flags['after'] === 'string' ? flags['after'] : undefined;
+      const afterText = typeof flags['after'] === 'string' ? unescapeString(flags['after']) : undefined;
       if (!afterText) {
         process.stderr.write('Error: --after=TEXT is required. Usage: scrapbox-cosense-mcp insert <title> --after=TEXT --text=TEXT\n');
         process.exit(2);
@@ -314,7 +318,7 @@ export async function runCli(argv: string[]): Promise<void> {
       if (typeof flags['text-file'] === 'string') {
         text = readFileContent(flags['text-file']);
       } else if (typeof flags['text'] === 'string') {
-        text = flags['text'];
+        text = unescapeString(flags['text']);
       }
       if (!text) {
         process.stderr.write('Error: --text=TEXT or --text-file=PATH is required.\n');

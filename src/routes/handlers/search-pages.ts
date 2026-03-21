@@ -1,5 +1,5 @@
 import { searchPages } from "../../cosense.js";
-import { formatPageOutput, formatPageCompact } from '../../utils/format.js';
+import { formatPageOutput, formatPageCompact, formatError } from '../../utils/format.js';
 
 export interface SearchPagesParams {
   query: string;
@@ -16,22 +16,15 @@ export async function handleSearchPages(
     const projectName = params.projectName || defaultProjectName;
     const query = String(params.query);
     const results = await searchPages(projectName, query, cosenseSid);
-    
+
     if (!results) {
-      return {
-        content: [{
-          type: "text",
-          text: [
-            `Error: No search results`,
-            `Operation: search_pages`,
-            `Project: ${params.projectName || defaultProjectName}`,
-            `Query: ${query}`,
-            `Status: 404`,
-            `Timestamp: ${new Date().toISOString()}`
-          ].join('\n')
-        }],
-        isError: true
-      };
+      return formatError('No search results', {
+        Operation: 'search_pages',
+        Project: projectName,
+        Query: query,
+        Status: '404',
+        Timestamp: new Date().toISOString(),
+      }, params.compact);
     }
 
     let output: string;
@@ -67,19 +60,15 @@ export async function handleSearchPages(
       }]
     };
   } catch (error) {
-    return {
-      content: [{
-        type: "text",
-        text: [
-          'Error details:',
-          `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          `Operation: search_pages`,
-          `Project: ${params.projectName || defaultProjectName}`,
-          `Query: ${params.query}`,
-          `Timestamp: ${new Date().toISOString()}`
-        ].join('\n')
-      }],
-      isError: true
-    };
+    return formatError(
+      error instanceof Error ? error.message : 'Unknown error',
+      {
+        Operation: 'search_pages',
+        Project: params.projectName || defaultProjectName,
+        Query: params.query,
+        Timestamp: new Date().toISOString(),
+      },
+      params.compact
+    );
   }
 }

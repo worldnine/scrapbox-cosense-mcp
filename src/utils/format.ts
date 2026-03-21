@@ -1,3 +1,17 @@
+export function formatError(
+  message: string,
+  details: Record<string, string>,
+  compact?: boolean
+): { content: Array<{ type: string; text: string }>; isError: true } {
+  const text = compact
+    ? `error: ${message}`
+    : [
+        `Error: ${message}`,
+        ...Object.entries(details).map(([k, v]) => `${k}: ${v}`),
+      ].join('\n');
+  return { content: [{ type: "text", text }], isError: true };
+}
+
 // 基本的なページ型を定義
 export interface BasePage {
   title: string;
