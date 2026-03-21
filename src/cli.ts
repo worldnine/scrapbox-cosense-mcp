@@ -49,7 +49,93 @@ function parseArgs(argv: string[]): ParsedArgs {
   return { command: first as CliCommand, positional, flags };
 }
 
-function printHelp(): void {
+const COMMON_OPTIONS = `Common Options:
+  --project=NAME                 Override project name (default: COSENSE_PROJECT_NAME)
+  --json                         Output as JSON
+  --compact                      Token-efficient compact output
+  --help, -h                     Show help`;
+
+const COMMAND_HELP: Record<string, string> = {
+  get: `Usage: scrapbox-cosense-mcp get <title> [options]
+
+Retrieve page content, metadata, and links.
+
+Arguments:
+  <title>                        Page title (required)
+
+${COMMON_OPTIONS}`,
+
+  list: `Usage: scrapbox-cosense-mcp list [options]
+
+List pages with sorting and pagination.
+
+Options:
+  --sort=METHOD                  Sort: updated|created|accessed|linked|views|title
+  --limit=N                      Max pages (1-1000, default: 1000)
+  --skip=N                       Pages to skip
+  --exclude-pinned               Exclude pinned pages
+
+${COMMON_OPTIONS}`,
+
+  search: `Usage: scrapbox-cosense-mcp search <query> [options]
+
+Search pages by keyword (max 100 results).
+Supports AND search (multiple words), exclusion (-word), exact match ("phrase").
+
+Arguments:
+  <query>                        Search query (required)
+
+${COMMON_OPTIONS}`,
+
+  create: `Usage: scrapbox-cosense-mcp create <title> [options]
+
+Create a new page. Requires COSENSE_SID.
+Markdown body is automatically converted to Scrapbox format.
+Do not duplicate the title in the body.
+
+Arguments:
+  <title>                        Page title (required)
+
+Options:
+  --body=TEXT                    Page body content
+  --body-file=PATH               Read body from file
+  --format=FORMAT                Body format: markdown (default) | scrapbox
+  --dry-run                      Only generate URL, don't create
+
+${COMMON_OPTIONS}`,
+
+  url: `Usage: scrapbox-cosense-mcp url <title> [options]
+
+Generate a direct URL for a page.
+
+Arguments:
+  <title>                        Page title (required)
+
+${COMMON_OPTIONS}`,
+
+  insert: `Usage: scrapbox-cosense-mcp insert <title> --after=TEXT --text=TEXT [options]
+
+Insert text after a specified line in a page. Requires COSENSE_SID.
+If the target line is not found, text is appended to the end.
+
+Arguments:
+  <title>                        Page title (required)
+
+Options:
+  --after=TEXT                   Target line to insert after (required)
+  --text=TEXT                    Text to insert
+  --text-file=PATH               Read insertion text from file
+  --format=FORMAT                Text format: markdown (default) | scrapbox
+
+${COMMON_OPTIONS}`,
+};
+
+function printHelp(command?: string): void {
+  if (command && COMMAND_HELP[command]) {
+    process.stdout.write(COMMAND_HELP[command] + '\n');
+    return;
+  }
+
   const help = `scrapbox-cosense-mcp - Scrapbox/Cosense CLI & MCP Server
 
 Usage:
@@ -64,30 +150,9 @@ Commands:
   url <title>                    Get page URL
   insert <title>                 Insert lines into a page
 
-Common Options:
-  --project=NAME                 Override project name (default: COSENSE_PROJECT_NAME)
-  --json                         Output as JSON
-  --compact                      Token-efficient compact output
-  --help, -h                     Show help
+${COMMON_OPTIONS}
 
-Command Options:
-  list:
-    --sort=METHOD                Sort: updated|created|accessed|linked|views|title
-    --limit=N                    Max pages (1-1000)
-    --skip=N                     Pages to skip
-    --exclude-pinned             Exclude pinned pages
-
-  create:
-    --body=TEXT                  Page body content
-    --body-file=PATH             Read body from file
-    --format=FORMAT              Body format: markdown (default) | scrapbox
-    --dry-run                    Only generate URL, don't create
-
-  insert:
-    --after=TEXT                 Target line to insert after
-    --text=TEXT                  Text to insert
-    --text-file=PATH             Read insertion text from file
-    --format=FORMAT              Text format: markdown (default) | scrapbox
+Run scrapbox-cosense-mcp <command> --help for command details.
 
 Environment Variables:
   COSENSE_PROJECT_NAME           Target project (required for most commands)
@@ -140,8 +205,12 @@ export async function runCli(argv: string[]): Promise<void> {
   const compact = flags['compact'] === true;
   const sid = process.env.COSENSE_SID;
 
-  if (command === 'help' || flags['help']) {
+  if (command === 'help') {
     printHelp();
+    return;
+  }
+  if (flags['help']) {
+    printHelp(command);
     return;
   }
 
