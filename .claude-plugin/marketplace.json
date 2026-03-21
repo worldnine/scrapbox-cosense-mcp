@@ -1,0 +1,16 @@
+{
+  "name": "worldnine-scrapbox-cosense-mcp",
+  "owner": {
+    "name": "worldnine"
+  },
+  "metadata": {
+    "description": "Plugin marketplace for Scrapbox/Cosense MCP server with CLI and skills"
+  },
+  "plugins": [
+    {
+      "name": "scrapbox-cosense",
+      "source": ".",
+      "description": "Scrapbox/Cosense integration - read, search, create, and edit wiki pages"
+    }
+  ]
+}

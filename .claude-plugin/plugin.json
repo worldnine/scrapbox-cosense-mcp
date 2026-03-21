@@ -1,0 +1,10 @@
+{
+  "name": "scrapbox-cosense",
+  "description": "Scrapbox/Cosense integration - read, search, create, and edit wiki pages",
+  "version": "0.5.0",
+  "author": {
+    "name": "worldnine"
+  },
+  "repository": "https://github.com/worldnine/scrapbox-cosense-mcp",
+  "license": "MIT"
+}

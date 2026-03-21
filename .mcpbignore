@@ -11,6 +11,11 @@ jest.config.js
 .github/
 .claude/
 
+# プラグイン関連（.mcpb には不要）
+/.claude-plugin
+/skills
+.mcp.json
+
 # ドキュメント（READMEとLICENSEは含める）
 /docs
 
