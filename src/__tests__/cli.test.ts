@@ -86,6 +86,17 @@ describe('CLI', () => {
       expect(stdoutOutput).toContain('Commands:');
     });
 
+    it('should print subcommand help with create --help', async () => {
+      try {
+        await runCli(['create', '--help']);
+      } catch {
+        // process.exit throws
+      }
+      expect(stdoutOutput).toContain('Create a new page');
+      expect(stdoutOutput).toContain('--body=TEXT');
+      expect(stdoutOutput).toContain('--dry-run');
+    });
+
     it('should print help with unknown command', async () => {
       try {
         await runCli(['unknown-command']);
@@ -107,7 +118,7 @@ describe('CLI', () => {
       expect(mockedGetPage.handleGetPage).toHaveBeenCalledWith(
         'test-project',
         'test-sid',
-        { pageTitle: 'My Page', projectName: undefined }
+        { pageTitle: 'My Page', projectName: undefined, compact: false }
       );
       expect(stdoutOutput).toContain('Success output');
     });
@@ -131,7 +142,7 @@ describe('CLI', () => {
       expect(mockedGetPage.handleGetPage).toHaveBeenCalledWith(
         'other-project',
         'test-sid',
-        { pageTitle: 'My Page', projectName: 'other-project' }
+        { pageTitle: 'My Page', projectName: 'other-project', compact: false }
       );
     });
   });
@@ -164,6 +175,20 @@ describe('CLI', () => {
         { sort: 'created', limit: 20, skip: 5, excludePinned: true, projectName: undefined }
       );
     });
+
+    it('should pass compact flag', async () => {
+      mockedListPages.handleListPages.mockResolvedValue(successResult);
+      try {
+        await runCli(['list', '--compact']);
+      } catch {
+        // process.exit
+      }
+      expect(mockedListPages.handleListPages).toHaveBeenCalledWith(
+        'test-project',
+        'test-sid',
+        expect.objectContaining({ compact: true })
+      );
+    });
   });
 
   describe('search command', () => {
@@ -177,7 +202,7 @@ describe('CLI', () => {
       expect(mockedSearchPages.handleSearchPages).toHaveBeenCalledWith(
         'test-project',
         'test-sid',
-        { query: 'test keyword', projectName: undefined }
+        { query: 'test keyword', projectName: undefined, compact: false }
       );
     });
 
@@ -202,7 +227,7 @@ describe('CLI', () => {
       expect(mockedCreatePage.handleCreatePage).toHaveBeenCalledWith(
         'test-project',
         'test-sid',
-        { title: 'New Page', body: 'Hello world', createActually: true, format: undefined, projectName: undefined }
+        { title: 'New Page', body: 'Hello world', createActually: true, format: undefined, projectName: undefined, compact: false }
       );
     });
 
@@ -268,6 +293,7 @@ describe('CLI', () => {
           text: 'new content',
           format: undefined,
           projectName: undefined,
+          compact: false,
         }
       );
     });
