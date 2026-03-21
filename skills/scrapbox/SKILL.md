@@ -1,13 +1,13 @@
 ---
-name: scrapbox
-description: Interact with Scrapbox/Cosense pages - read, search, list, create, and edit pages. Use when the user mentions Scrapbox, Cosense, or wants to work with wiki pages.
+name: cosense
+description: Interact with Cosense (Scrapbox) pages - read, search, list, create, and edit pages. Use when the user mentions Cosense, Scrapbox, or wants to work with wiki pages.
 allowed-tools: Bash(scrapbox-cosense-mcp *)
 argument-hint: <operation or natural language request>
 ---
 
-# Scrapbox/Cosense
+# Cosense (Scrapbox)
 
-Scrapbox ページの取得・検索・作成・編集。CLI 経由で実行。
+Cosense ページの取得・検索・作成・編集。CLI 経由で実行。
 
 ## コマンド
 
@@ -46,6 +46,6 @@ Claude Code のローカル設定（gitignore 対象）の `env` キーに追加
 
 ### SID の取得方法
 
-1. ブラウザで Scrapbox/Cosense にログイン
+1. ブラウザで Cosense にログイン
 2. 開発者ツール → Application → Cookies
 3. `connect.sid` の値をコピー

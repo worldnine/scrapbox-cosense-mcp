@@ -90,7 +90,7 @@ ${COMMON_OPTIONS}`,
   create: `Usage: scrapbox-cosense-mcp create <title> [options]
 
 Create a new page. Requires COSENSE_SID.
-Markdown body is automatically converted to Scrapbox format.
+Markdown body is automatically converted to Cosense format.
 Do not duplicate the title in the body.
 
 Arguments:
@@ -136,7 +136,7 @@ function printHelp(command?: string): void {
     return;
   }
 
-  const help = `scrapbox-cosense-mcp - Scrapbox/Cosense CLI & MCP Server
+  const help = `scrapbox-cosense-mcp - Cosense (Scrapbox) CLI & MCP Server
 
 Usage:
   scrapbox-cosense-mcp <command> [arguments] [options]
