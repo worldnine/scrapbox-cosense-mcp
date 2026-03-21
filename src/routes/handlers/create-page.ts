@@ -93,6 +93,14 @@ export async function handleCreatePage(
     
     // 従来のURL生成のみの動作
     const url = createPageUrl(projectName, title, convertedBody);
+    if (params.compact) {
+      return {
+        content: [{
+          type: "text",
+          text: `created: ${title} | ${url}`
+        }]
+      };
+    }
     return {
       content: [{
         type: "text",
