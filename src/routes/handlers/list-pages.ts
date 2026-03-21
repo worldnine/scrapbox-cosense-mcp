@@ -1,6 +1,6 @@
 import { type ListPagesResponse } from "../../cosense.js";
 import { listPages, listPagesWithSort } from "../../cosense.js";
-import { formatPageOutput, getSortDescription, getSortValue } from '../../utils/format.js';
+import { formatPageOutput, formatPageCompact, getSortDescription, getSortValue } from '../../utils/format.js';
 
 export interface ListPagesParams {
   sort?: string;
@@ -8,6 +8,7 @@ export interface ListPagesParams {
   skip?: number;
   excludePinned?: boolean;
   projectName?: string | undefined;
+  compact?: boolean | undefined;
 }
 
 export async function handleListPages(
@@ -21,7 +22,8 @@ export async function handleListPages(
       limit = 1000,
       skip = 0,  // デフォルト値を設定
       excludePinned = false,
-      projectName: paramsProjectName
+      projectName: paramsProjectName,
+      compact = false
     } = params;
     const projectName = paramsProjectName || defaultProjectName;
     let pages;
@@ -63,24 +65,35 @@ export async function handleListPages(
       );
     }
 
-    let output = [
-      `Project: ${projectName}`,
-      `Total pages: ${pages.count}`,
-      `Pages fetched: ${pages.limit}`,
-      `Pages skipped: ${pages.skip}`,
-      `Sort method: ${getSortDescription(sort)}`,
-      '---'
-    ].join('\n') + '\n';
+    let output: string;
 
-    output += pages.pages.map((page, index) => {
-      const sortValue = getSortValue(page, sort);
-      return formatPageOutput(page, index, {
-        skip: skip || 0,
-        showSort: true,
-        sortValue: sortValue.formatted,
-        showDescriptions: true  // 冒頭5行を表示するオプションを有効化
-      }) + '\n---';
-    }).join('\n');
+    if (compact) {
+      const header = `${projectName} | ${pages.count} pages | sort:${sort || 'updated'}`;
+      const lines = pages.pages.map((page) => {
+        const sortValue = getSortValue(page, sort);
+        return formatPageCompact(page, { sortValue: sortValue.formatted });
+      });
+      output = [header, ...lines].join('\n');
+    } else {
+      output = [
+        `Project: ${projectName}`,
+        `Total pages: ${pages.count}`,
+        `Pages fetched: ${pages.limit}`,
+        `Pages skipped: ${pages.skip}`,
+        `Sort method: ${getSortDescription(sort)}`,
+        '---'
+      ].join('\n') + '\n';
+
+      output += pages.pages.map((page, index) => {
+        const sortValue = getSortValue(page, sort);
+        return formatPageOutput(page, index, {
+          skip: skip || 0,
+          showSort: true,
+          sortValue: sortValue.formatted,
+          showDescriptions: true
+        }) + '\n---';
+      }).join('\n');
+    }
 
     return {
       content: [{

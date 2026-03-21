@@ -8,6 +8,7 @@ export interface InsertLinesParams {
   text: string;
   projectName?: string | undefined;
   format?: "markdown" | "scrapbox" | undefined;
+  compact?: boolean | undefined;
 }
 
 export async function handleInsertLines(
@@ -71,7 +72,16 @@ export async function handleInsertLines(
     // 成功時のレスポンス
     const insertedLinesCount = convertedText.split('\n').length;
     const targetLineFound = result ? "found" : "not found (appended to end)";
-    
+
+    if (params.compact) {
+      return {
+        content: [{
+          type: "text",
+          text: `inserted: ${insertedLinesCount} lines into ${params.pageTitle}`
+        }]
+      };
+    }
+
     return {
       content: [{
         type: "text",

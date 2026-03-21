@@ -67,6 +67,7 @@ Commands:
 Common Options:
   --project=NAME                 Override project name (default: COSENSE_PROJECT_NAME)
   --json                         Output as JSON
+  --compact                      Token-efficient compact output
   --help, -h                     Show help
 
 Command Options:
@@ -136,6 +137,7 @@ function readFileContent(path: string): string {
 export async function runCli(argv: string[]): Promise<void> {
   const { command, positional, flags } = parseArgs(argv);
   const json = flags['json'] === true;
+  const compact = flags['compact'] === true;
   const sid = process.env.COSENSE_SID;
 
   if (command === 'help' || flags['help']) {
@@ -156,6 +158,7 @@ export async function runCli(argv: string[]): Promise<void> {
       result = await handleGetPage(project, sid, {
         pageTitle: title,
         projectName: typeof flags['project'] === 'string' ? flags['project'] : undefined,
+        compact,
       });
       break;
     }
@@ -169,6 +172,7 @@ export async function runCli(argv: string[]): Promise<void> {
       if (typeof flags['limit'] === 'string') listParams['limit'] = parseInt(flags['limit'], 10);
       if (typeof flags['skip'] === 'string') listParams['skip'] = parseInt(flags['skip'], 10);
       if (typeof flags['project'] === 'string') listParams['projectName'] = flags['project'];
+      if (compact) listParams['compact'] = true;
       result = await handleListPages(project, sid, listParams as Parameters<typeof handleListPages>[2]);
       break;
     }
@@ -183,6 +187,7 @@ export async function runCli(argv: string[]): Promise<void> {
       result = await handleSearchPages(project, sid, {
         query,
         projectName: typeof flags['project'] === 'string' ? flags['project'] : undefined,
+        compact,
       });
       break;
     }
@@ -206,6 +211,7 @@ export async function runCli(argv: string[]): Promise<void> {
         createActually: flags['dry-run'] !== true,
         format: flags['format'] === 'scrapbox' ? 'scrapbox' : undefined,
         projectName: typeof flags['project'] === 'string' ? flags['project'] : undefined,
+        compact,
       });
       break;
     }
@@ -252,6 +258,7 @@ export async function runCli(argv: string[]): Promise<void> {
         text,
         format: flags['format'] === 'scrapbox' ? 'scrapbox' : undefined,
         projectName: typeof flags['project'] === 'string' ? flags['project'] : undefined,
+        compact,
       });
       break;
     }

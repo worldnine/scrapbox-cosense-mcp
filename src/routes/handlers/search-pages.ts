@@ -1,9 +1,10 @@
 import { searchPages } from "../../cosense.js";
-import { formatPageOutput } from '../../utils/format.js';
+import { formatPageOutput, formatPageCompact } from '../../utils/format.js';
 
 export interface SearchPagesParams {
   query: string;
   projectName?: string | undefined;
+  compact?: boolean | undefined;
 }
 
 export async function handleSearchPages(
@@ -33,21 +34,31 @@ export async function handleSearchPages(
       };
     }
 
-    let output = [
-      `Project: ${projectName}`,
-      `Search query: ${results.searchQuery}`,
-      `Total results: ${results.count}`,
-      `Note: Limited to 100 results. No way to fetch beyond this limit. If expected content is not found, please try refining your search query.`,
-      '---'
-    ].join('\n') + '\n';
+    let output: string;
 
-    output += results.pages.map((page, index) => 
-      formatPageOutput(page, index, {
-        showMatches: true,
-        showSnippet: true,
-        isSearchResult: true  // 検索結果であることを示すフラグを追加
-      }) + '\n---'
-    ).join('\n');
+    if (params.compact) {
+      const header = `${projectName} | "${results.searchQuery}" | ${results.count} results`;
+      const lines = results.pages.map((page) =>
+        formatPageCompact(page, { showMatches: true })
+      );
+      output = [header, ...lines].join('\n');
+    } else {
+      output = [
+        `Project: ${projectName}`,
+        `Search query: ${results.searchQuery}`,
+        `Total results: ${results.count}`,
+        `Note: Limited to 100 results. No way to fetch beyond this limit. If expected content is not found, please try refining your search query.`,
+        '---'
+      ].join('\n') + '\n';
+
+      output += results.pages.map((page, index) =>
+        formatPageOutput(page, index, {
+          showMatches: true,
+          showSnippet: true,
+          isSearchResult: true
+        }) + '\n---'
+      ).join('\n');
+    }
 
     return {
       content: [{

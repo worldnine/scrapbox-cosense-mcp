@@ -4,6 +4,7 @@ import { formatYmd } from '../../utils/format.js';
 export interface GetPageParams {
   pageTitle: string;
   projectName?: string | undefined;
+  compact?: boolean | undefined;
 }
 
 export async function handleGetPage(
@@ -32,32 +33,38 @@ export async function handleGetPage(
     }
 
         const readablePage = toReadablePage(page);
-    
-    // ページ情報を整形
-    const formattedText = [
-      `Title: ${readablePage.title}`,
-      `Created: ${formatYmd(new Date(readablePage.created * 1000))}`,
-      `Updated: ${formatYmd(new Date(readablePage.updated * 1000))}`,
-      `Created user: ${readablePage.lastUpdateUser?.displayName || readablePage.user.displayName}`,
-      `Last editor: ${readablePage.user.displayName}`,
-      `Other editors: ${(readablePage.collaborators ?? [])
-        .filter(collab =>
-          collab.id !== readablePage.user.id &&
-          collab.id !== readablePage.lastUpdateUser?.id
-        )
-        .map(user => user.displayName)
-        .join(', ')}`
-    ].join('\n');
 
-    // 本文を追加
     const contentText = readablePage.lines.map(line => line.text).join('\n');
+    let fullText: string;
 
-    // リンク情報を追加
-    const linksText = `\nLinks:\n${readablePage.links.length > 0 
-      ? readablePage.links.map((link: string) => `- ${link}`).join('\n') 
-      : '(None)'}`;
+    if (params.compact) {
+      const header = `${readablePage.title} | updated:${formatYmd(new Date(readablePage.updated * 1000))}`;
+      const links = readablePage.links.length > 0
+        ? `\nlinks: ${readablePage.links.join(', ')}`
+        : '';
+      fullText = `${header}\n${contentText}${links}`;
+    } else {
+      const formattedText = [
+        `Title: ${readablePage.title}`,
+        `Created: ${formatYmd(new Date(readablePage.created * 1000))}`,
+        `Updated: ${formatYmd(new Date(readablePage.updated * 1000))}`,
+        `Created user: ${readablePage.lastUpdateUser?.displayName || readablePage.user.displayName}`,
+        `Last editor: ${readablePage.user.displayName}`,
+        `Other editors: ${(readablePage.collaborators ?? [])
+          .filter(collab =>
+            collab.id !== readablePage.user.id &&
+            collab.id !== readablePage.lastUpdateUser?.id
+          )
+          .map(user => user.displayName)
+          .join(', ')}`
+      ].join('\n');
 
-    const fullText = `${formattedText}\n\n${contentText}\n${linksText}`;
+      const linksText = `\nLinks:\n${readablePage.links.length > 0
+        ? readablePage.links.map((link: string) => `- ${link}`).join('\n')
+        : '(None)'}`;
+
+      fullText = `${formattedText}\n\n${contentText}\n${linksText}`;
+    }
     return {
       content: [{
         type: "text",

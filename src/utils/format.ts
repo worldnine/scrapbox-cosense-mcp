@@ -136,6 +136,28 @@ export function getSortValue(page: BasePage, sortMethod: string | undefined): {
   }
 }
 
+export function formatPageCompact(
+  page: ExtendedPage,
+  options: {
+    showMatches?: boolean;
+    sortValue?: string;
+  } = {}
+): string {
+  const parts = [`- ${page.title}`];
+
+  if (options.sortValue) {
+    parts.push(options.sortValue);
+  } else if (page.updated) {
+    parts.push(formatYmd(new Date(page.updated * 1000)));
+  }
+
+  if (options.showMatches && page.words) {
+    parts.push(`matched: ${page.words.join(', ')}`);
+  }
+
+  return parts.join(' | ');
+}
+
 export function formatPageOutput(
   page: ExtendedPage,
   index: number,

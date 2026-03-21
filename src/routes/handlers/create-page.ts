@@ -9,6 +9,7 @@ export interface CreatePageParams {
   projectName?: string | undefined;
   createActually?: boolean | undefined;
   format?: "markdown" | "scrapbox" | undefined;
+  compact?: boolean | undefined;
 }
 
 export async function handleCreatePage(
@@ -66,6 +67,14 @@ export async function handleCreatePage(
       });
 
       const url = createPageUrl(projectName, title);
+      if (params.compact) {
+        return {
+          content: [{
+            type: "text",
+            text: `created: ${title} | ${url}`
+          }]
+        };
+      }
       return {
         content: [{
           type: "text",
