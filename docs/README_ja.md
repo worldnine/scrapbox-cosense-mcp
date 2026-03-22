@@ -35,6 +35,15 @@
    ```
    /plugin install scrapbox-cosense@worldnine-scrapbox-cosense-mcp
    ```
+3. 環境変数を `.claude/settings.local.json`（gitignore対象）に設定:
+   ```json
+   {
+     "env": {
+       "COSENSE_PROJECT_NAME": "your_project_name",
+       "COSENSE_SID": "your_sid"
+     }
+   }
+   ```
 
 MCPサーバー設定が自動適用され、`/cosense` スキルも利用可能になります。
 

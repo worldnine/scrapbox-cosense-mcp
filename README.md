@@ -35,6 +35,15 @@ MCP server for [Cosense (formerly Scrapbox)](https://cosen.se).
    ```
    /plugin install scrapbox-cosense@worldnine-scrapbox-cosense-mcp
    ```
+3. Set environment variables in your `.claude/settings.local.json` (gitignored):
+   ```json
+   {
+     "env": {
+       "COSENSE_PROJECT_NAME": "your_project_name",
+       "COSENSE_SID": "your_sid"
+     }
+   }
+   ```
 
 The plugin includes MCP server configuration and a `/cosense` skill for CLI operations.
 
