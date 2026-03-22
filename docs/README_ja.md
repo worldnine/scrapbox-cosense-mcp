@@ -35,7 +35,7 @@
    ```
    /plugin install scrapbox-cosense@worldnine-scrapbox-cosense-mcp
    ```
-3. 環境変数を `.claude/settings.local.json`（gitignore対象）に設定:
+3. 環境変数を設定:
    ```json
    {
      "env": {
@@ -44,6 +44,10 @@
      }
    }
    ```
+   | ファイル | スコープ |
+   |----------|----------|
+   | `~/.claude/settings.json` | 全プロジェクト共通（グローバル） |
+   | `.claude/settings.local.json` | このプロジェクトのみ（gitignore対象） |
 
 MCPサーバー設定が自動適用され、`/cosense` スキルも利用可能になります。
 
