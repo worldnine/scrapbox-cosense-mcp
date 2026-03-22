@@ -25,7 +25,7 @@ jobs:
       run: npm ci && npm run build
 
     - name: Re-install production dependencies only
-      run: rm -rf node_modules && npm install --omit=dev
+      run: rm -rf node_modules && npm install --omit=dev --ignore-scripts
 
     - name: Pack MCPB
       run: npx @anthropic-ai/mcpb pack . scrapbox-cosense-mcp.mcpb
