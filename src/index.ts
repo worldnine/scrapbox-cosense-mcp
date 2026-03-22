@@ -1,5 +1,14 @@
 #!/usr/bin/env node
 
+// CLI mode detection: if a known subcommand is passed, run CLI instead of MCP server
+const CLI_COMMANDS = ['get', 'list', 'search', 'create', 'url', 'insert'];
+const _firstArg = process.argv[2];
+if (_firstArg && (CLI_COMMANDS.includes(_firstArg) || _firstArg === '--help' || _firstArg === '-h')) {
+  const { runCli } = await import('./cli.js');
+  await runCli(process.argv.slice(2));
+  process.exit(0);
+}
+
 const SERVICE_LABEL = process.env.SERVICE_LABEL || "cosense (scrapbox)";
 const TOOL_SUFFIX = process.env.COSENSE_TOOL_SUFFIX;
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";

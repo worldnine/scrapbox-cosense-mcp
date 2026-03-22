@@ -20,6 +20,11 @@ export default {
     '**/__tests__/**/*.test.ts',
     '**/__tests__/**/*.integration.test.ts'
   ],
+  testPathIgnorePatterns: [
+    'node_modules',
+    'build',
+    '\\.claude/worktrees'
+  ],
   transformIgnorePatterns: [
     'node_modules/(?!(@whatwg-node/fetch|@cosense/std|@cosense/types|@jsr/cosense__std|@jsr/cosense__types)/)'
   ]

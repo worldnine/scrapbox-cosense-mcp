@@ -89,6 +89,26 @@ npm install && npm run build
 | `COSENSE_CONVERT_NUMBERED_LISTS` | `false` | Convert numbered lists to bullet lists in Markdown conversion |
 | `COSENSE_EXCLUDE_PINNED` | `false` | Exclude pinned pages from initial resource list |
 
+## CLI Usage
+
+The same binary also works as a standalone CLI:
+
+```bash
+scrapbox-cosense-mcp get "Page Title"
+scrapbox-cosense-mcp search "keyword"
+scrapbox-cosense-mcp list --sort=updated --limit=20
+scrapbox-cosense-mcp create "New Page" --body="Markdown content"
+scrapbox-cosense-mcp insert "Page" --after="target line" --text="new text"
+scrapbox-cosense-mcp url "Page Title"
+```
+
+| Flag | Description |
+|------|-------------|
+| `--compact` | Token-efficient compact output (recommended for AI agents) |
+| `--project=NAME` | Override project name |
+| `--json` | Output as JSON |
+| `--help` | Show help (supports `<command> --help` for details) |
+
 ## Multiple Projects
 
 All tools accept an optional `projectName` parameter to target a different project from a single server. For multiple private projects with different credentials, run separate server instances with `COSENSE_TOOL_SUFFIX`.

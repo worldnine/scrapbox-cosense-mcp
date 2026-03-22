@@ -1,6 +1,7 @@
 import { patch } from '@cosense/std/websocket';
 import type { BaseLine } from '@cosense/types/rest';
 import { convertMarkdownToScrapbox } from '../../utils/markdown-converter.js';
+import { formatError } from '../../utils/format.js';
 
 export interface InsertLinesParams {
   pageTitle: string;
@@ -8,6 +9,7 @@ export interface InsertLinesParams {
   text: string;
   projectName?: string | undefined;
   format?: "markdown" | "scrapbox" | undefined;
+  compact?: boolean | undefined;
 }
 
 export async function handleInsertLines(
@@ -17,22 +19,14 @@ export async function handleInsertLines(
 ) {
   try {
     const projectName = params.projectName || defaultProjectName;
-    
+
     if (!cosenseSid) {
-      return {
-        content: [{
-          type: "text",
-          text: [
-            'Error: Authentication required',
-            'Operation: insert_lines',
-            'Message: COSENSE_SID environment variable is required for page editing',
-            `Project: ${projectName}`,
-            `Page: ${params.pageTitle}`,
-            `Timestamp: ${new Date().toISOString()}`
-          ].join('\n')
-        }],
-        isError: true
-      };
+      return formatError('Authentication required: COSENSE_SID is needed for page editing', {
+        Operation: 'insert_lines',
+        Project: projectName,
+        Page: params.pageTitle,
+        Timestamp: new Date().toISOString(),
+      }, params.compact);
     }
 
     // 環境変数から設定を取得
@@ -48,16 +42,16 @@ export async function handleInsertLines(
     // WebSocket経由でページを更新
     const result = await patch(projectName, params.pageTitle, (lines: BaseLine[]) => {
       // 対象行を検索
-      const targetIndex = lines.findIndex((line: BaseLine) => 
+      const targetIndex = lines.findIndex((line: BaseLine) =>
         line.text.includes(params.targetLineText)
       );
-      
+
       // 挿入位置を決定（見つからない場合は末尾）
       const insertIndex = targetIndex >= 0 ? targetIndex + 1 : lines.length;
-      
+
       // 新しいテキストを行に分割
       const newLines = convertedText.split('\n').map(text => ({ text }));
-      
+
       // 行を再構築
       return [
         ...lines.slice(0, insertIndex),
@@ -71,7 +65,16 @@ export async function handleInsertLines(
     // 成功時のレスポンス
     const insertedLinesCount = convertedText.split('\n').length;
     const targetLineFound = result ? "found" : "not found (appended to end)";
-    
+
+    if (params.compact) {
+      return {
+        content: [{
+          type: "text",
+          text: `inserted: ${insertedLinesCount} lines into ${params.pageTitle}`
+        }]
+      };
+    }
+
     return {
       content: [{
         type: "text",
@@ -88,20 +91,16 @@ export async function handleInsertLines(
     };
 
   } catch (error) {
-    return {
-      content: [{
-        type: "text",
-        text: [
-          'Error details:',
-          `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          `Operation: insert_lines`,
-          `Project: ${params.projectName || defaultProjectName}`,
-          `Page: ${params.pageTitle}`,
-          `Target line: "${params.targetLineText}"`,
-          `Timestamp: ${new Date().toISOString()}`
-        ].join('\n')
-      }],
-      isError: true
-    };
+    return formatError(
+      error instanceof Error ? error.message : 'Unknown error',
+      {
+        Operation: 'insert_lines',
+        Project: params.projectName || defaultProjectName,
+        Page: params.pageTitle,
+        'Target line': `"${params.targetLineText}"`,
+        Timestamp: new Date().toISOString(),
+      },
+      params.compact
+    );
   }
 }

@@ -1,9 +1,10 @@
 import { getPage, toReadablePage } from "../../cosense.js";
-import { formatYmd } from '../../utils/format.js';
+import { formatYmd, formatError } from '../../utils/format.js';
 
 export interface GetPageParams {
   pageTitle: string;
   projectName?: string | undefined;
+  compact?: boolean | undefined;
 }
 
 export async function handleGetPage(
@@ -14,50 +15,61 @@ export async function handleGetPage(
   try {
     const projectName = params.projectName || defaultProjectName;
     const page = await getPage(projectName, params.pageTitle, cosenseSid);
-    
+
     if (!page) {
-      return {
-        content: [{
-          type: "text",
-          text: [
-            `Error: Page "${params.pageTitle}" not found`,
-            `Operation: get_page`,
-            `Project: ${params.projectName || defaultProjectName}`,
-            `Status: 404`,
-            `Timestamp: ${new Date().toISOString()}`
-          ].join('\n')
-        }],
-        isError: true
-      };
+      return formatError(`Page "${params.pageTitle}" not found`, {
+        Operation: 'get_page',
+        Project: projectName,
+        Status: '404',
+        Timestamp: new Date().toISOString(),
+      }, params.compact);
     }
 
         const readablePage = toReadablePage(page);
-    
-    // ページ情報を整形
-    const formattedText = [
-      `Title: ${readablePage.title}`,
-      `Created: ${formatYmd(new Date(readablePage.created * 1000))}`,
-      `Updated: ${formatYmd(new Date(readablePage.updated * 1000))}`,
-      `Created user: ${readablePage.lastUpdateUser?.displayName || readablePage.user.displayName}`,
-      `Last editor: ${readablePage.user.displayName}`,
-      `Other editors: ${(readablePage.collaborators ?? [])
-        .filter(collab =>
-          collab.id !== readablePage.user.id &&
-          collab.id !== readablePage.lastUpdateUser?.id
-        )
-        .map(user => user.displayName)
-        .join(', ')}`
-    ].join('\n');
 
-    // 本文を追加
+    // ページが未保存（persistent=false）かつタイトル行のみの場合は未作成として扱う
+    const hasContent = readablePage.lines.length > 1
+      || readablePage.links.length > 0;
+    if (!hasContent && page.persistent === false) {
+      return formatError(`Page "${params.pageTitle}" not found`, {
+        Operation: 'get_page',
+        Project: projectName,
+        Status: '404',
+        Timestamp: new Date().toISOString(),
+      }, params.compact);
+    }
+
     const contentText = readablePage.lines.map(line => line.text).join('\n');
+    let fullText: string;
 
-    // リンク情報を追加
-    const linksText = `\nLinks:\n${readablePage.links.length > 0 
-      ? readablePage.links.map((link: string) => `- ${link}`).join('\n') 
-      : '(None)'}`;
+    if (params.compact) {
+      const header = `${readablePage.title} | updated:${formatYmd(new Date(readablePage.updated * 1000))}`;
+      const links = readablePage.links.length > 0
+        ? `\nlinks: ${readablePage.links.join(', ')}`
+        : '';
+      fullText = `${header}\n${contentText}${links}`;
+    } else {
+      const formattedText = [
+        `Title: ${readablePage.title}`,
+        `Created: ${formatYmd(new Date(readablePage.created * 1000))}`,
+        `Updated: ${formatYmd(new Date(readablePage.updated * 1000))}`,
+        `Created user: ${readablePage.lastUpdateUser?.displayName || readablePage.user.displayName}`,
+        `Last editor: ${readablePage.user.displayName}`,
+        `Other editors: ${(readablePage.collaborators ?? [])
+          .filter(collab =>
+            collab.id !== readablePage.user.id &&
+            collab.id !== readablePage.lastUpdateUser?.id
+          )
+          .map(user => user.displayName)
+          .join(', ')}`
+      ].join('\n');
 
-    const fullText = `${formattedText}\n\n${contentText}\n${linksText}`;
+      const linksText = `\nLinks:\n${readablePage.links.length > 0
+        ? readablePage.links.map((link: string) => `- ${link}`).join('\n')
+        : '(None)'}`;
+
+      fullText = `${formattedText}\n\n${contentText}\n${linksText}`;
+    }
     return {
       content: [{
         type: "text",
@@ -65,19 +77,15 @@ export async function handleGetPage(
       }]
     };
   } catch (error) {
-    return {
-      content: [{
-        type: "text",
-        text: [
-          'Error details:',
-          `Message: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          `Operation: get_page`,
-          `Project: ${params.projectName || defaultProjectName}`,
-          `Page: ${params.pageTitle}`,
-          `Timestamp: ${new Date().toISOString()}`
-        ].join('\n')
-      }],
-      isError: true
-    };
+    return formatError(
+      error instanceof Error ? error.message : 'Unknown error',
+      {
+        Operation: 'get_page',
+        Project: params.projectName || defaultProjectName,
+        Page: params.pageTitle,
+        Timestamp: new Date().toISOString(),
+      },
+      params.compact
+    );
   }
 }

@@ -9,7 +9,12 @@ jest.mock('@/utils/format.js', () => ({
   })),
   getSortDescription: jest.fn(() => 'Updated time (newest first)'),
   getSortValue: jest.fn(() => 'updated'),
-  formatPageOutput: jest.fn(() => 'Mock formatted output')
+  formatPageOutput: jest.fn(() => 'Mock formatted output'),
+  formatPageCompact: jest.fn(() => '- Mock compact output'),
+  formatError: jest.fn((message: string) => ({
+    content: [{ type: 'text', text: `Error: ${message}` }],
+    isError: true
+  }))
 }));
 
 const mockedCosense = cosense as jest.Mocked<typeof cosense>;
@@ -90,7 +95,7 @@ describe('handleListPages', () => {
       const result = await handleListPages(mockProjectName, mockCosenseSid, {});
 
       expect(result.isError).toBe(true);
-      expect(result.content?.[0]?.text).toContain('Error details:');
+      expect(result.content?.[0]?.text).toContain('Error:');
       expect(result.content?.[0]?.text).toContain(errorMessage);
     });
   });

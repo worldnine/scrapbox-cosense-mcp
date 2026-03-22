@@ -149,7 +149,17 @@ The server entry point (`src/index.ts`) initializes resources, sets up MCP handl
 
 ## Recent Development
 
-**WebSocket Page Creation Support (v0.4.0 - Latest)**
+**CLI Token Optimization (v0.6.0 - Latest)**
+- Added `--compact` flag for token-efficient CLI output (85% reduction in list output)
+- Implemented per-subcommand help (`scrapbox-cosense-mcp <command> --help`)
+- Slimmed down SKILL.md for lazy-loading design (45% smaller, details via `--help`)
+- Added `formatError` utility for consistent compact error output across all handlers
+- Fixed `\n` escape handling in `--body`/`--text`/`--after` CLI arguments
+- Added `persistent` field check to detect non-existent pages (Scrapbox API returns empty pages)
+- Added environment variable setup documentation to SKILL.md
+- All tests passing, TypeScript compilation successful
+
+**WebSocket Page Creation Support (v0.4.0)**
 - Enhanced `create_page` tool with WebSocket API for immediate page creation with body content
 - Fixed critical issue where page body content was not being posted to created pages
 - Added `createActually` parameter to control WebSocket API usage (default: true)

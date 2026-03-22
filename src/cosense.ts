@@ -87,6 +87,7 @@ type GetPageResponse = {
     displayName: string;
     photo: string;
   }[];
+  persistent?: boolean | undefined;
   debug?: {
     error?: string;
     warning?: string;

@@ -1,3 +1,17 @@
+export function formatError(
+  message: string,
+  details: Record<string, string>,
+  compact?: boolean
+): { content: Array<{ type: string; text: string }>; isError: true } {
+  const text = compact
+    ? `error: ${message}`
+    : [
+        `Error: ${message}`,
+        ...Object.entries(details).map(([k, v]) => `${k}: ${v}`),
+      ].join('\n');
+  return { content: [{ type: "text", text }], isError: true };
+}
+
 // 基本的なページ型を定義
 export interface BasePage {
   title: string;
@@ -134,6 +148,28 @@ export function getSortValue(page: BasePage, sortMethod: string | undefined): {
         formatted: 'Not specified' 
       };
   }
+}
+
+export function formatPageCompact(
+  page: ExtendedPage,
+  options: {
+    showMatches?: boolean;
+    sortValue?: string;
+  } = {}
+): string {
+  const parts = [`- ${page.title}`];
+
+  if (options.sortValue) {
+    parts.push(options.sortValue);
+  } else if (page.updated) {
+    parts.push(formatYmd(new Date(page.updated * 1000)));
+  }
+
+  if (options.showMatches && page.words) {
+    parts.push(`matched: ${page.words.join(', ')}`);
+  }
+
+  return parts.join(' | ');
 }
 
 export function formatPageOutput(
