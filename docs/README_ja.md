@@ -25,7 +25,22 @@
 2. ダブルクリック — Claude Desktopのインストールダイアログが開きます
 3. プロジェクト名（プライベートプロジェクトの場合はセッションID）を入力
 
-### 方法B: Claude Code (CLI)
+### 方法B: Claude Code プラグイン
+
+1. マーケットプレイスを追加:
+   ```
+   /plugin marketplace add worldnine/scrapbox-cosense-mcp
+   ```
+2. プラグインをインストール:
+   ```
+   /plugin install scrapbox-cosense@worldnine-scrapbox-cosense-mcp
+   ```
+
+MCPサーバー設定が自動適用され、`/cosense` スキルも利用可能になります。
+
+### 方法C: Claude Code（手動MCP設定）
+
+プラグインを使わず手動で設定する場合:
 
 ```bash
 claude mcp add scrapbox-cosense-mcp \
@@ -34,7 +49,7 @@ claude mcp add scrapbox-cosense-mcp \
   -- npx -y scrapbox-cosense-mcp
 ```
 
-### 方法C: Claude Desktop / 他のMCPクライアント
+### 方法D: Claude Desktop / 他のMCPクライアント
 
 設定ファイルに追加してください：
 
@@ -60,7 +75,7 @@ claude mcp add scrapbox-cosense-mcp \
 }
 ```
 
-### 方法D: ソースからビルド
+### 方法E: ソースからビルド
 
 ```bash
 git clone https://github.com/worldnine/scrapbox-cosense-mcp.git

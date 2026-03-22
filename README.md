@@ -25,7 +25,22 @@ MCP server for [Cosense (formerly Scrapbox)](https://cosen.se).
 2. Double-click — Claude Desktop opens an install dialog
 3. Enter your project name (and Session ID for private projects)
 
-### Claude Code (CLI)
+### Claude Code Plugin
+
+1. Add the marketplace:
+   ```
+   /plugin marketplace add worldnine/scrapbox-cosense-mcp
+   ```
+2. Install the plugin:
+   ```
+   /plugin install scrapbox-cosense@worldnine-scrapbox-cosense-mcp
+   ```
+
+The plugin includes MCP server configuration and a `/cosense` skill for CLI operations.
+
+### Claude Code (Manual MCP Setup)
+
+If you prefer manual configuration over the plugin:
 
 ```bash
 claude mcp add scrapbox-cosense-mcp \
