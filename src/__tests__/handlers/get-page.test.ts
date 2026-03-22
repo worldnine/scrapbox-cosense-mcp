@@ -167,7 +167,7 @@ describe('handleGetPage', () => {
       const result = await handleGetPage(mockProjectName, mockCosenseSid, params);
 
       expect(result.isError).toBe(true);
-      expect(result.content[0]?.text).toContain('Error details:');
+      expect(result.content[0]?.text).toContain('Error:');
       expect(result.content[0]?.text).toContain(errorMessage);
     });
   });

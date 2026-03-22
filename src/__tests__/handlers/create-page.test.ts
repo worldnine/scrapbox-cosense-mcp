@@ -92,7 +92,7 @@ describe('handleCreatePage', () => {
 
       expect(result.isError).toBe(true);
       expect(result.content[0]?.text).toContain('Error: Authentication required');
-      expect(result.content[0]?.text).toContain('COSENSE_SID environment variable is required');
+      expect(result.content[0]?.text).toContain('COSENSE_SID is needed for creating pages');
       expect(mockedPatch).not.toHaveBeenCalled();
     });
 
@@ -104,7 +104,7 @@ describe('handleCreatePage', () => {
       const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
 
       expect(result.isError).toBe(true);
-      expect(result.content[0]?.text).toContain('Error details:');
+      expect(result.content[0]?.text).toContain('Error:');
       expect(result.content[0]?.text).toContain(errorMessage);
     });
 
@@ -118,7 +118,7 @@ describe('handleCreatePage', () => {
       const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
 
       expect(result.isError).toBe(true);
-      expect(result.content[0]?.text).toContain('Error details:');
+      expect(result.content[0]?.text).toContain('Error:');
       expect(result.content[0]?.text).toContain(errorMessage);
     });
   });

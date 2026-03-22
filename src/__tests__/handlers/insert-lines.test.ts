@@ -164,7 +164,7 @@ describe('handleInsertLines', () => {
       const result = await handleInsertLines(mockProjectName, mockCosenseSid, params);
 
       expect(result.isError).toBe(true);
-      expect(result.content[0]?.text).toContain('Error details:');
+      expect(result.content[0]?.text).toContain('Error:');
       expect(result.content[0]?.text).toContain(errorMessage);
     });
   });
