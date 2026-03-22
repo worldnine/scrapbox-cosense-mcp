@@ -35,6 +35,7 @@ MCP server for [Cosense (formerly Scrapbox)](https://cosen.se).
    ```
    /plugin install scrapbox-cosense@worldnine-scrapbox-cosense-mcp
    ```
+   Installs globally by default. Use `--scope project` or `--scope local` for other scopes.
 3. Set environment variables in your settings file:
    ```json
    {

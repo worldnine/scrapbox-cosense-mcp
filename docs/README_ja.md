@@ -35,6 +35,7 @@
    ```
    /plugin install scrapbox-cosense@worldnine-scrapbox-cosense-mcp
    ```
+   デフォルトでグローバルにインストールされます。`--scope project` や `--scope local` で変更可能。
 3. 環境変数を設定:
    ```json
    {
