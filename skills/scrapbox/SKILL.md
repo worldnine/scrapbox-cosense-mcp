@@ -33,7 +33,7 @@ Cosense ページの取得・検索・作成・編集。CLI 経由で実行。
 
 ### 永続化方法
 
-Claude Code のローカル設定（gitignore 対象）の `env` キーに追加してください。
+`.claude/settings.local.json`（gitignore対象）の `env` キーに追加してください。
 
 ```json
 {
@@ -43,6 +43,8 @@ Claude Code のローカル設定（gitignore 対象）の `env` キーに追加
   }
 }
 ```
+
+全プロジェクト共通で使う場合は `~/.claude/settings.json` に設定することもできます。
 
 ### SID の取得方法
 
