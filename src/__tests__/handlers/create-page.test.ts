@@ -26,11 +26,13 @@ describe('handleCreatePage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // createPageUrlのデフォルトモック
     mockedCosense.createPageUrl.mockReturnValue(
       'https://scrapbox.io/test-project/New%20Page'
     );
+    // getPageのデフォルトモック（ページ未存在）
+    mockedCosense.getPage.mockResolvedValue(null);
   });
 
   describe('正常ケース', () => {
@@ -106,6 +108,55 @@ describe('handleCreatePage', () => {
       expect(result.isError).toBe(true);
       expect(result.content[0]?.text).toContain('Error:');
       expect(result.content[0]?.text).toContain(errorMessage);
+    });
+
+    test('既存ページ（persistent=true）がある場合にエラーを返すこと', async () => {
+      mockedCosense.getPage.mockResolvedValue({
+        id: 'page-id',
+        title: 'Existing Page',
+        persistent: true,
+        lines: [{ text: 'Existing Page', id: 'line-1', created: 1700000000, updated: 1700000000, userId: 'user-1' }],
+        created: 1700000000,
+        updated: 1700000000,
+        image: null,
+        descriptions: [],
+        user: { id: 'user-1', name: 'test', displayName: 'Test User' },
+        pin: 0,
+        views: 0,
+        linked: 0,
+        commitId: 'commit-1',
+        accessed: 1700000000,
+        snapshotCreated: null,
+        snapshotCount: 0,
+        pageRank: 0,
+        lastAccessed: 1700000000,
+        relatedPages: { links1hop: [], links2hop: [], icons1hop: [] },
+        collaborators: [],
+      } as any);
+
+      const params = { title: 'Existing Page' };
+      const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0]?.text).toContain('Page already exists');
+      expect(mockedPatch).not.toHaveBeenCalled();
+    });
+
+    test('persistent=falseのページ（未保存）には作成を許可すること', async () => {
+      mockedCosense.getPage.mockResolvedValue({
+        id: 'page-id',
+        title: 'Empty Page',
+        persistent: false,
+        lines: [{ text: 'Empty Page', id: 'line-1', created: 1700000000, updated: 1700000000, userId: 'user-1' }],
+      } as any);
+      mockedPatch.mockResolvedValue(undefined);
+
+      const params = { title: 'Empty Page', body: 'some content' };
+      const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
+
+      expect(result.isError).toBeUndefined();
+      expect(result.content[0]?.text).toContain('Successfully created page');
+      expect(mockedPatch).toHaveBeenCalled();
     });
 
     test('createPageUrlでエラーが発生した場合にエラーレスポンスを返すこと（createActually=false）', async () => {

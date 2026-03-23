@@ -40,11 +40,16 @@ export async function handleInsertLines(
     }
 
     // WebSocket経由でページを更新
+    let foundTarget = false;
     const result = await patch(projectName, params.pageTitle, (lines: BaseLine[]) => {
-      // 対象行を検索
+      // 対象行を検索（完全一致）
       const targetIndex = lines.findIndex((line: BaseLine) =>
-        line.text.includes(params.targetLineText)
+        line.text === params.targetLineText
       );
+
+      if (targetIndex >= 0) {
+        foundTarget = true;
+      }
 
       // 挿入位置を決定（見つからない場合は末尾）
       const insertIndex = targetIndex >= 0 ? targetIndex + 1 : lines.length;
@@ -62,9 +67,14 @@ export async function handleInsertLines(
       sid: cosenseSid
     });
 
+    // patchのResult型を正しく判定
+    if (!result.ok) {
+      throw new Error(`WebSocket patch failed: ${String(result.err)}`);
+    }
+
     // 成功時のレスポンス
     const insertedLinesCount = convertedText.split('\n').length;
-    const targetLineFound = result ? "found" : "not found (appended to end)";
+    const targetLineFound = foundTarget ? "found" : "not found (appended to end)";
 
     if (params.compact) {
       return {

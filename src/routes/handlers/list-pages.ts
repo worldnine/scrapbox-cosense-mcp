@@ -47,10 +47,11 @@ export async function handleListPages(
         currentSkip += fetchedPages.pages.length;
       }
       
+      const actualPages = unpinnedPages.slice(0, targetLimit);
       pages = {
         ...await listPages(projectName, cosenseSid, { limit: 1 }),
-        pages: unpinnedPages.slice(0, targetLimit),
-        limit: targetLimit,
+        pages: actualPages,
+        limit: actualPages.length,
         skip: skip || 0
       };
     } else {
@@ -78,7 +79,7 @@ export async function handleListPages(
       output = [
         `Project: ${projectName}`,
         `Total pages: ${pages.count}`,
-        `Pages fetched: ${pages.limit}`,
+        `Pages fetched: ${pages.pages.length}`,
         `Pages skipped: ${pages.skip}`,
         `Sort method: ${getSortDescription(sort)}`,
         '---'

@@ -188,7 +188,7 @@ describe('cosense API functions', () => {
         expect.any(Object)
       );
       expect(mockedFetch).toHaveBeenCalledWith(
-        expect.stringContaining('sort=created'),
+        expect.stringContaining('sort=updated'),
         expect.any(Object)
       );
     });
