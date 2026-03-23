@@ -70,7 +70,13 @@ jobs:
           echo "エラー: タグ v${TAG_VERSION} と package.json ${PKG_VERSION} のバージョンが一致しません"
           exit 1
         fi
-        echo "バージョン一致: ${PKG_VERSION}"
+        echo "タグとpackage.jsonのバージョン一致: ${PKG_VERSION}"
+        MANIFEST_VERSION=$(node -p "require('./manifest.json').version")
+        if [ "$PKG_VERSION" != "$MANIFEST_VERSION" ]; then
+          echo "エラー: package.json (${PKG_VERSION}) と manifest.json (${MANIFEST_VERSION}) のバージョンが一致しません"
+          exit 1
+        fi
+        echo "manifest.jsonのバージョンも一致: ${MANIFEST_VERSION}"
 
     - name: npm に公開
       run: npm publish --provenance
