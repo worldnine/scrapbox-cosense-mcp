@@ -1,6 +1,6 @@
 import { createPageUrl, getPage } from "../../cosense.js";
 import { convertMarkdownToScrapbox } from '../../utils/markdown-converter.js';
-import { formatError } from '../../utils/format.js';
+import { formatError, stringifyError } from '../../utils/format.js';
 import { patch } from '@cosense/std/websocket';
 import type { BaseLine } from '@cosense/types/rest';
 
@@ -70,7 +70,7 @@ export async function handleCreatePage(
       });
 
       if (!result.ok) {
-        throw new Error(`WebSocket patch failed: ${String(result.err)}`);
+        throw new Error(`WebSocket patch failed: ${stringifyError(result.err)}`);
       }
 
       const url = createPageUrl(projectName, title);

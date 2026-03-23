@@ -1,7 +1,7 @@
 import { patch } from '@cosense/std/websocket';
 import type { BaseLine } from '@cosense/types/rest';
 import { convertMarkdownToScrapbox } from '../../utils/markdown-converter.js';
-import { formatError } from '../../utils/format.js';
+import { formatError, stringifyError } from '../../utils/format.js';
 
 export interface InsertLinesParams {
   pageTitle: string;
@@ -69,7 +69,7 @@ export async function handleInsertLines(
 
     // patchのResult型を正しく判定
     if (!result.ok) {
-      throw new Error(`WebSocket patch failed: ${String(result.err)}`);
+      throw new Error(`WebSocket patch failed: ${stringifyError(result.err)}`);
     }
 
     // 成功時のレスポンス
