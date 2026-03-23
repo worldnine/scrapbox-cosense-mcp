@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 
-// CLI mode detection: if a known subcommand is passed, run CLI instead of MCP server
-const CLI_COMMANDS = ['get', 'list', 'search', 'create', 'url', 'insert'];
+// CLI mode detection: 引数があればCLIモード、なければMCPサーバーモード
 const _firstArg = process.argv[2];
-if (_firstArg && (CLI_COMMANDS.includes(_firstArg) || _firstArg === '--help' || _firstArg === '-h')) {
+if (_firstArg) {
   const { runCli } = await import('./cli.js');
   await runCli(process.argv.slice(2));
   process.exit(0);
