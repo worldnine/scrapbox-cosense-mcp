@@ -127,6 +127,8 @@ describe('handleListPages', () => {
       const text = result.content?.[0]?.text || '';
       // 未ピン留めページは2件なので、Pages fetchedも2であるべき
       expect(text).toContain('Pages fetched: 2');
+      // Total pagesは未ピン留め件数と全件数の両方を表示
+      expect(text).toContain('2 unpinned (3 total)');
     });
   });
 

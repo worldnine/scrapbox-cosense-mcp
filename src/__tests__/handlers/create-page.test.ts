@@ -37,7 +37,7 @@ describe('handleCreatePage', () => {
 
   describe('正常ケース', () => {
     test('タイトルのみでページを作成できること（WebSocket API）', async () => {
-      mockedPatch.mockResolvedValue(undefined);
+      mockedPatch.mockResolvedValue({ ok: true, val: 'commitId', err: null });
       const params = { title: 'New Page' };
       const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
 
@@ -73,7 +73,7 @@ describe('handleCreatePage', () => {
     });
 
     test('本文付きでページを作成できること（WebSocket API）', async () => {
-      mockedPatch.mockResolvedValue(undefined);
+      mockedPatch.mockResolvedValue({ ok: true, val: 'commitId', err: null });
       const params = { 
         title: 'New Page',
         body: '# Header\nContent'
@@ -108,6 +108,16 @@ describe('handleCreatePage', () => {
       expect(result.isError).toBe(true);
       expect(result.content[0]?.text).toContain('Error:');
       expect(result.content[0]?.text).toContain(errorMessage);
+    });
+
+    test('patchがResult.Errを返した場合にエラーレスポンスを返すこと', async () => {
+      mockedPatch.mockResolvedValue({ ok: false, val: null, err: 'DisconnectReason' } as any);
+
+      const params = { title: 'New Page' };
+      const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0]?.text).toContain('WebSocket patch failed');
     });
 
     test('既存ページ（persistent=true）がある場合にエラーを返すこと', async () => {
@@ -149,7 +159,7 @@ describe('handleCreatePage', () => {
         persistent: false,
         lines: [{ text: 'Empty Page', id: 'line-1', created: 1700000000, updated: 1700000000, userId: 'user-1' }],
       } as any);
-      mockedPatch.mockResolvedValue(undefined);
+      mockedPatch.mockResolvedValue({ ok: true, val: 'commitId', err: null });
 
       const params = { title: 'Empty Page', body: 'some content' };
       const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
@@ -176,7 +186,7 @@ describe('handleCreatePage', () => {
 
   describe('出力フォーマット', () => {
     test('WebSocket API成功レスポンスのフォーマットが正しいこと', async () => {
-      mockedPatch.mockResolvedValue(undefined);
+      mockedPatch.mockResolvedValue({ ok: true, val: 'commitId', err: null });
       const params = { title: 'New Page' };
       const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
 

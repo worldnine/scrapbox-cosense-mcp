@@ -63,11 +63,15 @@ export async function handleCreatePage(
       const allLines = [title, ...lines];
 
       // WebSocket経由でページ作成
-      await patch(projectName, title, (_existingLines: BaseLine[]) => {
+      const result = await patch(projectName, title, (_existingLines: BaseLine[]) => {
         return allLines.map(text => ({ text }));
       }, {
         sid: cosenseSid
       });
+
+      if (!result.ok) {
+        throw new Error(`WebSocket patch failed: ${String(result.err)}`);
+      }
 
       const url = createPageUrl(projectName, title);
       if (params.compact) {
