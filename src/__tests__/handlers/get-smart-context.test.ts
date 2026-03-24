@@ -129,6 +129,26 @@ Related Page
   });
 
   describe('エラーケース', () => {
+    it('不正なhopCountの場合はエラーを返す', async () => {
+      const result = await handleGetSmartContext(mockProjectName, mockCosenseSid, {
+        title: 'Test Page',
+        hopCount: 3,
+      });
+
+      expect(result.content[0]?.text).toContain('Invalid hopCount');
+      expect(mockedCosense.getSmartContext).not.toHaveBeenCalled();
+    });
+
+    it('hopCount=0の場合もエラーを返す', async () => {
+      const result = await handleGetSmartContext(mockProjectName, mockCosenseSid, {
+        title: 'Test Page',
+        hopCount: 0,
+      });
+
+      expect(result.content[0]?.text).toContain('Invalid hopCount');
+      expect(mockedCosense.getSmartContext).not.toHaveBeenCalled();
+    });
+
     it('COSENSE_SIDが未設定の場合は認証エラーを返す', async () => {
       const result = await handleGetSmartContext(mockProjectName, undefined, {
         title: 'Test Page',

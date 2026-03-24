@@ -3,7 +3,7 @@ import { formatError } from '../../utils/format.js';
 
 export interface GetSmartContextParams {
   title: string;
-  hopCount?: 1 | 2 | undefined;
+  hopCount?: number | undefined;
   projectName?: string | undefined;
   compact?: boolean | undefined;
 }
@@ -28,6 +28,18 @@ export async function handleGetSmartContext(
       );
     }
 
+    if (params.hopCount !== undefined && params.hopCount !== 1 && params.hopCount !== 2) {
+      return formatError(
+        `Invalid hopCount: ${params.hopCount}. Must be 1 or 2.`,
+        {
+          Operation: 'get_smart_context',
+          Project: projectName,
+          Page: params.title,
+          Timestamp: new Date().toISOString(),
+        },
+        params.compact
+      );
+    }
     const hopCount = params.hopCount ?? 1;
     const result = await getSmartContext(projectName, params.title, hopCount, cosenseSid);
 

@@ -102,8 +102,8 @@ export function setupRoutes(
           cosenseSid,
           {
             title: String(request.params.arguments?.title),
-            hopCount: [1, 2].includes(Number(request.params.arguments?.hopCount))
-              ? (Number(request.params.arguments?.hopCount) as 1 | 2)
+            hopCount: request.params.arguments?.hopCount != null
+              ? Number(request.params.arguments.hopCount)
               : undefined,
             projectName: request.params.arguments?.projectName as string | undefined,
             compact: request.params.arguments?.compact as boolean | undefined,

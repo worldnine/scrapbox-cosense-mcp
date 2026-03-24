@@ -325,10 +325,14 @@ export async function runCli(argv: string[]): Promise<void> {
         process.exit(2);
       }
       const project = requireProjectName(flags);
-      const hop = typeof flags['hop'] === 'string' ? parseInt(flags['hop'], 10) : undefined;
+      const hopRaw = typeof flags['hop'] === 'string' ? parseInt(flags['hop'], 10) : undefined;
+      if (hopRaw !== undefined && hopRaw !== 1 && hopRaw !== 2) {
+        process.stderr.write('Error: --hop must be 1 or 2.\n');
+        process.exit(2);
+      }
       result = await handleGetSmartContext(project, sid, {
         title,
-        hopCount: (hop === 1 || hop === 2) ? hop : undefined,
+        hopCount: hopRaw,
         projectName: typeof flags['project'] === 'string' ? flags['project'] : undefined,
         compact,
       });
