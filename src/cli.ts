@@ -5,8 +5,9 @@ import { handleSearchPages } from './routes/handlers/search-pages.js';
 import { handleCreatePage } from './routes/handlers/create-page.js';
 import { handleGetPageUrl } from './routes/handlers/get-page-url.js';
 import { handleInsertLines } from './routes/handlers/insert-lines.js';
+import { handleGetSmartContext } from './routes/handlers/get-smart-context.js';
 
-const CLI_COMMANDS = ['get', 'list', 'search', 'create', 'url', 'insert'] as const;
+const CLI_COMMANDS = ['get', 'list', 'search', 'create', 'url', 'insert', 'context'] as const;
 type CliCommand = typeof CLI_COMMANDS[number];
 
 interface ParsedArgs {
@@ -113,6 +114,19 @@ Arguments:
 
 ${COMMON_OPTIONS}`,
 
+  context: `Usage: scrapbox-cosense-mcp context <title> [options]
+
+Get smart context (related pages) for a page. Requires COSENSE_SID.
+Returns the target page and linked pages in AI-optimized format.
+
+Arguments:
+  <title>                        Page title (required)
+
+Options:
+  --hop=N                        Link hops: 1 (default) or 2 (larger response)
+
+${COMMON_OPTIONS}`,
+
   insert: `Usage: scrapbox-cosense-mcp insert <title> --after=TEXT --text=TEXT [options]
 
 Insert text after a specified line in a page. Requires COSENSE_SID.
@@ -149,6 +163,7 @@ Commands:
   create <title>                 Create a new page
   url <title>                    Get page URL
   insert <title>                 Insert lines into a page
+  context <title>                Get smart context (related pages)
 
 ${COMMON_OPTIONS}
 
@@ -299,6 +314,28 @@ export async function runCli(argv: string[]): Promise<void> {
       result = await handleGetPageUrl(project, sid, {
         title,
         projectName: typeof flags['project'] === 'string' ? flags['project'] : undefined,
+      });
+      break;
+    }
+
+    case 'context': {
+      const title = positional[0];
+      if (!title) {
+        process.stderr.write('Error: Page title is required. Usage: scrapbox-cosense-mcp context <title>\n');
+        process.exit(2);
+      }
+      const project = requireProjectName(flags);
+      const hopStr = typeof flags['hop'] === 'string' ? flags['hop'] : undefined;
+      const hopRaw = hopStr === '1' ? 1 : hopStr === '2' ? 2 : hopStr !== undefined ? NaN : undefined;
+      if (hopRaw !== undefined && (hopRaw !== 1 && hopRaw !== 2)) {
+        process.stderr.write('Error: --hop must be 1 or 2.\n');
+        process.exit(2);
+      }
+      result = await handleGetSmartContext(project, sid, {
+        title,
+        hopCount: hopRaw,
+        projectName: typeof flags['project'] === 'string' ? flags['project'] : undefined,
+        compact,
       });
       break;
     }

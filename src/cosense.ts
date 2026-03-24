@@ -454,8 +454,43 @@ async function listPagesWithSort(
   };
 }
 
+type SmartContextResult =
+  | { ok: true; text: string }
+  | { ok: false; error: string };
+
+/**
+ * Smart Context APIでページとリンク先ページのコンテンツを一括取得する
+ * @param projectName プロジェクト名
+ * @param title ページタイトル
+ * @param hopCount リンクのホップ数（1 or 2）
+ * @param sid セッションID（必須）
+ * @returns 成功時はテキスト、失敗時はエラーメッセージ
+ */
+async function getSmartContext(
+  projectName: string,
+  title: string,
+  hopCount: 1 | 2,
+  sid: string,
+): Promise<SmartContextResult> {
+  try {
+    const url = `https://${API_DOMAIN}/api/smart-context/export-${hopCount}hop-links/${projectName}.txt?title=${encodeURIComponent(title)}`;
+
+    const response = await fetch(url, {
+      headers: { Cookie: `connect.sid=${sid}` },
+    });
+
+    if (!response.ok) {
+      return { ok: false, error: `API error: ${response.status} ${response.statusText}` };
+    }
+
+    return { ok: true, text: await response.text() };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown network error' };
+  }
+}
+
 // 型のエクスポート
 export type { ListPagesResponse };
 
 // 関数のエクスポート
-export { getPage, listPages, listPagesWithSort, toReadablePage, createPageUrl, searchPages };
+export { getPage, listPages, listPagesWithSort, toReadablePage, createPageUrl, searchPages, getSmartContext };

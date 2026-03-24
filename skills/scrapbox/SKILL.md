@@ -17,6 +17,7 @@ Cosense ページの取得・検索・作成・編集。CLI 経由で実行。
 - `scrapbox-cosense-mcp create <title> [--body=TEXT]` — ページ作成（markdown自動変換）
 - `scrapbox-cosense-mcp insert <title> --after=TEXT --text=TEXT` — 行挿入
 - `scrapbox-cosense-mcp url <title>` — URL生成
+- `scrapbox-cosense-mcp context <title> [--hop=1|2]` — 関連ページ一括取得（Smart Context）
 
 詳細は `scrapbox-cosense-mcp <command> --help` で確認。
 
@@ -29,7 +30,7 @@ Cosense ページの取得・検索・作成・編集。CLI 経由で実行。
 | 変数名 | 説明 | 必須 |
 |---|---|---|
 | `COSENSE_PROJECT_NAME` | 対象プロジェクト名（`--project` で上書き可） | はい |
-| `COSENSE_SID` | セッションID（プライベートプロジェクト、create/insert 操作に必要） | 条件付き |
+| `COSENSE_SID` | セッションID（プライベートプロジェクト、create/insert/context 操作に必要） | 条件付き |
 
 ### 永続化方法
 

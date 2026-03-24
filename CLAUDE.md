@@ -14,7 +14,7 @@ npm run inspector    # Debug with MCP Inspector
 
 ## Architecture
 
-### Tools (6)
+### Tools (7)
 
 | Tool | Description | Auth |
 |---|---|---|
@@ -24,10 +24,11 @@ npm run inspector    # Debug with MCP Inspector
 | `create_page` | Create new page. Rejects if page already exists | SID |
 | `get_page_url` | Generate URL from page title | - |
 | `insert_lines` | Insert text after a target line (exact match). Appends to end if not found | SID |
+| `get_smart_context` | Get page + linked pages (1-hop/2-hop) in AI-optimized format | SID |
 
 ### CLI
 
-All tools are also available as CLI subcommands (`get`, `list`, `search`, `create`, `url`, `insert`). Run `scrapbox-cosense-mcp <command> --help` for usage. Key flags:
+All tools are also available as CLI subcommands (`get`, `list`, `search`, `create`, `url`, `insert`, `context`). Run `scrapbox-cosense-mcp <command> --help` for usage. Key flags:
 
 - `--compact` — Token-efficient output (85% smaller for list)
 - `--json` — JSON output
