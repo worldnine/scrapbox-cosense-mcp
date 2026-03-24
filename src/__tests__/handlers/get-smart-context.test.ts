@@ -9,7 +9,7 @@ describe('handleGetSmartContext', () => {
   const mockProjectName = 'test-project';
   const mockCosenseSid = 'test-sid';
 
-  const mockSmartContextResponse = `This text contains the content of https://scrapbox.io/test-project/Test_Page and its related pages.
+  const mockSmartContextText = `This text contains the content of https://scrapbox.io/test-project/Test_Page and its related pages.
 Total pages included: 2 (main page + 1 directly linked pages).
 
 == GUIDE FOR AI AGENTS ==
@@ -31,13 +31,15 @@ Related Page
 
 </PageList>`;
 
+  const mockOkResult = { ok: true as const, text: mockSmartContextText };
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('正常ケース', () => {
     it('1ホップでスマートコンテキストを取得できる', async () => {
-      mockedCosense.getSmartContext.mockResolvedValue(mockSmartContextResponse);
+      mockedCosense.getSmartContext.mockResolvedValue(mockOkResult);
 
       const result = await handleGetSmartContext(mockProjectName, mockCosenseSid, {
         title: 'Test Page',
@@ -51,7 +53,7 @@ Related Page
     });
 
     it('2ホップでスマートコンテキストを取得できる', async () => {
-      mockedCosense.getSmartContext.mockResolvedValue(mockSmartContextResponse);
+      mockedCosense.getSmartContext.mockResolvedValue(mockOkResult);
 
       const result = await handleGetSmartContext(mockProjectName, mockCosenseSid, {
         title: 'Test Page',
@@ -65,7 +67,7 @@ Related Page
     });
 
     it('hopCount省略時はデフォルトで1ホップになる', async () => {
-      mockedCosense.getSmartContext.mockResolvedValue(mockSmartContextResponse);
+      mockedCosense.getSmartContext.mockResolvedValue(mockOkResult);
 
       await handleGetSmartContext(mockProjectName, mockCosenseSid, {
         title: 'Test Page',
@@ -77,17 +79,17 @@ Related Page
     });
 
     it('通常モードではレスポンス全文を返す', async () => {
-      mockedCosense.getSmartContext.mockResolvedValue(mockSmartContextResponse);
+      mockedCosense.getSmartContext.mockResolvedValue(mockOkResult);
 
       const result = await handleGetSmartContext(mockProjectName, mockCosenseSid, {
         title: 'Test Page',
       });
 
-      expect(result.content[0]?.text).toBe(mockSmartContextResponse);
+      expect(result.content[0]?.text).toBe(mockSmartContextText);
     });
 
     it('compactモードではPageList部分のみ返す', async () => {
-      mockedCosense.getSmartContext.mockResolvedValue(mockSmartContextResponse);
+      mockedCosense.getSmartContext.mockResolvedValue(mockOkResult);
 
       const result = await handleGetSmartContext(mockProjectName, mockCosenseSid, {
         title: 'Test Page',
@@ -102,7 +104,7 @@ Related Page
 
     it('compactモードでPageListタグがない場合は全文を返す', async () => {
       const noTagResponse = 'プレーンテキストレスポンス（タグなし）';
-      mockedCosense.getSmartContext.mockResolvedValue(noTagResponse);
+      mockedCosense.getSmartContext.mockResolvedValue({ ok: true, text: noTagResponse });
 
       const result = await handleGetSmartContext(mockProjectName, mockCosenseSid, {
         title: 'Test Page',
@@ -113,7 +115,7 @@ Related Page
     });
 
     it('projectNameオーバーライドが機能する', async () => {
-      mockedCosense.getSmartContext.mockResolvedValue(mockSmartContextResponse);
+      mockedCosense.getSmartContext.mockResolvedValue(mockOkResult);
 
       await handleGetSmartContext(mockProjectName, mockCosenseSid, {
         title: 'Test Page',
@@ -136,24 +138,38 @@ Related Page
       expect(mockedCosense.getSmartContext).not.toHaveBeenCalled();
     });
 
-    it('APIがnullを返した場合はエラーレスポンスを返す', async () => {
-      mockedCosense.getSmartContext.mockResolvedValue(null);
+    it('APIが404エラーを返した場合はエラーメッセージを含む', async () => {
+      mockedCosense.getSmartContext.mockResolvedValue({
+        ok: false, error: 'API error: 404 Not Found'
+      });
 
       const result = await handleGetSmartContext(mockProjectName, mockCosenseSid, {
         title: 'NonExistent Page',
       });
 
-      expect(result.content[0]?.text).toContain('not found');
+      expect(result.content[0]?.text).toContain('404 Not Found');
     });
 
-    it('例外が発生した場合はエラーレスポンスを返す', async () => {
-      mockedCosense.getSmartContext.mockRejectedValue(new Error('Network error'));
+    it('ネットワークエラーの場合はエラー詳細を含む', async () => {
+      mockedCosense.getSmartContext.mockResolvedValue({
+        ok: false, error: 'fetch failed'
+      });
 
       const result = await handleGetSmartContext(mockProjectName, mockCosenseSid, {
         title: 'Test Page',
       });
 
-      expect(result.content[0]?.text).toContain('Network error');
+      expect(result.content[0]?.text).toContain('fetch failed');
+    });
+
+    it('ハンドラー自体で例外が発生した場合はエラーレスポンスを返す', async () => {
+      mockedCosense.getSmartContext.mockRejectedValue(new Error('Unexpected error'));
+
+      const result = await handleGetSmartContext(mockProjectName, mockCosenseSid, {
+        title: 'Test Page',
+      });
+
+      expect(result.content[0]?.text).toContain('Unexpected error');
     });
 
     it('COSENSE_SID未設定のcompactモードでもエラーが返る', async () => {

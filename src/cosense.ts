@@ -454,20 +454,24 @@ async function listPagesWithSort(
   };
 }
 
+type SmartContextResult =
+  | { ok: true; text: string }
+  | { ok: false; error: string };
+
 /**
  * Smart Context APIでページとリンク先ページのコンテンツを一括取得する
  * @param projectName プロジェクト名
  * @param title ページタイトル
  * @param hopCount リンクのホップ数（1 or 2）
  * @param sid セッションID（必須）
- * @returns AI向けフォーマットのプレーンテキスト、エラー時はnull
+ * @returns 成功時はテキスト、失敗時はエラーメッセージ
  */
 async function getSmartContext(
   projectName: string,
   title: string,
   hopCount: 1 | 2,
   sid: string,
-): Promise<string | null> {
+): Promise<SmartContextResult> {
   try {
     const url = `https://${API_DOMAIN}/api/smart-context/export-${hopCount}hop-links/${projectName}.txt?title=${encodeURIComponent(title)}`;
 
@@ -476,12 +480,12 @@ async function getSmartContext(
     });
 
     if (!response.ok) {
-      return null;
+      return { ok: false, error: `API error: ${response.status} ${response.statusText}` };
     }
 
-    return await response.text();
+    return { ok: true, text: await response.text() };
   } catch (error) {
-    return null;
+    return { ok: false, error: error instanceof Error ? error.message : 'Unknown network error' };
   }
 }
 

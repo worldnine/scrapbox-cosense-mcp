@@ -31,9 +31,9 @@ export async function handleGetSmartContext(
     const hopCount = params.hopCount ?? 1;
     const result = await getSmartContext(projectName, params.title, hopCount, cosenseSid);
 
-    if (!result) {
+    if (!result.ok) {
       return formatError(
-        `Smart Context for "${params.title}" not found or API error`,
+        `Smart Context for "${params.title}" failed: ${result.error}`,
         {
           Operation: 'get_smart_context',
           Project: projectName,
@@ -45,17 +45,19 @@ export async function handleGetSmartContext(
       );
     }
 
+    const text = result.text;
+
     if (params.compact) {
       // compact モード: <PageList> ～ </PageList> 内のみ抽出
       const startTag = '<PageList>';
       const endTag = '</PageList>';
-      const startIndex = result.indexOf(startTag);
-      const endIndex = result.indexOf(endTag);
+      const startIndex = text.indexOf(startTag);
+      const endIndex = text.indexOf(endTag);
       if (startIndex >= 0 && endIndex >= 0) {
         return {
           content: [{
             type: "text" as const,
-            text: result.substring(startIndex, endIndex + endTag.length),
+            text: text.substring(startIndex, endIndex + endTag.length),
           }]
         };
       }
@@ -65,7 +67,7 @@ export async function handleGetSmartContext(
     return {
       content: [{
         type: "text" as const,
-        text: result,
+        text,
       }]
     };
   } catch (error) {
