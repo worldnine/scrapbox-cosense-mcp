@@ -1,7 +1,9 @@
 name: Auto Release
 
 # release/v* ブランチのPRがmainにマージされたら、タグとGitHub Releaseを自動作成
-# 既存の publish-npm.yml（タグ発火）と release-mcpb.yml（リリース発火）が後続処理を行う
+# GITHUB_TOKEN による push は別ワークフローをトリガーしないため、
+# publish-npm は workflow_dispatch で明示的にトリガーする
+# release-mcpb は GitHub Release の published イベントで自動トリガーされる
 
 on:
   pull_request:
@@ -17,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
 
     steps:
     - name: コードをチェックアウト
@@ -42,10 +45,18 @@ jobs:
 
     - name: GitHub Release を作成
       if: env.SKIP != 'true'
+      env:
+        PR_BODY: ${{ github.event.pull_request.body }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        PR_BODY="${{ github.event.pull_request.body }}"
         gh release create "${TAG}" \
           --title "${TAG}" \
           --notes "${PR_BODY:-リリース ${TAG}}"
+
+    - name: npm publish ワークフローをトリガー
+      if: env.SKIP != 'true'
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh workflow run "Publish to npm" --ref "${TAG}"
+        echo "Publish to npm ワークフローをトリガーしました"
