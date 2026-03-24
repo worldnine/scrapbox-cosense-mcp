@@ -14,6 +14,7 @@ MCP server for [Cosense (formerly Scrapbox)](https://cosen.se).
 | `create_page` | Create a page via WebSocket API with Markdown/Scrapbox body | Yes |
 | `get_page_url` | Generate direct URL for a page | No |
 | `insert_lines` | Insert text after a specified line in a page | Yes |
+| `get_smart_context` | Get a page and its linked pages (1-hop/2-hop) in AI-optimized format | Yes |
 
 `create_page` and `insert_lines` support a `format` parameter (`"markdown"` or `"scrapbox"`) to control content conversion.
 
