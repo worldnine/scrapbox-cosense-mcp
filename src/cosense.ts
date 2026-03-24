@@ -251,7 +251,7 @@ async function listPages(
     const { sort, excludePinned } = options;
     
     // クエリパラメータの構築
-    const sortValue = options.sort || 'created';
+    const sortValue = options.sort || 'updated';
     const params = new URLSearchParams({
       limit: (options.limit || 1000).toString(),
       skip: (options.skip || 0).toString(),

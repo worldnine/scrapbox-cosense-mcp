@@ -47,10 +47,11 @@ export async function handleListPages(
         currentSkip += fetchedPages.pages.length;
       }
       
+      const actualPages = unpinnedPages.slice(0, targetLimit);
       pages = {
         ...await listPages(projectName, cosenseSid, { limit: 1 }),
-        pages: unpinnedPages.slice(0, targetLimit),
-        limit: targetLimit,
+        pages: actualPages,
+        limit: actualPages.length,
         skip: skip || 0
       };
     } else {
@@ -67,8 +68,12 @@ export async function handleListPages(
 
     let output: string;
 
+    const countLabel = excludePinned
+      ? `${pages.pages.length} unpinned (${pages.count} total)`
+      : `${pages.count}`;
+
     if (compact) {
-      const header = `${projectName} | ${pages.count} pages | sort:${sort || 'updated'}`;
+      const header = `${projectName} | ${countLabel} pages | sort:${sort || 'updated'}`;
       const lines = pages.pages.map((page) => {
         const sortValue = getSortValue(page, sort);
         return formatPageCompact(page, { sortValue: sortValue.formatted });
@@ -77,8 +82,8 @@ export async function handleListPages(
     } else {
       output = [
         `Project: ${projectName}`,
-        `Total pages: ${pages.count}`,
-        `Pages fetched: ${pages.limit}`,
+        `Total pages: ${countLabel}`,
+        `Pages fetched: ${pages.pages.length}`,
         `Pages skipped: ${pages.skip}`,
         `Sort method: ${getSortDescription(sort)}`,
         '---'

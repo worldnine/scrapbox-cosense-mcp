@@ -90,7 +90,7 @@ describe('handleInsertLines', () => {
 
   describe('正常ケース', () => {
     test('基本的なテキスト挿入が成功すること', async () => {
-      mockedPatch.mockResolvedValue(undefined);
+      mockedPatch.mockResolvedValue({ ok: true, val: 'commitId', err: null });
       const params = {
         pageTitle: 'Test Page',
         targetLineText: 'target line',
@@ -117,7 +117,7 @@ describe('handleInsertLines', () => {
       const mockedConvert = convertMarkdownToScrapbox as jest.MockedFunction<typeof convertMarkdownToScrapbox>;
       
       mockedConvert.mockResolvedValue('converted text');
-      mockedPatch.mockResolvedValue(undefined);
+      mockedPatch.mockResolvedValue({ ok: true, val: 'commitId', err: null });
       
       const params = {
         pageTitle: 'Test Page',
@@ -138,7 +138,7 @@ describe('handleInsertLines', () => {
       
       // マークダウン変換でそのまま返すように設定
       mockedConvert.mockResolvedValue('line 1\nline 2\nline 3');
-      mockedPatch.mockResolvedValue(undefined);
+      mockedPatch.mockResolvedValue({ ok: true, val: 'commitId', err: null });
       
       const params = {
         pageTitle: 'Test Page',
@@ -150,6 +150,70 @@ describe('handleInsertLines', () => {
       
       expect(result.content[0]?.text).toContain('Inserted lines: 3');
       expect(mockedPatch).toHaveBeenCalled();
+    });
+
+    test('対象行は完全一致でマッチすること（部分一致しない）', async () => {
+      // patchのcallbackに渡される行をキャプチャして検証
+      mockedPatch.mockImplementation(async (_project, _title, updateFn) => {
+        const mockLines = [
+          { text: 'title', id: 'l1' },
+          { text: 'my TODO list', id: 'l2' },
+          { text: 'TODO', id: 'l3' },
+          { text: 'other line', id: 'l4' },
+        ] as any;
+        const result = updateFn(mockLines);
+        // 完全一致なので "TODO" は l3にマッチし、l3の後ろに挿入される
+        expect(result[3]?.text).toBe('inserted text');
+        // "my TODO list" にはマッチしない（部分一致しない）
+        expect(result[1]?.text).toBe('my TODO list');
+        return { ok: true, val: 'commitId', err: null };
+      });
+
+      const params = {
+        pageTitle: 'Test Page',
+        targetLineText: 'TODO',
+        text: 'inserted text',
+      };
+      await handleInsertLines(mockProjectName, mockCosenseSid, params);
+    });
+
+    test('対象行が見つからない場合は末尾に追加されること', async () => {
+      let capturedResult: any[] = [];
+      mockedPatch.mockImplementation(async (_project, _title, updateFn) => {
+        const mockLines = [
+          { text: 'title', id: 'l1' },
+          { text: 'some line', id: 'l2' },
+        ] as any;
+        capturedResult = updateFn(mockLines);
+        return { ok: true, val: 'commitId', err: null };
+      });
+
+      const params = {
+        pageTitle: 'Test Page',
+        targetLineText: 'nonexistent line',
+        text: 'inserted text',
+        format: 'scrapbox' as const,
+      };
+      const result = await handleInsertLines(mockProjectName, mockCosenseSid, params);
+
+      // 末尾に追加される
+      expect(capturedResult).toHaveLength(3);
+      expect(capturedResult[2]?.text).toBe('inserted text');
+      expect(result.content[0]?.text).toContain('not found (appended to end)');
+    });
+
+    test('patch が Result.Err を返した場合にエラーレスポンスを返すこと', async () => {
+      mockedPatch.mockResolvedValue({ ok: false, val: null, err: 'DisconnectReason' } as any);
+
+      const params = {
+        pageTitle: 'Test Page',
+        targetLineText: 'target line',
+        text: 'inserted text',
+      };
+      const result = await handleInsertLines(mockProjectName, mockCosenseSid, params);
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0]?.text).toContain('WebSocket patch failed');
     });
 
     test('WebSocket APIでエラーが発生した場合にエラーレスポンスを返すこと', async () => {

@@ -1,6 +1,6 @@
-import { createPageUrl } from "../../cosense.js";
+import { createPageUrl, getPage } from "../../cosense.js";
 import { convertMarkdownToScrapbox } from '../../utils/markdown-converter.js';
-import { formatError } from '../../utils/format.js';
+import { formatError, stringifyError } from '../../utils/format.js';
 import { patch } from '@cosense/std/websocket';
 import type { BaseLine } from '@cosense/types/rest';
 
@@ -47,17 +47,31 @@ export async function handleCreatePage(
         }, params.compact);
       }
 
+      // 既存ページの存在チェック
+      const existingPage = await getPage(projectName, title, cosenseSid);
+      if (existingPage && existingPage.persistent) {
+        return formatError(`Page already exists: ${title}. Use insert_lines to modify existing pages.`, {
+          Operation: 'create_page',
+          Project: projectName,
+          Title: title,
+          Timestamp: new Date().toISOString(),
+        }, params.compact);
+      }
+
       // ハイブリッド方式: URL作成 → WebSocket更新
       const lines = convertedBody ? convertedBody.split('\n') : [];
       const allLines = [title, ...lines];
 
-      // WebSocket経由でページ作成・更新
-      await patch(projectName, title, (_existingLines: BaseLine[]) => {
-        // 空ページまたは既存ページの場合、内容を置き換える
+      // WebSocket経由でページ作成
+      const result = await patch(projectName, title, (_existingLines: BaseLine[]) => {
         return allLines.map(text => ({ text }));
       }, {
         sid: cosenseSid
       });
+
+      if (!result.ok) {
+        throw new Error(`WebSocket patch failed: ${stringifyError(result.err)}`);
+      }
 
       const url = createPageUrl(projectName, title);
       if (params.compact) {
