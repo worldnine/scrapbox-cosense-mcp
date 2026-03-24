@@ -119,6 +119,23 @@ See README.md for complete environment variable documentation. Key variables for
 
 The server entry point (`src/index.ts`) initializes resources, sets up MCP handlers, and manages the stdio transport connection.
 
+## CI/CD & リリース
+
+### GitHub Actions ワークフロー
+
+- **pr.yml**: PRのquality-check（lint → test → build）
+- **security-scan.yml**: セキュリティスキャン
+- **auto-release.yml**: `release/v*` ブランチのPRがmainにマージされたら、タグとGitHub Releaseを自動作成
+- **publish-npm.yml**: `v*` タグプッシュでnpmへ自動公開（quality-check → publish）
+- **release-mcpb.yml**: GitHub Release作成で .mcpb ファイルを自動ビルド・添付
+
+### リリース手順
+
+1. worktreeを切って `release/vX.Y.Z` ブランチ作成
+2. `package.json` と `manifest.json` のバージョン更新 → `npm install` → テスト確認
+3. PRを作成してCIを通す
+4. **PRマージ後は自動**: タグ作成 → npm公開 → GitHub Release → .mcpb添付
+
 ## TypeScript Configuration
 
 ### Modern TypeScript Setup
