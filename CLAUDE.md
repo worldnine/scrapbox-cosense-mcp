@@ -25,6 +25,22 @@ npm run inspector    # Debug with MCP Inspector
 | `get_page_url` | Generate URL from page title | - |
 | `insert_lines` | Insert text after a target line (exact match). Appends to end if not found | SID |
 
+### CLI
+
+All tools are also available as CLI subcommands (`get`, `list`, `search`, `create`, `url`, `insert`). Run `scrapbox-cosense-mcp <command> --help` for usage. Key flags:
+
+- `--compact` — Token-efficient output (85% smaller for list)
+- `--json` — JSON output
+- `--project=NAME` — Override project name
+
+### Skill (SKILL.md)
+
+`skills/scrapbox/SKILL.md` defines a Claude Code skill that wraps the CLI. When users invoke `/cosense`, Claude Code reads SKILL.md and executes CLI commands via Bash. Keep SKILL.md concise — details should be discoverable via `--help`.
+
+### Desktop Extensions (.mcpb)
+
+`manifest.json` + `.mcpbignore` enable Claude Desktop Extensions packaging. The `.mcpb` file is auto-built and attached to GitHub Releases by `release-mcpb.yml`. To build locally: `npm install --omit=dev && npx @anthropic-ai/mcpb pack`.
+
 ### Directory Structure
 
 - `src/cosense.ts` — Scrapbox REST API client
