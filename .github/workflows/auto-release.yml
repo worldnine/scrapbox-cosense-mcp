@@ -1,0 +1,51 @@
+name: Auto Release
+
+# release/v* ブランチのPRがmainにマージされたら、タグとGitHub Releaseを自動作成
+# 既存の publish-npm.yml（タグ発火）と release-mcpb.yml（リリース発火）が後続処理を行う
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  auto-release:
+    # release/v* ブランチからのPRがマージされた場合のみ実行
+    if: >
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'release/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: コードをチェックアウト
+      uses: actions/checkout@v4
+
+    - name: バージョンを取得してタグを作成
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        TAG="v${VERSION}"
+        echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
+        echo "TAG=${TAG}" >> "$GITHUB_ENV"
+
+        # タグが既に存在する場合はスキップ
+        if git rev-parse "${TAG}" >/dev/null 2>&1; then
+          echo "タグ ${TAG} は既に存在します。スキップします。"
+          echo "SKIP=true" >> "$GITHUB_ENV"
+          exit 0
+        fi
+
+        git tag "${TAG}"
+        git push origin "${TAG}"
+        echo "タグ ${TAG} を作成しました"
+
+    - name: GitHub Release を作成
+      if: env.SKIP != 'true'
+      run: |
+        PR_BODY="${{ github.event.pull_request.body }}"
+        gh release create "${TAG}" \
+          --title "${TAG}" \
+          --notes "${PR_BODY:-リリース ${TAG}}"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
