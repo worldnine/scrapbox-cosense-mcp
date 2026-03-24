@@ -9,7 +9,10 @@
   "plugins": [
     {
       "name": "scrapbox-cosense",
-      "source": "./",
+      "source": {
+        "source": "npm",
+        "package": "scrapbox-cosense-mcp"
+      },
       "description": "Scrapbox/Cosense integration - read, search, create, and edit wiki pages"
     }
   ]
