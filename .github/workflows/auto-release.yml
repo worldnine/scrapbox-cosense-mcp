@@ -31,9 +31,9 @@ jobs:
         echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
         echo "TAG=${TAG}" >> "$GITHUB_ENV"
 
-        # タグが既に存在する場合はスキップ
-        if git rev-parse "${TAG}" >/dev/null 2>&1; then
-          echo "タグ ${TAG} は既に存在します。スキップします。"
+        # タグが既に存在する場合はスキップ（リモートも確認）
+        if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q "${TAG}"; then
+          echo "タグ ${TAG} はリモートに既に存在します。スキップします。"
           echo "SKIP=true" >> "$GITHUB_ENV"
           exit 0
         fi
