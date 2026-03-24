@@ -6,6 +6,7 @@ import { handleSearchPages } from './handlers/search-pages.js';
 import { handleCreatePage } from './handlers/create-page.js';
 import { handleGetPageUrl } from './handlers/get-page-url.js';
 import { handleInsertLines } from './handlers/insert-lines.js';
+import { handleGetSmartContext } from './handlers/get-smart-context.js';
 
 // ツール名正規化ヘルパー
 function normalizeToolName(toolName: string, toolSuffix?: string): string {
@@ -92,6 +93,18 @@ export function setupRoutes(
             text: String(request.params.arguments?.text),
             projectName: request.params.arguments?.projectName as string | undefined,
             format: (request.params.arguments?.format as "markdown" | "scrapbox" | undefined) ?? undefined
+          }
+        );
+
+      case "get_smart_context":
+        return handleGetSmartContext(
+          projectName,
+          cosenseSid,
+          {
+            title: String(request.params.arguments?.title),
+            hopCount: (request.params.arguments?.hopCount as 1 | 2 | undefined) ?? undefined,
+            projectName: request.params.arguments?.projectName as string | undefined,
+            compact: request.params.arguments?.compact as boolean | undefined,
           }
         );
 

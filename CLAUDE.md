@@ -16,7 +16,7 @@ npm run inspector    # Debug with MCP Inspector
 
 ## Project Architecture
 
-This is an MCP (Model Context Protocol) server for Scrapbox/Cosense that provides 6 main tools:
+This is an MCP (Model Context Protocol) server for Scrapbox/Cosense that provides 7 main tools:
 
 - `get_page`: Retrieve page content, metadata, and links
 - `list_pages`: Browse and list pages with flexible sorting and pagination. Returns page metadata and first 5 lines of content. Max 1000 pages per request.
@@ -24,6 +24,8 @@ This is an MCP (Model Context Protocol) server for Scrapbox/Cosense that provide
 - `create_page`: Create new pages using WebSocket API with markdown body conversion to Scrapbox format. Creates pages immediately and returns success confirmation with URL. Requires COSENSE_SID for authentication.
 - `get_page_url`: Generate direct URL for a page from its title. Useful for creating links or sharing page references.
 - `insert_lines`: Insert text after a specified line in a page. If target line not found, text is appended to the end of the page.
+
+- `get_smart_context`: Get smart context for a page. Returns the target page and its linked pages (1-hop or 2-hop) with full content in AI-optimized format. Uses the Smart Context API. Requires COSENSE_SID for authentication.
 
 ### Key Components
 

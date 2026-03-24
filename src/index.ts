@@ -278,6 +278,29 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: getToolName("get_smart_context"),
+        description: `Get smart context for a page on ${SERVICE_LABEL}. Returns the target page and its linked pages (1-hop or 2-hop) with full content in AI-optimized format. Useful for understanding the context and related knowledge around a specific topic. Requires COSENSE_SID authentication. Uses ${projectName} project as default if projectName is not specified.`,
+        inputSchema: {
+          type: "object",
+          properties: {
+            title: {
+              type: "string",
+              description: "Title of the page to get context for",
+            },
+            hopCount: {
+              type: "number",
+              enum: [1, 2],
+              description: "Number of link hops to include. 1 (default) returns directly linked pages. 2 returns pages linked from linked pages (larger response).",
+            },
+            projectName: {
+              type: "string",
+              description: `Target project name. If not specified, defaults to '${projectName}'.`,
+            },
+          },
+          required: ["title"],
+        },
+      },
+      {
         name: getToolName("insert_lines"),
         description: `Insert text after a specified line in a Scrapbox page on ${SERVICE_LABEL}. If target line not found, text is appended to the end of the page. Uses ${projectName} project as default if projectName is not specified.`,
         inputSchema: {
