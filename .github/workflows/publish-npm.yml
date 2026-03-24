@@ -79,7 +79,20 @@ jobs:
         fi
         echo "manifest.jsonのバージョンも一致: ${MANIFEST_VERSION}"
 
+    - name: npm に公開済みか確認
+      id: check-npm
+      run: |
+        PKG_VERSION=$(node -p "require('./package.json').version")
+        PKG_NAME=$(node -p "require('./package.json').name")
+        if npm view "${PKG_NAME}@${PKG_VERSION}" version 2>/dev/null; then
+          echo "バージョン ${PKG_VERSION} は既に npm に公開済みです。スキップします。"
+          echo "already_published=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "already_published=false" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: npm に公開
+      if: steps.check-npm.outputs.already_published != 'true'
       run: npm publish --provenance
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
