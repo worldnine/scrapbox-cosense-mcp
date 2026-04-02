@@ -13,7 +13,8 @@
     "scrapbox-cosense-mcp": "./build/index.js"
   },
   "files": [
-    "build"
+    "build",
+    "manifest.json"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
