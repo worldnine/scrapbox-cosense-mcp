@@ -56,6 +56,7 @@ All tools are also available as CLI subcommands (`get`, `list`, `search`, `creat
 - `src/routes/handlers/` — One handler module per tool
 - `src/utils/format.ts` — Response formatting, `stringifyError`, `formatError`
 - `src/utils/sort.ts` — Sorting with pinned page filtering
+- `src/utils/project.ts` — `COSENSE_PROJECT_ALLOW_LIST` check (`checkProjectAllowed`)
 - `src/utils/markdown-converter.ts` — Markdown → Scrapbox conversion (uses `md2sb`)
 - `src/types/` — API response and MCP request/response type definitions
 - `src/cli.ts` — CLI entry point (args → CLI mode, no args → MCP server)
@@ -75,6 +76,9 @@ All tools are also available as CLI subcommands (`get`, `list`, `search`, `creat
 - **`rewrite_page` inverts the existence check**: it rejects pages that do NOT exist (`persistent !== true`). A title typo must not silently create a new page, and it must reject empty content (deletion is `delete_page`'s job)
 - **`delete_page` and `rewrite_page` support `dryRun`**, which report the line counts (and previews) without calling `patch()` at all. There is no undo, so an agent should be able to look before it acts
 - **`insert_lines` and `edit_lines`/`delete_lines` differ when the target is missing**, deliberately. `insert_lines` appends to the end, since "add this text" still has a sensible landing spot. `edit_lines`/`delete_lines` error and leave the page untouched, since "replace/delete this line" has no fallback
+- **`COSENSE_PROJECT_ALLOW_LIST` is checked in every handler**, right after the project name is resolved, via `checkProjectAllowed()` in `src/utils/project.ts`. Handlers are the only point shared by the MCP dispatcher, the CLI, and direct calls, so a check in the dispatcher alone would miss the other two. The helper returns an error message instead of throwing because four handlers resolve the project name outside their `try`. `src/__tests__/handlers/project-allow-list.test.ts` enumerates every handler file, so adding a tool without the check fails the test
+- **The implicit allowance of the default project reads `process.env.COSENSE_PROJECT_NAME`, not the handler's `defaultProjectName` argument**. The CLI passes `--project=NAME` as `defaultProjectName` too, so comparing against the argument would let every CLI call through
+- **An allow list that is set but empty (`""`, `",,,"`) restricts to the default project** rather than falling back to unrestricted. Whoever set the variable meant to restrict, and only an unset variable means "no fence"
 - **`patch()` returns `Result<string, PushError>`**, not throw. Must check `result.ok`
 - **Default sort is `updated`**. Aligned across API, display, and user expectations
 
@@ -87,6 +91,7 @@ See README.md. Key variables:
 - `COSENSE_TOOL_SUFFIX` — Tool name suffix for multiple server instances
 - `COSENSE_CONVERT_NUMBERED_LISTS` — Convert numbered lists to bullet lists
 - `COSENSE_ENABLE_DELETE` — Register `delete_page`/`rewrite_page` and the `delete`/`rewrite` CLI commands (opt-in)
+- `COSENSE_PROJECT_ALLOW_LIST` — Comma-separated projects that `projectName`/`--project` may target. `COSENSE_PROJECT_NAME` is always allowed. Unset = unrestricted; set but empty = default project only (opt-in)
 
 ## CI/CD & Release
 
