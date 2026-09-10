@@ -1,4 +1,5 @@
 import { createPageUrl } from "../../cosense.js";
+import { checkProjectAllowed } from '../../utils/project.js';
 
 export interface GetPageUrlParams {
   title: string;
@@ -12,6 +13,25 @@ export async function handleGetPageUrl(
 ) {
   try {
     const projectName = params.projectName || defaultProjectName;
+
+    const notAllowed = checkProjectAllowed(projectName);
+    if (notAllowed) {
+      return {
+        content: [{
+          type: "text",
+          text: [
+            'Error details:',
+            `Message: ${notAllowed}`,
+            `Operation: get_page_url`,
+            `Project: ${projectName}`,
+            `Title: ${params.title}`,
+            `Timestamp: ${new Date().toISOString()}`
+          ].join('\n')
+        }],
+        isError: true
+      };
+    }
+
     const title = String(params.title);
     const url = createPageUrl(projectName, title);
     

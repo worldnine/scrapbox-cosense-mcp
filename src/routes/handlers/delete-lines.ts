@@ -1,6 +1,7 @@
 import { patch } from '@cosense/std/websocket';
 import type { BaseLine } from '@cosense/types/rest';
 import { formatError, stringifyError } from '../../utils/format.js';
+import { checkProjectAllowed } from '../../utils/project.js';
 
 export interface DeleteLinesParams {
   pageTitle: string;
@@ -16,6 +17,16 @@ export async function handleDeleteLines(
   params: DeleteLinesParams
 ) {
   const projectName = params.projectName || defaultProjectName;
+
+  const notAllowed = checkProjectAllowed(projectName);
+  if (notAllowed) {
+    return formatError(notAllowed, {
+      Operation: 'delete_lines',
+      Project: projectName,
+      Page: params.pageTitle,
+      Timestamp: new Date().toISOString(),
+    }, params.compact);
+  }
 
   try {
     if (!cosenseSid) {

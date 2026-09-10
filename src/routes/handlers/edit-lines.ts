@@ -2,6 +2,7 @@ import { patch } from '@cosense/std/websocket';
 import type { BaseLine } from '@cosense/types/rest';
 import { convertMarkdownToScrapbox } from '../../utils/markdown-converter.js';
 import { formatError, stringifyError } from '../../utils/format.js';
+import { checkProjectAllowed } from '../../utils/project.js';
 
 export interface EditLinesParams {
   pageTitle: string;
@@ -19,6 +20,16 @@ export async function handleEditLines(
   params: EditLinesParams
 ) {
   const projectName = params.projectName || defaultProjectName;
+
+  const notAllowed = checkProjectAllowed(projectName);
+  if (notAllowed) {
+    return formatError(notAllowed, {
+      Operation: 'edit_lines',
+      Project: projectName,
+      Page: params.pageTitle,
+      Timestamp: new Date().toISOString(),
+    }, params.compact);
+  }
 
   try {
     if (!cosenseSid) {

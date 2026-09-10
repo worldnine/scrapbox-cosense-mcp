@@ -1,6 +1,7 @@
 import { createPageUrl, getPage } from "../../cosense.js";
 import { convertMarkdownToScrapbox } from '../../utils/markdown-converter.js';
 import { formatError, stringifyError } from '../../utils/format.js';
+import { checkProjectAllowed } from '../../utils/project.js';
 import { patch } from '@cosense/std/websocket';
 import type { BaseLine } from '@cosense/types/rest';
 
@@ -20,6 +21,17 @@ export async function handleCreatePage(
 ) {
   try {
     const projectName = params.projectName || defaultProjectName;
+
+    const notAllowed = checkProjectAllowed(projectName);
+    if (notAllowed) {
+      return formatError(notAllowed, {
+        Operation: 'create_page',
+        Project: projectName,
+        Title: String(params.title),
+        Timestamp: new Date().toISOString(),
+      }, params.compact);
+    }
+
     const title = String(params.title);
     const body = params.body;
     const createActually = params.createActually !== false; // デフォルトtrue

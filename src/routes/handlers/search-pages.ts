@@ -1,5 +1,6 @@
 import { searchPages } from "../../cosense.js";
 import { formatPageOutput, formatPageCompact, formatError } from '../../utils/format.js';
+import { checkProjectAllowed } from '../../utils/project.js';
 
 export interface SearchPagesParams {
   query: string;
@@ -14,6 +15,17 @@ export async function handleSearchPages(
 ) {
   try {
     const projectName = params.projectName || defaultProjectName;
+
+    const notAllowed = checkProjectAllowed(projectName);
+    if (notAllowed) {
+      return formatError(notAllowed, {
+        Operation: 'search_pages',
+        Project: projectName,
+        Query: String(params.query),
+        Timestamp: new Date().toISOString(),
+      }, params.compact);
+    }
+
     const query = String(params.query);
     const results = await searchPages(projectName, query, cosenseSid);
 

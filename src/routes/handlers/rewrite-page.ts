@@ -2,6 +2,7 @@ import { patch } from '@cosense/std/websocket';
 import { getPage } from '../../cosense.js';
 import { convertMarkdownToScrapbox } from '../../utils/markdown-converter.js';
 import { formatError, stringifyError } from '../../utils/format.js';
+import { checkProjectAllowed } from '../../utils/project.js';
 import { isDeleteEnabled } from './delete-page.js';
 
 export interface RewritePageParams {
@@ -28,6 +29,11 @@ export async function handleRewritePage(
     Page: params.pageTitle,
     Timestamp: new Date().toISOString(),
   });
+
+  const notAllowed = checkProjectAllowed(projectName);
+  if (notAllowed) {
+    return formatError(notAllowed, errorDetails(), params.compact);
+  }
 
   try {
     // ツール登録側でもゲートしているが、CLIや直接呼び出しに備えて実行時にも確認する

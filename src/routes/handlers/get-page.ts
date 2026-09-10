@@ -1,5 +1,6 @@
 import { getPage, toReadablePage } from "../../cosense.js";
 import { formatYmd, formatError } from '../../utils/format.js';
+import { checkProjectAllowed } from '../../utils/project.js';
 
 export interface GetPageParams {
   pageTitle: string;
@@ -14,6 +15,17 @@ export async function handleGetPage(
 ) {
   try {
     const projectName = params.projectName || defaultProjectName;
+
+    const notAllowed = checkProjectAllowed(projectName);
+    if (notAllowed) {
+      return formatError(notAllowed, {
+        Operation: 'get_page',
+        Project: projectName,
+        Page: params.pageTitle,
+        Timestamp: new Date().toISOString(),
+      }, params.compact);
+    }
+
     const page = await getPage(projectName, params.pageTitle, cosenseSid);
 
     if (!page) {

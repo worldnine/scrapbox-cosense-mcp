@@ -1,5 +1,6 @@
 import { getSmartContext } from "../../cosense.js";
 import { formatError } from '../../utils/format.js';
+import { checkProjectAllowed } from '../../utils/project.js';
 
 export interface GetSmartContextParams {
   title: string;
@@ -15,6 +16,16 @@ export async function handleGetSmartContext(
 ) {
   try {
     const projectName = params.projectName || defaultProjectName;
+
+    const notAllowed = checkProjectAllowed(projectName);
+    if (notAllowed) {
+      return formatError(notAllowed, {
+        Operation: 'get_smart_context',
+        Project: projectName,
+        Page: params.title,
+        Timestamp: new Date().toISOString(),
+      }, params.compact);
+    }
 
     if (!cosenseSid) {
       return formatError(

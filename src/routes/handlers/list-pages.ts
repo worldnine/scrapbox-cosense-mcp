@@ -1,6 +1,7 @@
 import { type ListPagesResponse } from "../../cosense.js";
 import { listPages, listPagesWithSort } from "../../cosense.js";
 import { formatPageOutput, formatPageCompact, formatError, getSortDescription, getSortValue } from '../../utils/format.js';
+import { checkProjectAllowed } from '../../utils/project.js';
 
 export interface ListPagesParams {
   sort?: string;
@@ -26,6 +27,16 @@ export async function handleListPages(
       compact = false
     } = params;
     const projectName = paramsProjectName || defaultProjectName;
+
+    const notAllowed = checkProjectAllowed(projectName);
+    if (notAllowed) {
+      return formatError(notAllowed, {
+        Operation: 'list_pages',
+        Project: projectName,
+        Timestamp: new Date().toISOString(),
+      }, compact);
+    }
+
     let pages;
 
     if (excludePinned) {
