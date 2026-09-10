@@ -14,6 +14,8 @@ get_page "Design Guidelines" projectName="help-ja"
 
 **Limitation**: Works best with public projects or projects sharing the same authentication credentials.
 
+**Restricting targets**: Set `COSENSE_PROJECT_ALLOW_LIST="help-ja,team-wiki"` to accept only those projects (plus `COSENSE_PROJECT_NAME`). Any other `projectName` is rejected before an API call is made, and the error message lists the permitted projects. Matching is case-sensitive. Unset means no restriction.
+
 ## Method 2: Multiple Server Instances (Recommended for Private Projects)
 
 Run separate MCP server instances with unique `COSENSE_TOOL_SUFFIX` values:

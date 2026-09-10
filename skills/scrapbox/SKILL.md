@@ -38,6 +38,7 @@ Cosense ページの取得・検索・作成・編集・削除・書き換え。
 | `COSENSE_PROJECT_NAME` | 対象プロジェクト名（`--project` で上書き可） | はい |
 | `COSENSE_SID` | セッションID（プライベートプロジェクト、create/insert/edit/delete-lines/delete/rewrite/context 操作に必要） | 条件付き |
 | `COSENSE_ENABLE_DELETE` | `true` のときだけ `delete` / `rewrite` サブコマンドが使える | いいえ |
+| `COSENSE_PROJECT_ALLOW_LIST` | `--project` で指定できるプロジェクトをカンマ区切りで制限する。`COSENSE_PROJECT_NAME` は常に許可。未設定なら無制限 | いいえ |
 
 ### 永続化方法
 

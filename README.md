@@ -39,6 +39,10 @@ The reasoning: `insert_lines`, `edit_lines`, and `delete_lines` all require an e
 - The page must already exist. A missing page returns an error rather than a silent success. (The REST API returns a title line even for a page that was never created, so the check looks at `persistent`, the same way `create_page` does.)
 - `dryRun: true` reports how many lines would be removed and shows the first five of them, without touching the page.
 
+### `COSENSE_PROJECT_ALLOW_LIST` limits reachable projects
+
+Every tool accepts a `projectName` override, which is how one server serves several projects. A session ID often reaches more projects than the default one, so without a limit an agent that names the wrong project can read or write there. `COSENSE_PROJECT_ALLOW_LIST` is the opt-in fence: when set, only the listed projects and `COSENSE_PROJECT_NAME` are accepted, and anything else fails before a request is sent. Names are matched exactly, including case, so a spelling variant cannot slip through. Setting the variable to an empty value restricts to the default project alone. Unset keeps the old unrestricted behavior.
+
 `rewrite_page` replaces a page's entire content (the title is preserved as the first line). It has the same guards, plus two of its own:
 
 - The page must already exist — the `persistent` check is inverted relative to `create_page`, so a typo cannot silently create a new page.
@@ -178,6 +182,7 @@ npm install && npm run build
 | `COSENSE_CONVERT_NUMBERED_LISTS` | `false` | Convert numbered lists to bullet lists in Markdown conversion |
 | `COSENSE_EXCLUDE_PINNED` | `false` | Exclude pinned pages from initial resource list |
 | `COSENSE_ENABLE_DELETE` | `false` | Register the `delete_page` and `rewrite_page` tools (and the `delete` / `rewrite` CLI commands). Without it, none are available |
+| `COSENSE_PROJECT_ALLOW_LIST` | — | Comma-separated project names that `projectName` / `--project` may target. `COSENSE_PROJECT_NAME` is always allowed. Unset means no restriction; set to an empty value means the default project only |
 
 ## CLI Usage
 
@@ -206,6 +211,8 @@ scrapbox-cosense-mcp url "Page Title"
 ## Multiple Projects
 
 All tools accept an optional `projectName` parameter to target a different project from a single server. For multiple private projects with different credentials, run separate server instances with `COSENSE_TOOL_SUFFIX`.
+
+To limit which projects an agent can reach, set `COSENSE_PROJECT_ALLOW_LIST` (comma-separated). Requests naming any other project are rejected before any API call, and the error lists the permitted projects. Matching is case-sensitive.
 
 See [docs/multiple-projects.md](./docs/multiple-projects.md) for detailed configuration examples.
 
