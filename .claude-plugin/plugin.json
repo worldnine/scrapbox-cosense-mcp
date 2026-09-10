@@ -1,7 +1,7 @@
 {
   "name": "scrapbox-cosense",
   "description": "Scrapbox/Cosense integration - read, search, create, and edit wiki pages",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "author": {
     "name": "worldnine"
   },
