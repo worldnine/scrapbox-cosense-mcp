@@ -200,3 +200,15 @@ npm install && npm run build
 2. テストを追加して変更を実装
 3. `npm run lint && npm test` を実行
 4. プルリクエストを作成 — CIが自動実行されます
+
+## コントリビューター
+
+このプロジェクトに貢献してくださったみなさんに感謝します。
+
+- [@kmatsunami](https://github.com/kmatsunami) — `get_page` の collaborators 未定義時の対応、JSR依存の解決 ([#20](https://github.com/worldnine/scrapbox-cosense-mcp/pull/20))
+- [@vitalibondar](https://github.com/vitalibondar) — `format` パラメータの追加、裸のURLが二重になる不具合の修正 ([#29](https://github.com/worldnine/scrapbox-cosense-mcp/pull/29))
+- [@qurihara](https://github.com/qurihara) — `edit_lines`、オプトイン制の `delete_page` ([#52](https://github.com/worldnine/scrapbox-cosense-mcp/pull/52), [#57](https://github.com/worldnine/scrapbox-cosense-mcp/pull/57))
+- [@ojimpo](https://github.com/ojimpo) — `COSENSE_PROJECT_ALLOW_LIST` ([#68](https://github.com/worldnine/scrapbox-cosense-mcp/pull/68))
+- [@punkpeye](https://github.com/punkpeye), [@lwsinclair](https://github.com/lwsinclair) — READMEのバッジ ([#1](https://github.com/worldnine/scrapbox-cosense-mcp/pull/1), [#6](https://github.com/worldnine/scrapbox-cosense-mcp/pull/6))
+
+全体は [contributors グラフ](https://github.com/worldnine/scrapbox-cosense-mcp/graphs/contributors) にあります。
