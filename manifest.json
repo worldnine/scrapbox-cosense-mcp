@@ -39,7 +39,7 @@
     "sid": {
       "type": "string",
       "title": "Session ID (COSENSE_SID)",
-      "description": "connect.sid cookie value. Only needed if you do not use a Personal Access Token.",
+      "description": "connect.sid cookie value. If set, it is used instead of the Personal Access Token; leave it empty to use the token.",
       "required": false,
       "sensitive": true
     },

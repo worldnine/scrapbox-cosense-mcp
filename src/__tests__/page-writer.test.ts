@@ -171,20 +171,30 @@ describe('writePage', () => {
     expect(mockedFetch).not.toHaveBeenCalled();
   });
 
-  test('SIDの patch が失敗すればそのエラーを返す', async () => {
+  test('SIDとPATの両方があれば websocket を使う', async () => {
+    mockedPatch.mockResolvedValue({ ok: true, val: 'commit' } as never);
+
+    const result = await writePage(project, title, lines => lines, 'test-sid');
+
+    expect(result).toEqual({ ok: true });
+    expect(mockedPatch).toHaveBeenCalled();
+    expect(mockedFetch).not.toHaveBeenCalled();
+  });
+
+  test('SIDの patch が失敗すれば、以前と同じ文言でエラーを返す', async () => {
     delete process.env.COSENSE_PAT;
     mockedPatch.mockResolvedValue({ ok: false, err: { name: 'SocketIOError', message: 'boom' } } as never);
 
     const result = await writePage(project, title, lines => lines, 'test-sid');
 
     expect(result.ok).toBe(false);
-    expect(!result.ok && result.err).toContain('boom');
+    expect(!result.ok && result.err).toMatch(/^WebSocket patch failed: .*boom/);
   });
 
   test('PATなら preview と submit で差分を書き、PATのヘッダを付ける', async () => {
     respond(existingPage, [json({ previewId: 'p1' }), json({ commitId: 'c1' })]);
 
-    const result = await writePage(project, title, lines => [...lines, { text: 'c' }], 'test-sid');
+    const result = await writePage(project, title, lines => [...lines, { text: 'c' }]);
 
     expect(result).toEqual({ ok: true });
     expect(mockedPatch).not.toHaveBeenCalled();

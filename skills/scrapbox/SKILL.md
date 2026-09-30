@@ -37,7 +37,7 @@ Cosense ページの取得・検索・作成・編集・削除・書き換え。
 |---|---|---|
 | `COSENSE_PROJECT_NAME` | 対象プロジェクト名（`--project` で上書き可） | はい |
 | `COSENSE_PAT` | Personal Access Token（おすすめ）。非公開プロジェクトと、create/insert/edit/delete-lines/delete/rewrite/contextに必要 | 条件付き |
-| `COSENSE_SID` | セッションID（`connect.sid`）。`COSENSE_PAT`が無いときに使う | いいえ |
+| `COSENSE_SID` | セッションID（`connect.sid`）。`COSENSE_PAT`より優先する。PATに移るときは外す | いいえ |
 | `COSENSE_ENABLE_DELETE` | `true` のときだけ `delete` / `rewrite` サブコマンドが使える | いいえ |
 | `COSENSE_PROJECT_ALLOW_LIST` | `--project` で指定できるプロジェクトをカンマ区切りで制限する。`COSENSE_PROJECT_NAME` は常に許可。未設定なら無制限 | いいえ |
 

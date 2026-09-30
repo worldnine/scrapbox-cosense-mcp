@@ -68,10 +68,9 @@ All tools are also available as CLI subcommands (`get`, `list`, `search`, `creat
 ### Design Decisions
 
 - **All page writes go through `writePage` (`src/page-writer.ts`)**, which picks the path by credential: a PAT or Service Account uses the edit API (`/api/pages/v2/<project>/page-edit-for-ai/preview` → `submit`), a SID uses the websocket `patch()` of `@cosense/std`. The edit API refuses cookie-authenticated writes (`CrossOriginWriteNotAllowedError`, and `/api/users/me` no longer returns a CSRF token), and the websocket accepts only cookie auth, so neither path can serve both. Handlers pass a `patch`-shaped update callback and never know which path runs
-- **Credentials come only from `COSENSE_PAT` and `COSENSE_SID`** (`COSENSE_PAT` wins; a value starting with `cs_` is sent as a Service Account key). `~/.cosense/settings.json`, which `cosense login` of the official CLI writes, is deliberately not read: it would give this server write access the moment someone logs in with the official CLI, even where they gave this server no credential on purpose (read-only use of public projects), and a PAT reaches every project the user can see. Write power has to be configured for this server explicitly
+- **Credentials come only from `COSENSE_PAT` and `COSENSE_SID`** (a value starting with `cs_` is sent as a Service Account key). `COSENSE_SID` wins when both are set, so upgrading never changes anything for an existing SID setup — `COSENSE_PAT` is the same variable the official CLI reads, and people set it globally for the CLI. Switching to the PAT means removing `COSENSE_SID`. `~/.cosense/settings.json`, which `cosense login` of the official CLI writes, is deliberately not read: it would give this server write access the moment someone logs in with the official CLI, even where they gave this server no credential on purpose (read-only use of public projects), and a PAT reaches every project the user can see. Write power has to be configured for this server explicitly
 - **`writePage` keeps `patch()`'s contract on the edit API**: returning the same array writes nothing, `[]` deletes the page (`{ deleted: true }`), a non-persistent page is created by inserting every line without `pageId`, and a 409 `NotFastForward` re-reads the page and calls the callback again (up to 3 times). Callbacks must reset their state on every call
 - **The edit-API diff pairs removed and added lines 1:1 as `_update` within one changed region**, top to bottom, so line IDs (and authorship) survive; leftovers become `_delete` or `_insert` before the next kept line (`_end` at the bottom). Inserts are anchored on kept lines only, so they never point at a line deleted in the same request
-- **Page reads use `/api/pages/v2/`**. It returns the same body as v1 minus `relatedPages`, which this server never used and which is most of v1's payload. `list_pages` fetches every page, so the difference adds up
 - **Tests unset `COSENSE_PAT`** (`src/__tests__/setup-env.ts`), so a token in the developer's shell never reaches the edit API from a test
 - **`create_page` rejects existing pages** (`persistent === true`). Without this check, `patch()` silently replaces all content since it's a diff-update API
 - **`insert_lines` uses exact match**. Partial match risks inserting at unintended lines
@@ -98,7 +97,7 @@ See README.md. Key variables:
 
 - `COSENSE_PROJECT_NAME` — Target project (required)
 - `COSENSE_PAT` — Personal Access Token (recommended) for private projects, writes, and Smart Context. Writes go through the edit API
-- `COSENSE_SID` — Session ID (`connect.sid`), used when `COSENSE_PAT` is unset. Writes go through the websocket
+- `COSENSE_SID` — Session ID (`connect.sid`). Takes precedence over `COSENSE_PAT`. Writes go through the websocket
 - `COSENSE_TOOL_SUFFIX` — Tool name suffix for multiple server instances
 - `COSENSE_CONVERT_NUMBERED_LISTS` — Convert numbered lists to bullet lists
 - `COSENSE_ENABLE_DELETE` — Register `delete_page`/`rewrite_page` and the `delete`/`rewrite` CLI commands (opt-in)

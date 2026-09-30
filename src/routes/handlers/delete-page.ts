@@ -101,7 +101,7 @@ export async function handleDeletePage(
     const result = await writePage(projectName, params.pageTitle, () => [], cosenseSid);
 
     if (!result.ok) {
-      throw new Error(`Page write failed: ${result.err}`);
+      throw new Error(result.err);
     }
 
     if (params.compact) {

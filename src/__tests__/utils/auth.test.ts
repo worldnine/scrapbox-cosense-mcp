@@ -13,14 +13,19 @@ describe('resolveCredential', () => {
     expect(resolveCredential('sid-value')).toEqual({ type: 'sid', value: 'sid-value' });
   });
 
-  test('COSENSE_PAT は SID より優先されること', () => {
+  test('SID が無ければ COSENSE_PAT を使うこと', () => {
     process.env.COSENSE_PAT = 'pat-value';
-    expect(resolveCredential('sid-value')).toEqual({ type: 'personalAccessToken', value: 'pat-value' });
+    expect(resolveCredential()).toEqual({ type: 'personalAccessToken', value: 'pat-value' });
+  });
+
+  test('両方あれば SID を使うこと（SID で使っている環境を変えない）', () => {
+    process.env.COSENSE_PAT = 'pat-value';
+    expect(resolveCredential('sid-value')).toEqual({ type: 'sid', value: 'sid-value' });
   });
 
   test('空白だけの COSENSE_PAT は無視すること', () => {
     process.env.COSENSE_PAT = '   ';
-    expect(resolveCredential('sid-value')).toEqual({ type: 'sid', value: 'sid-value' });
+    expect(resolveCredential()).toBeUndefined();
   });
 
   test('cs_ で始まる COSENSE_PAT は Service Account として扱うこと', () => {

@@ -70,7 +70,26 @@ describe('cosense API functions', () => {
       );
     });
 
-    test('COSENSE_PATがあればSIDの代わりにPATのヘッダを付けること', async () => {
+    test('SIDが無ければCOSENSE_PATのヘッダを付けること', async () => {
+      process.env.COSENSE_PAT = 'test-pat';
+      try {
+        mockedFetch.mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve(mockPageResponse),
+        } as Response);
+
+        await getPage(mockProjectName, 'Test Page');
+
+        expect(mockedFetch).toHaveBeenCalledWith(
+          expect.stringContaining('Test%20Page'),
+          { headers: { 'x-personal-access-token': 'test-pat' } },
+        );
+      } finally {
+        delete process.env.COSENSE_PAT;
+      }
+    });
+
+    test('SIDとCOSENSE_PATの両方があればSIDのcookieを付けること', async () => {
       process.env.COSENSE_PAT = 'test-pat';
       try {
         mockedFetch.mockResolvedValue({
@@ -81,8 +100,8 @@ describe('cosense API functions', () => {
         await getPage(mockProjectName, 'Test Page', mockSid);
 
         expect(mockedFetch).toHaveBeenCalledWith(
-          expect.stringContaining(`/api/pages/${mockProjectName}/Test%20Page`),
-          { headers: { 'x-personal-access-token': 'test-pat' } },
+          expect.stringContaining('Test%20Page'),
+          { headers: { Cookie: `connect.sid=${mockSid}` } },
         );
       } finally {
         delete process.env.COSENSE_PAT;
