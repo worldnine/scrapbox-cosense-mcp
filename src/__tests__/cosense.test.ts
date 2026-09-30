@@ -258,6 +258,23 @@ describe('cosense API functions', () => {
       expect(JSON.stringify(result)).not.toContain('@example.com');
     });
 
+    test('SIDが無ければCOSENSE_MCP_PATでメンバー一覧を引くこと', async () => {
+      process.env.COSENSE_MCP_PAT = 'test-pat';
+      try {
+        mockedFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve(members) } as Response);
+
+        const result = await withUserNames(mockProjectName, pages);
+
+        expect(mockedFetch).toHaveBeenCalledWith(
+          `https://scrapbox.io/api/projects/${mockProjectName}/users`,
+          { headers: { 'x-personal-access-token': 'test-pat' } },
+        );
+        expect(result[0]?.user?.displayName).toBe('Alice');
+      } finally {
+        delete process.env.COSENSE_MCP_PAT;
+      }
+    });
+
     test('メンバー一覧が引けなければ、ページをそのまま返すこと', async () => {
       mockedFetch.mockResolvedValue({ ok: false, status: 403 } as Response);
 
