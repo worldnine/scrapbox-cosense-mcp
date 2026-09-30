@@ -14,6 +14,7 @@
       "args": ["${__dirname}/build/index.js"],
       "env": {
         "COSENSE_PROJECT_NAME": "${user_config.project_name}",
+        "COSENSE_PAT": "${user_config.pat}",
         "COSENSE_SID": "${user_config.sid}",
         "COSENSE_PAGE_LIMIT": "${user_config.page_limit}",
         "COSENSE_SORT_METHOD": "${user_config.sort_method}",
@@ -28,10 +29,17 @@
       "description": "The project name from your URL: scrapbox.io/YOUR_PROJECT_NAME (e.g., 'my-project')",
       "required": true
     },
+    "pat": {
+      "type": "string",
+      "title": "Personal Access Token (COSENSE_PAT)",
+      "description": "Issue one at scrapbox.io/settings/personal-access-tokens. Needed for private projects and for editing. Leave empty for read-only use of public projects.",
+      "required": false,
+      "sensitive": true
+    },
     "sid": {
       "type": "string",
       "title": "Session ID (COSENSE_SID)",
-      "description": "connect.sid cookie value for private projects. Leave empty for public projects.",
+      "description": "connect.sid cookie value. Only needed if you do not use a Personal Access Token.",
       "required": false,
       "sensitive": true
     },
