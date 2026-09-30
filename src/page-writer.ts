@@ -63,7 +63,7 @@ async function writeViaEditApi(
     if (!pageResponse.ok) {
       return { ok: false, err: `Failed to read the page: HTTP ${pageResponse.status}` };
     }
-    const page = await pageResponse.json() as { id: string; persistent?: boolean; lines: BaseLine[] };
+    const page = await pageResponse.json() as { id: string; commitId?: string; persistent?: boolean; lines: BaseLine[] };
 
     const next = update(page.lines);
     if (next === page.lines) return { ok: true };
@@ -76,6 +76,15 @@ async function writeViaEditApi(
     const preview = await postEdit(`${base}/page-edit-for-ai/preview`, headers, body);
     if (preview.kind === 'conflict') continue;
     if (preview.kind === 'error') return { ok: false, err: preview.err };
+    // preview の要求には「どの版を元にしたか」が入らず、preview を作った時点のページに変更を当てる。
+    // 読んでから preview までの間に他の人が書くと、その変更を行 ID で黙って上書きしかねない。
+    // 応答の pagePreview.commitId（preview を作った時点の最新。新規作成では無い）が読んだときと
+    // 違えば、読み直してやり直す。使わなかった preview は5分で消えるので、そのまま捨ててよい
+    const previewPage = preview.data.pagePreview as { commitId?: unknown } | null | undefined;
+    if (typeof page.commitId === 'string' && typeof previewPage?.commitId === 'string'
+        && previewPage.commitId !== page.commitId) {
+      continue;
+    }
     const previewId = preview.data.previewId;
     if (typeof previewId !== 'string') {
       return { ok: false, err: 'The preview response had no previewId' };
