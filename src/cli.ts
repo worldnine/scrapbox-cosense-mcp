@@ -94,7 +94,7 @@ ${COMMON_OPTIONS}`,
 
   create: `Usage: scrapbox-cosense-mcp create <title> [options]
 
-Create a new page. Requires COSENSE_SID.
+Create a new page. Requires COSENSE_PAT or COSENSE_SID.
 Markdown body is automatically converted to Cosense format.
 Do not duplicate the title in the body.
 
@@ -120,7 +120,7 @@ ${COMMON_OPTIONS}`,
 
   context: `Usage: scrapbox-cosense-mcp context <title> [options]
 
-Get smart context (related pages) for a page. Requires COSENSE_SID.
+Get smart context (related pages) for a page. Requires COSENSE_PAT or COSENSE_SID.
 Returns the target page and linked pages in AI-optimized format.
 
 Arguments:
@@ -133,7 +133,7 @@ ${COMMON_OPTIONS}`,
 
   insert: `Usage: scrapbox-cosense-mcp insert <title> --after=TEXT --text=TEXT [options]
 
-Insert text after a specified line in a page. Requires COSENSE_SID.
+Insert text after a specified line in a page. Requires COSENSE_PAT or COSENSE_SID.
 If the target line is not found, text is appended to the end.
 
 Arguments:
@@ -149,7 +149,7 @@ ${COMMON_OPTIONS}`,
 
   edit: `Usage: scrapbox-cosense-mcp edit <title> --target=TEXT --text=TEXT [options]
 
-Replace a line matched by exact text with new content. Requires COSENSE_SID.
+Replace a line matched by exact text with new content. Requires COSENSE_PAT or COSENSE_SID.
 If no line matches, the command fails without modifying the page.
 
 Arguments:
@@ -166,7 +166,7 @@ ${COMMON_OPTIONS}`,
 
   delete: `Usage: scrapbox-cosense-mcp delete <title> [options]
 
-Delete a page by emptying every line. Requires COSENSE_SID and
+Delete a page. Requires COSENSE_PAT or COSENSE_SID, and
 COSENSE_ENABLE_DELETE=true. There is no undo — run with --dry-run first.
 Fails if the page does not exist.
 
@@ -180,7 +180,7 @@ ${COMMON_OPTIONS}`,
 
   'delete-lines': `Usage: scrapbox-cosense-mcp delete-lines <title> --target=TEXT [options]
 
-Delete a line (or a contiguous block) matched by exact text. Requires COSENSE_SID.
+Delete a line (or a contiguous block) matched by exact text. Requires COSENSE_PAT or COSENSE_SID.
 If no line matches, the command fails without modifying the page.
 Refuses to delete the title line (the first line), which would rename or remove the page.
 
@@ -195,8 +195,8 @@ ${COMMON_OPTIONS}`,
 
   rewrite: `Usage: scrapbox-cosense-mcp rewrite <title> --body=TEXT [options]
 
-Replace the entire content of an existing page. Requires COSENSE_SID and
-COSENSE_ENABLE_DELETE=true. The title is preserved as the first line.
+Replace the entire content of an existing page. Requires COSENSE_PAT or
+COSENSE_SID, and COSENSE_ENABLE_DELETE=true. The title is preserved as the first line.
 Fails if the page does not exist.
 
 Arguments:
@@ -242,7 +242,9 @@ Run scrapbox-cosense-mcp <command> --help for command details.
 
 Environment Variables:
   COSENSE_PROJECT_NAME           Target project (required for most commands)
-  COSENSE_SID                    Session ID for private projects
+  COSENSE_PAT                    Personal Access Token (recommended; reads and writes)
+  COSENSE_SID                    Session ID (connect.sid cookie), used when COSENSE_PAT is unset
+                                 Without either, the PAT saved by "cosense login" is used
   COSENSE_CONVERT_NUMBERED_LISTS Convert numbered lists to bullet lists
   COSENSE_ENABLE_DELETE          Set to true to enable delete/rewrite commands
 `;
