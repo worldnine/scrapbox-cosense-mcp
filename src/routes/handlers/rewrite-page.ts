@@ -130,7 +130,7 @@ export async function handleRewritePage(
     }, cosenseSid);
 
     if (!result.ok) {
-      throw new Error(`Page write failed: ${result.err}`);
+      throw new Error(result.err);
     }
 
     if (params.compact) {

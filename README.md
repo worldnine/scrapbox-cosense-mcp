@@ -176,7 +176,7 @@ Public projects can be read without a credential. Private projects, editing, and
 | Variable | Description |
 |----------|-------------|
 | `COSENSE_PAT` | Personal Access Token (recommended). Issue one at `https://scrapbox.io/settings/personal-access-tokens`. Writes go through the edit API |
-| `COSENSE_SID` | Session ID (`connect.sid` cookie). Used when `COSENSE_PAT` is unset. Writes go through the WebSocket API |
+| `COSENSE_SID` | Session ID (`connect.sid` cookie). Takes precedence over `COSENSE_PAT`, so an existing setup keeps working as it is; remove it to switch to the token. Writes go through the WebSocket API |
 
 A Service Account access key (Business plan, starts with `cs_`) also goes in `COSENSE_PAT`.
 

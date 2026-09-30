@@ -79,7 +79,7 @@ export async function handleCreatePage(
       }, cosenseSid);
 
       if (!result.ok) {
-        throw new Error(`Page write failed: ${result.err}`);
+        throw new Error(result.err);
       }
 
       const url = createPageUrl(projectName, title);

@@ -40,7 +40,8 @@ export async function writePage(
   }
   if (credential.type === 'sid') {
     const result = await patch(projectName, title, update, { sid: credential.value });
-    return result.ok ? { ok: true } : { ok: false, err: stringifyError(result.err) };
+    // エラーの文言は websocket だけだったころと同じにする（SID で使っている人から見て何も変えない）
+    return result.ok ? { ok: true } : { ok: false, err: `WebSocket patch failed: ${stringifyError(result.err)}` };
   }
   return writeViaEditApi(projectName, title, update, credential);
 }

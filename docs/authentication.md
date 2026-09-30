@@ -8,7 +8,7 @@ Public projects can be read without any credential. Private projects, editing, a
 | Service Account (Business plan, one project) | `COSENSE_PAT` (the access key starts with `cs_`) | Edit API |
 | Session ID (`connect.sid` cookie) | `COSENSE_SID` | WebSocket API |
 
-If both `COSENSE_PAT` and `COSENSE_SID` are set, `COSENSE_PAT` is used.
+If both are set, `COSENSE_SID` is used, so an existing setup keeps working exactly as before. To switch to a Personal Access Token, set `COSENSE_PAT` and remove `COSENSE_SID`. (`COSENSE_PAT` is the same variable the official CLI reads, so if it is set globally for the CLI, it does not silently change how this server writes.)
 
 The server does not read `~/.cosense/settings.json`, where `cosense login` of the official CLI saves its token. Reading it would let this server write as soon as you log in with the official CLI, even when you gave this server no credential on purpose (for example, to only read public projects). A credential that can write is used only when you set it for this server.
 
@@ -25,7 +25,7 @@ A Service Account belongs to a single project. Register one in the project's set
 
 ## Session ID (`connect.sid` cookie)
 
-Use this only if you do not use a Personal Access Token. The edit API refuses writes authenticated by a cookie, so with a session ID the server writes through the WebSocket API, as it always has.
+This is how the server has always authenticated, and it keeps working as it is. The edit API refuses writes authenticated by a cookie, so with a session ID the server writes through the WebSocket API, as it always has.
 
 1. **Navigate to your project** — Open `https://scrapbox.io/YOUR_PROJECT_NAME` and log in
 
@@ -64,7 +64,7 @@ Use this only if you do not use a Personal Access Token. The edit API refuses wr
 | Service Account（Business plan、1プロジェクト限定） | `COSENSE_PAT`（アクセスキーは`cs_`で始まる） | 編集API |
 | セッションID（`connect.sid` Cookie） | `COSENSE_SID` | WebSocket API |
 
-`COSENSE_PAT`と`COSENSE_SID`の両方があれば、`COSENSE_PAT`を使います。
+両方あれば`COSENSE_SID`を使うので、今の設定はそのまま動きます。Personal Access Tokenに移るときは、`COSENSE_PAT`を入れて`COSENSE_SID`を外してください。（`COSENSE_PAT`は公式CLIも読む変数名です。公式CLIのためにグローバルに設定していても、このサーバーの書き込み方が知らないうちに変わることはありません）
 
 公式CLIの`cosense login`がトークンを保存する`~/.cosense/settings.json`は読みません。読むと、このサーバーにわざと資格情報を渡していない場合（公開プロジェクトを読むだけ、など）でも、公式CLIでログインしただけで書き込めるようになってしまうためです。書き込める資格情報は、このサーバーに設定したときだけ使います。
 
@@ -81,7 +81,7 @@ Service Accountは1つのプロジェクトに属します。プロジェクト�
 
 ## セッションID（`connect.sid` Cookie）
 
-Personal Access Tokenを使わない場合だけ必要です。編集APIはCookieで認証した書き込みを受け付けないため、セッションIDのときはこれまでどおりWebSocket APIで書き込みます。
+これまでの認証のしかたで、今までどおり動きます。編集APIはCookieで認証した書き込みを受け付けないため、セッションIDのときはこれまでどおりWebSocket APIで書き込みます。
 
 1. **Scrapboxプロジェクトにアクセス** — `https://scrapbox.io/あなたのプロジェクト名` を開いてログイン
 

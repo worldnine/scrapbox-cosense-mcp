@@ -117,7 +117,7 @@ describe('handleCreatePage', () => {
       const result = await handleCreatePage(mockProjectName, mockCosenseSid, params);
 
       expect(result.isError).toBe(true);
-      expect(result.content[0]?.text).toContain('Page write failed');
+      expect(result.content[0]?.text).toContain('WebSocket patch failed');
     });
 
     test('既存ページ（persistent=true）がある場合にエラーを返すこと', async () => {

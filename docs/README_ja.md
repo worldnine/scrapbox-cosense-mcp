@@ -171,7 +171,7 @@ npm install && npm run build
 | 変数 | 説明 |
 |------|------|
 | `COSENSE_PAT` | Personal Access Token（おすすめ）。`https://scrapbox.io/settings/personal-access-tokens`で発行する。書き込みは編集APIを通る |
-| `COSENSE_SID` | セッションID（`connect.sid` Cookie）。`COSENSE_PAT`が無いときに使う。書き込みはWebSocket APIを通る |
+| `COSENSE_SID` | セッションID（`connect.sid` Cookie）。`COSENSE_PAT`より優先するので、今の設定はそのまま動く。PATに移るときは外す。書き込みはWebSocket APIを通る |
 
 Service Account（Business plan）のアクセスキー（`cs_`で始まる）も`COSENSE_PAT`に入れます。
 

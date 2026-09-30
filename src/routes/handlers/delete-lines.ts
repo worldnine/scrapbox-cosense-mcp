@@ -104,7 +104,7 @@ export async function handleDeleteLines(
     }, cosenseSid);
 
     if (!result.ok) {
-      throw new Error(`Page write failed: ${result.err}`);
+      throw new Error(result.err);
     }
 
     if (wouldDeleteTitle) {

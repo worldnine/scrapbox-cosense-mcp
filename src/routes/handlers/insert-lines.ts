@@ -79,7 +79,7 @@ export async function handleInsertLines(
 
     // patchのResult型を正しく判定
     if (!result.ok) {
-      throw new Error(`Page write failed: ${result.err}`);
+      throw new Error(result.err);
     }
 
     // 成功時のレスポンス
