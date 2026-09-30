@@ -215,6 +215,8 @@ type ListPagesResponse = {
     views?: number | undefined;
     linked?: number | undefined;
     pin?: number | undefined;
+    /** 冒頭の最大5行（ページのカードに出る本文） */
+    descriptions?: string[] | undefined;
     user?: {
       id: string;
       name: string;
@@ -287,37 +289,24 @@ async function listPages(
       };
     }
 
-    const pages = await response.json();
-    const pagesWithDetails = await Promise.all(
-      (pages as ListPagesResponse).pages.map(async (page) => {
-        const pageDetails = await getPage(projectName, page.title, sid);
-        if (pageDetails) {
-          return {
-            ...page,
-            user: pageDetails.user,
-            lastUpdateUser: pageDetails.lastUpdateUser,
-            created: pageDetails.created,
-            updated: pageDetails.updated,
-            collaborators: pageDetails.collaborators,
-            descriptions: pageDetails.lines?.slice(0, 5).map(line => line.text) || []
-          };
-        }
-        return page;
-      })
-    );
+    // 一覧の API は冒頭5行（descriptions）・作成日・更新日・ピン・閲覧数などを最初から返す。
+    // 以前はページごとに詳細を取り直していたが、1回の一覧が数百〜千件の要求になり、
+    // サーバー起動のたびにも100件が一斉に飛んでいた。一覧に無いのは作成者と編集者だけで、
+    // それは get_page で見られる
+    const pages = await response.json() as ListPagesResponse;
 
     // ソートとフィルタリングを適用
-    const sortedPages = sortPages(pagesWithDetails, { 
+    const sortedPages = sortPages(pages.pages, { 
       sort: sort ?? undefined, 
       excludePinned: excludePinned ?? undefined 
     });
 
     return {
-      ...(pages as ListPagesResponse),
+      ...pages,
       pages: sortedPages,
       debug: {
         ...debugInfo,
-        originalCount: pagesWithDetails.length,
+        originalCount: pages.pages.length,
         filteredCount: sortedPages.length,
         appliedSort: sort || 'created',
         excludedPinned: excludePinned || false

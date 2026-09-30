@@ -218,13 +218,12 @@ export function formatPageOutput(
     lines.push(`Sort value: ${options.sortValue}`);
   }
 
-  // 作成者の表示
-  if (page.user) {
+  // 作成者・最終更新者の表示。一覧の API は user を ID だけで返すので、表示名が無ければ出さない
+  if (page.user?.displayName) {
     lines.push(`Created user: ${page.user.displayName}`);
   }
 
-  // 最終更新者の表示
-  if (page.lastUpdateUser) {
+  if (page.lastUpdateUser?.displayName) {
     lines.push(`Last editor: ${page.lastUpdateUser.displayName}`);
   }
 
@@ -235,7 +234,7 @@ export function formatPageOutput(
         collab.id !== page.lastUpdateUser?.id
       )
       .map(collab => collab.displayName)
-      .filter((value, index, self) => self.indexOf(value) === index);
+      .filter((value, index, self) => Boolean(value) && self.indexOf(value) === index);
 
     if (uniqueCollaborators.length > 0) {
       lines.push(`Other editors: ${uniqueCollaborators.join(', ')}`);
