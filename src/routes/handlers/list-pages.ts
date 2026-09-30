@@ -1,5 +1,5 @@
 import { type ListPagesResponse } from "../../cosense.js";
-import { listPages, listPagesWithSort } from "../../cosense.js";
+import { listPages, listPagesWithSort, withUserNames } from "../../cosense.js";
 import { formatPageOutput, formatPageCompact, formatError, getSortDescription, getSortValue } from '../../utils/format.js';
 import { checkProjectAllowed } from '../../utils/project.js';
 
@@ -75,6 +75,11 @@ export async function handleListPages(
         },
         cosenseSid
       );
+    }
+
+    // 作成者・編集者の名前は、名前を出す通常の表示のときだけ引く（compact には出さないので要求を増やさない）
+    if (!compact) {
+      pages = { ...pages, pages: await withUserNames(projectName, pages.pages, cosenseSid) };
     }
 
     let output: string;

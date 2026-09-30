@@ -223,6 +223,15 @@ type ListPagesResponse = {
       displayName: string;
       photo: string;
     } | undefined;
+    /** このページを編集した人。一覧の API は ID だけを返す */
+    users?: { id: string }[] | undefined;
+    /** users を名前に引き直したもの（withUserNames が付ける） */
+    collaborators?: {
+      id: string;
+      name: string;
+      displayName: string;
+      photo: string;
+    }[] | undefined;
   }[];
 };
 
@@ -472,8 +481,59 @@ async function getSmartContext(
   }
 }
 
+type ProjectMember = { id: string; name: string; displayName: string; photo: string };
+
+/**
+ * プロジェクトのメンバーを ID で引ける形にする。引けなければ空（資格情報なしの公開プロジェクトなど）。
+ *
+ * `/api/projects/:project` ではなく `/users` を使うのは、こちらが PAT でも通るため（公式 CLI と同じ）。
+ * 応答にはメールアドレスも入っているが、名前と写真だけを取り出す。
+ */
+async function getProjectMembers(projectName: string, sid?: string): Promise<Map<string, ProjectMember>> {
+  const members = new Map<string, ProjectMember>();
+  try {
+    const url = `https://${API_DOMAIN}/api/projects/${projectName}/users`;
+    const response = sid
+      ? await fetch(url, { headers: { Cookie: `connect.sid=${sid}` } })
+      : await fetch(url);
+    if (!response.ok) return members;
+    const body = await response.json() as { users?: ProjectMember[] } | ProjectMember[];
+    const users = Array.isArray(body) ? body : body.users ?? [];
+    for (const { id, name, displayName, photo } of users) {
+      if (id && displayName) members.set(id, { id, name, displayName, photo });
+    }
+  } catch {
+    // 名前が引けなくても一覧は返せるので、ここでは諦める
+  }
+  return members;
+}
+
+/**
+ * 一覧のページに、作成者・最終編集者・他の編集者の名前を付ける。
+ *
+ * 一覧の API はユーザーを ID だけで返す（2026年1月に本家がページの API から名前を外した）。
+ * 本家の web と同じく、名前はメンバー一覧から引く。ページごとに詳細を取り直すのと違い、
+ * 何ページあっても要求は1回で済む。メンバー一覧が引けなければ、ページはそのまま返す。
+ */
+async function withUserNames<T extends ListPagesResponse['pages'][number]>(
+  projectName: string,
+  pages: T[],
+  sid?: string,
+): Promise<T[]> {
+  if (pages.length === 0) return pages;
+  const members = await getProjectMembers(projectName, sid);
+  if (members.size === 0) return pages;
+  const named = (ref: { id: string } | undefined) => (ref ? members.get(ref.id) : undefined);
+  return pages.map(page => ({
+    ...page,
+    user: named(page.user) ?? page.user,
+    lastUpdateUser: named(page.lastUpdateUser) ?? page.lastUpdateUser,
+    collaborators: (page.users ?? []).map(named).filter((m): m is ProjectMember => m !== undefined),
+  }));
+}
+
 // 型のエクスポート
 export type { ListPagesResponse };
 
 // 関数のエクスポート
-export { getPage, listPages, listPagesWithSort, toReadablePage, createPageUrl, searchPages, getSmartContext };
+export { getPage, listPages, listPagesWithSort, toReadablePage, createPageUrl, searchPages, getSmartContext, withUserNames };

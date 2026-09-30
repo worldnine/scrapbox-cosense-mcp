@@ -52,6 +52,22 @@ describe('handleListPages', () => {
     // モック関数の設定
     mockedCosense.listPages.mockResolvedValue(mockListPagesResponse);
     mockedCosense.listPagesWithSort.mockResolvedValue(mockListPagesResponse);
+    mockedCosense.withUserNames.mockImplementation(async (_project, pages) => pages);
+  });
+
+  describe('作成者・編集者の名前', () => {
+    test('通常の表示では、メンバー一覧で名前を1回だけ引くこと', async () => {
+      await handleListPages(mockProjectName, mockCosenseSid, { limit: 10 });
+
+      expect(mockedCosense.withUserNames).toHaveBeenCalledTimes(1);
+      expect(mockedCosense.withUserNames).toHaveBeenCalledWith(mockProjectName, mockPages, mockCosenseSid);
+    });
+
+    test('compact では名前を出さないので、メンバー一覧を引かないこと', async () => {
+      await handleListPages(mockProjectName, mockCosenseSid, { limit: 10, compact: true });
+
+      expect(mockedCosense.withUserNames).not.toHaveBeenCalled();
+    });
   });
 
   describe('基本的な動作', () => {
