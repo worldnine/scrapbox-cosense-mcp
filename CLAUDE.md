@@ -7,7 +7,8 @@ MCP server for Cosense (Scrapbox). Also works as a CLI.
 ```bash
 npm run build        # TypeScript → JavaScript (uses tsconfig.build.json)
 npm run watch        # Auto-rebuild during development
-npm run test         # Run Jest tests
+npm run test         # Run Jest tests (no real API calls)
+COSENSE_E2E=true npm run test  # Also run the E2E tests against the real Cosense API — sparingly, e.g. once before merging
 npm run lint         # ESLint (console.log triggers warning)
 npm run inspector    # Debug with MCP Inspector
 ```
@@ -81,6 +82,7 @@ All tools are also available as CLI subcommands (`get`, `list`, `search`, `creat
 - **An allow list that is set but empty (`""`, `",,,"`) restricts to the default project** rather than falling back to unrestricted. Whoever set the variable meant to restrict, and only an unset variable means "no fence"
 - **`patch()` returns `Result<string, PushError>`**, not throw. Must check `result.ok`
 - **Default sort is `updated`**. Aligned across API, display, and user expectations
+- **Keep the request count low; Cosense is a free API, not ours to load.** `list_pages` and the startup resource list use the page-list API as is and never fetch each page (that used to send 100–1000+ concurrent requests per call). The E2E tests run only with `COSENSE_E2E=true`, because running them whenever credentials sit in the shell hit the Smart Context rate limit (429) during development
 
 ### Environment Variables
 
