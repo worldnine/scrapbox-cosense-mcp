@@ -1,6 +1,7 @@
 import { getSmartContext } from "../../cosense.js";
 import { formatError } from '../../utils/format.js';
 import { checkProjectAllowed } from '../../utils/project.js';
+import { resolveCredential } from '../../utils/auth.js';
 
 export interface GetSmartContextParams {
   title: string;
@@ -27,9 +28,9 @@ export async function handleGetSmartContext(
       }, params.compact);
     }
 
-    if (!cosenseSid) {
+    if (!resolveCredential(projectName, cosenseSid)) {
       return formatError(
-        'Authentication required: COSENSE_SID is needed for Smart Context',
+        'Authentication required: COSENSE_PAT or COSENSE_SID is needed for Smart Context',
         {
           Operation: 'get_smart_context',
           Project: projectName,

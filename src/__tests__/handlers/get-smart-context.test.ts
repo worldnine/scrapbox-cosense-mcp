@@ -149,7 +149,25 @@ Related Page
       expect(mockedCosense.getSmartContext).not.toHaveBeenCalled();
     });
 
-    it('COSENSE_SIDが未設定の場合は認証エラーを返す', async () => {
+    it('COSENSE_SIDが無くてもCOSENSE_PATがあれば取得する', async () => {
+      process.env.COSENSE_PAT = 'test-pat';
+      try {
+        mockedCosense.getSmartContext.mockResolvedValue(mockOkResult);
+
+        const result = await handleGetSmartContext(mockProjectName, undefined, {
+          title: 'Test Page',
+        });
+
+        expect(result.content[0]?.text).toContain('<PageList>');
+        expect(mockedCosense.getSmartContext).toHaveBeenCalledWith(
+          mockProjectName, 'Test Page', 1, undefined
+        );
+      } finally {
+        delete process.env.COSENSE_PAT;
+      }
+    });
+
+    it('資格情報が何も無い場合は認証エラーを返す', async () => {
       const result = await handleGetSmartContext(mockProjectName, undefined, {
         title: 'Test Page',
       });
