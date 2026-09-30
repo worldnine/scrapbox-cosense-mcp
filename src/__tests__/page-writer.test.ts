@@ -293,23 +293,9 @@ describe('writePage', () => {
   });
 
   test('Service Account なら専用のヘッダを付ける', async () => {
-    delete process.env.COSENSE_PAT;
-    const { mkdirSync, writeFileSync, rmSync } = await import('node:fs');
-    const { join } = await import('node:path');
-    const { resetCredentialCache } = await import('@/utils/auth.js');
-    const dir = join(process.env.HOME!, '.cosense');
-    mkdirSync(dir, { recursive: true });
-    writeFileSync(join(dir, 'settings.json'), JSON.stringify({
-      projects: [{ url: `https://scrapbox.io/${project}`, serviceAccount: 'cs_key' }],
-    }));
-    resetCredentialCache();
-    try {
-      respond(existingPage, [json({ previewId: 'p1' }), json({})]);
-      await writePage(project, title, lines => [...lines, { text: 'c' }]);
-      expect(mockedFetch).toHaveBeenCalledWith(pageUrl, { headers: { 'x-service-account-access-key': 'cs_key' } });
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-      resetCredentialCache();
-    }
+    process.env.COSENSE_PAT = 'cs_key';
+    respond(existingPage, [json({ previewId: 'p1' }), json({})]);
+    await writePage(project, title, lines => [...lines, { text: 'c' }]);
+    expect(mockedFetch).toHaveBeenCalledWith(pageUrl, { headers: { 'x-service-account-access-key': 'cs_key' } });
   });
 });

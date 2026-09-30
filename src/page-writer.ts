@@ -34,7 +34,7 @@ export async function writePage(
   update: PageUpdate,
   sid?: string,
 ): Promise<WriteResult> {
-  const credential = resolveCredential(projectName, sid);
+  const credential = resolveCredential(sid);
   if (!credential) {
     return { ok: false, err: 'Authentication required: COSENSE_PAT or COSENSE_SID is needed for page editing' };
   }

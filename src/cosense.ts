@@ -4,11 +4,11 @@ import { credentialHeaders, resolveCredential } from './utils/auth.js';
 const API_DOMAIN = process.env.API_DOMAIN || "scrapbox.io";
 
 /**
- * プロジェクトに合う資格情報（PAT・Service Account・SID）を付けて GET する。
+ * 資格情報（PAT・Service Account・SID）を付けて GET する。
  * 資格情報が無ければ何も付けない（公開プロジェクトはそのまま読める）。
  */
-function fetchWithCredential(url: string, projectName: string, sid?: string) {
-  const headers = credentialHeaders(resolveCredential(projectName, sid));
+function fetchWithCredential(url: string, sid?: string) {
+  const headers = credentialHeaders(resolveCredential(sid));
   return Object.keys(headers).length > 0 ? fetch(url, { headers }) : fetch(url);
 }
 
@@ -109,7 +109,7 @@ async function getPage(
   try {
     const url = `https://${API_DOMAIN}/api/pages/v2/${projectName}/${encodeURIComponent(pageName)}`;
 
-    const response = await fetchWithCredential(url, projectName, sid);
+    const response = await fetchWithCredential(url, sid);
 
     if (!response.ok) {
       return null;
@@ -280,7 +280,7 @@ async function listPages(
       params: Object.fromEntries(params.entries())
     };
 
-    const response = await fetchWithCredential(url, projectName, sid);
+    const response = await fetchWithCredential(url, sid);
     
     if (!response.ok) {
       return {
@@ -370,7 +370,7 @@ async function searchPages(
     searchQuery: query,
   };
 
-  const response = await fetchWithCredential(url, projectName, sid);
+  const response = await fetchWithCredential(url, sid);
 
   if (!response.ok) {
     return {
@@ -469,7 +469,7 @@ async function getSmartContext(
   try {
     const url = `https://${API_DOMAIN}/api/smart-context/export-${hopCount}hop-links/${projectName}.txt?title=${encodeURIComponent(title)}`;
 
-    const response = await fetchWithCredential(url, projectName, sid);
+    const response = await fetchWithCredential(url, sid);
 
     if (!response.ok) {
       return { ok: false, error: `API error: ${response.status} ${response.statusText}` };

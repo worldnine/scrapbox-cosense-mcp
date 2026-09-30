@@ -46,7 +46,7 @@ export async function handleRewritePage(
       );
     }
 
-    if (!resolveCredential(projectName, cosenseSid)) {
+    if (!resolveCredential(cosenseSid)) {
       return formatError(
         'Authentication required: COSENSE_PAT or COSENSE_SID is needed for rewriting pages',
         errorDetails(),
