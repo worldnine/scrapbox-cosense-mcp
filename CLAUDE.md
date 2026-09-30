@@ -82,7 +82,7 @@ All tools are also available as CLI subcommands (`get`, `list`, `search`, `creat
 - **An allow list that is set but empty (`""`, `",,,"`) restricts to the default project** rather than falling back to unrestricted. Whoever set the variable meant to restrict, and only an unset variable means "no fence"
 - **`patch()` returns `Result<string, PushError>`**, not throw. Must check `result.ok`
 - **Default sort is `updated`**. Aligned across API, display, and user expectations
-- **Keep the request count low; Cosense is a free API, not ours to load.** `list_pages` and the startup resource list use the page-list API as is and never fetch each page (that used to send 100–1000+ concurrent requests per call). The E2E tests run only with `COSENSE_E2E=true`, because running them whenever credentials sit in the shell hit the Smart Context rate limit (429) during development
+- **Keep the request count low; Cosense is a free API, not ours to load.** `list_pages` and the startup resource list use the page-list API as is and never fetch each page (that used to send 100–1000+ concurrent requests per call). Page reads use `/api/pages/v2/`, which returns the same body as v1 minus `relatedPages` — unused here, and most of v1's payload (364 KB against 13.7 KB for villagepump's 井戸端). The E2E tests run only with `COSENSE_E2E=true`, because running them whenever credentials sit in the shell hit the Smart Context rate limit (429) during development
 
 ### Environment Variables
 

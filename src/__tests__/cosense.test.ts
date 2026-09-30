@@ -49,7 +49,7 @@ describe('cosense API functions', () => {
 
       expect(result).toEqual(mockPageResponse);
       expect(mockedFetch).toHaveBeenCalledWith(
-        expect.stringContaining(`/api/pages/${mockProjectName}/Test%20Page`),
+        expect.stringContaining(`/api/pages/v2/${mockProjectName}/Test%20Page`),
         expect.objectContaining({
           headers: { Cookie: `connect.sid=${mockSid}` },
         })
@@ -66,7 +66,7 @@ describe('cosense API functions', () => {
 
       expect(result).toEqual(mockPageResponse);
       expect(mockedFetch).toHaveBeenCalledWith(
-        expect.stringContaining(`/api/pages/${mockProjectName}/Test%20Page`),
+        expect.stringContaining(`/api/pages/v2/${mockProjectName}/Test%20Page`),
       );
     });
 

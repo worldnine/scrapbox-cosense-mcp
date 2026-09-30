@@ -49,7 +49,8 @@ type SearchQueryResponse = {
   };
 };
 
-// /api/pages/:projectname/:pagetitle
+// /api/pages/v2/:projectname/:pagetitle
+// v1 との違いは relatedPages（関連ページリスト）を返さないことだけ。使っていない上に応答の大半を占めるため v2 を使う
 type GetPageResponse = {
   id: string;
   title: string;
@@ -63,12 +64,6 @@ type GetPageResponse = {
   created: number;
   updated: number;
   links: string[];
-  relatedPages: {
-    links1hop: {
-      title: string;
-      descriptions: string[];
-    }[];
-  };
   user: {              // 追加: 最新の編集者情報
     id: string;
     name: string;
@@ -100,8 +95,7 @@ async function getPage(
   sid?: string,
 ): Promise<GetPageResponse | null> {
   try {
-    const url = `https://${API_DOMAIN}/api/pages/${projectName}/${encodeURIComponent(pageName)}`;
-    
+    const url = `https://${API_DOMAIN}/api/pages/v2/${projectName}/${encodeURIComponent(pageName)}`;
 
     const response = sid
       ? await fetch(url, {
