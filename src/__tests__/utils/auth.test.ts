@@ -2,7 +2,7 @@ import { credentialHeaders, resolveCredential } from '@/utils/auth.js';
 
 describe('resolveCredential', () => {
   afterEach(() => {
-    delete process.env.COSENSE_PAT;
+    delete process.env.COSENSE_MCP_PAT;
   });
 
   test('何も無ければ undefined を返すこと', () => {
@@ -13,23 +13,32 @@ describe('resolveCredential', () => {
     expect(resolveCredential('sid-value')).toEqual({ type: 'sid', value: 'sid-value' });
   });
 
-  test('SID が無ければ COSENSE_PAT を使うこと', () => {
-    process.env.COSENSE_PAT = 'pat-value';
+  test('SID が無ければ COSENSE_MCP_PAT を使うこと', () => {
+    process.env.COSENSE_MCP_PAT = 'pat-value';
     expect(resolveCredential()).toEqual({ type: 'personalAccessToken', value: 'pat-value' });
   });
 
   test('両方あれば SID を使うこと（SID で使っている環境を変えない）', () => {
-    process.env.COSENSE_PAT = 'pat-value';
+    process.env.COSENSE_MCP_PAT = 'pat-value';
     expect(resolveCredential('sid-value')).toEqual({ type: 'sid', value: 'sid-value' });
   });
 
-  test('空白だけの COSENSE_PAT は無視すること', () => {
-    process.env.COSENSE_PAT = '   ';
+  test('空白だけの COSENSE_MCP_PAT は無視すること', () => {
+    process.env.COSENSE_MCP_PAT = '   ';
     expect(resolveCredential()).toBeUndefined();
   });
 
-  test('cs_ で始まる COSENSE_PAT は Service Account として扱うこと', () => {
-    process.env.COSENSE_PAT = 'cs_key';
+  test('公式 CLI の COSENSE_PAT は読まないこと', () => {
+    process.env.COSENSE_PAT = 'cli-token';
+    try {
+      expect(resolveCredential()).toBeUndefined();
+    } finally {
+      delete process.env.COSENSE_PAT;
+    }
+  });
+
+  test('cs_ で始まる COSENSE_MCP_PAT は Service Account として扱うこと', () => {
+    process.env.COSENSE_MCP_PAT = 'cs_key';
     expect(resolveCredential()).toEqual({ type: 'serviceAccount', value: 'cs_key' });
   });
 });

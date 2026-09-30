@@ -54,7 +54,7 @@
       "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "notes",
-        "COSENSE_PAT": "your-personal-access-token",
+        "COSENSE_MCP_PAT": "your-personal-access-token",
         "COSENSE_TOOL_SUFFIX": "notes",
         "COSENSE_ENABLE_DELETE": "true"
       }
@@ -64,7 +64,7 @@
       "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "archive",
-        "COSENSE_PAT": "your-personal-access-token",
+        "COSENSE_MCP_PAT": "your-personal-access-token",
         "COSENSE_TOOL_SUFFIX": "archive"
       }
     }
@@ -100,7 +100,7 @@
    {
      "env": {
        "COSENSE_PROJECT_NAME": "your_project_name",
-       "COSENSE_PAT": "your_personal_access_token"
+       "COSENSE_MCP_PAT": "your_personal_access_token"
      }
    }
    ```
@@ -118,7 +118,7 @@ MCPサーバー設定が自動適用され、`/cosense` スキルも利用可能
 ```bash
 claude mcp add scrapbox-cosense-mcp \
   -e COSENSE_PROJECT_NAME=your_project \
-  -e COSENSE_PAT=your_personal_access_token \
+  -e COSENSE_MCP_PAT=your_personal_access_token \
   -- npx -y scrapbox-cosense-mcp
 ```
 
@@ -141,7 +141,7 @@ claude mcp add scrapbox-cosense-mcp \
       "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "your_project_name",
-        "COSENSE_PAT": "your_personal_access_token"
+        "COSENSE_MCP_PAT": "your_personal_access_token"
       }
     }
   }
@@ -170,10 +170,10 @@ npm install && npm run build
 
 | 変数 | 説明 |
 |------|------|
-| `COSENSE_PAT` | Personal Access Token（おすすめ）。`https://scrapbox.io/settings/personal-access-tokens`で発行する。書き込みは編集APIを通る |
-| `COSENSE_SID` | セッションID（`connect.sid` Cookie）。`COSENSE_PAT`より優先するので、今の設定はそのまま動く。PATに移るときは外す。書き込みはWebSocket APIを通る |
+| `COSENSE_MCP_PAT` | Personal Access Token（おすすめ）。`https://scrapbox.io/settings/personal-access-tokens`で発行する。書き込みは編集APIを通る |
+| `COSENSE_SID` | セッションID（`connect.sid` Cookie）。`COSENSE_MCP_PAT`より優先するので、今の設定はそのまま動く。PATに移るときは外す。書き込みはWebSocket APIを通る |
 
-Service Account（Business plan）のアクセスキー（`cs_`で始まる）も`COSENSE_PAT`に入れます。
+Service Account（Business plan）のアクセスキー（`cs_`で始まる）も`COSENSE_MCP_PAT`に入れます。
 
 ### オプション
 

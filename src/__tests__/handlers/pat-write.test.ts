@@ -56,20 +56,20 @@ const previews = () => mockedFetch.mock.calls
 describe('PATでの書き込み', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env.COSENSE_PAT = 'test-pat';
+    process.env.COSENSE_MCP_PAT = 'test-pat';
     process.env.COSENSE_ENABLE_DELETE = 'true';
   });
 
   afterEach(() => {
-    delete process.env.COSENSE_PAT;
+    delete process.env.COSENSE_MCP_PAT;
     delete process.env.COSENSE_ENABLE_DELETE;
   });
 
-  test('資格情報が何も無ければ、COSENSE_PAT と COSENSE_SID を案内して止める', async () => {
-    delete process.env.COSENSE_PAT;
+  test('資格情報が何も無ければ、COSENSE_MCP_PAT と COSENSE_SID を案内して止める', async () => {
+    delete process.env.COSENSE_MCP_PAT;
     const result = await handleInsertLines(project, undefined, { pageTitle: 'Page', targetLineText: 'first', text: 'x' });
     expect(result.isError).toBe(true);
-    expect(result.content[0]?.text).toContain('COSENSE_PAT or COSENSE_SID');
+    expect(result.content[0]?.text).toContain('COSENSE_MCP_PAT or COSENSE_SID');
     expect(mockedFetch).not.toHaveBeenCalled();
   });
 

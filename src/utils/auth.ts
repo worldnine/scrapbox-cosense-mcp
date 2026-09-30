@@ -19,14 +19,17 @@ export function getApiDomain(): string {
 const SERVICE_ACCOUNT_PREFIX = 'cs_';
 
 /**
- * 使う資格情報を決める。`sid`（呼び出し側が渡す `COSENSE_SID`）→ `COSENSE_PAT` の順。
+ * 使う資格情報を決める。`sid`（呼び出し側が渡す `COSENSE_SID`）→ `COSENSE_MCP_PAT` の順。
  *
- * SID を先にするのは、SID で使っている環境を何も変えないため。`COSENSE_PAT` は公式 CLI と
- * 同じ変数名で、公式 CLI のためにグローバルな環境変数へ入れている人がいる。PAT を先にすると、
- * このサーバーの設定を変えていないのに、アップデートしただけで書き込みの経路が変わってしまう。
+ * 公式 CLI が読む `COSENSE_PAT` ではなく、このサーバー専用の `COSENSE_MCP_PAT` を読む。
+ * 公式 CLI のためにシェルで `COSENSE_PAT` を export している人がいて、MCP サーバーは親の
+ * 環境を受け継ぐ。同じ名前を読むと、このサーバーに資格情報を渡していないつもりの環境でも、
+ * アップデートしただけで書き込めるようになってしまう。
+ *
+ * SID を先にするのは、今 SID で使っている環境を、PAT を足しただけで変えないため。
  * PAT に移るときは `COSENSE_SID` を外してもらう。
  *
- * `COSENSE_PAT` に `cs_` で始まる値が入っていれば Service Account として送る。
+ * `COSENSE_MCP_PAT` に `cs_` で始まる値が入っていれば Service Account として送る。
  *
  * 公式 CLI が保存する `~/.cosense/settings.json` は読まない。読むと、このサーバーに
  * 資格情報を渡していないつもりの環境（公開プロジェクトを読むだけ、など）でも、
@@ -35,7 +38,7 @@ const SERVICE_ACCOUNT_PREFIX = 'cs_';
  */
 export function resolveCredential(sid?: string): Credential | undefined {
   if (sid) return { type: 'sid', value: sid };
-  const token = process.env.COSENSE_PAT?.trim();
+  const token = process.env.COSENSE_MCP_PAT?.trim();
   if (token) {
     return token.startsWith(SERVICE_ACCOUNT_PREFIX)
       ? { type: 'serviceAccount', value: token }

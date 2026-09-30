@@ -30,7 +30,7 @@ export async function handleGetSmartContext(
 
     if (!resolveCredential(cosenseSid)) {
       return formatError(
-        'Authentication required: COSENSE_PAT or COSENSE_SID is needed for Smart Context',
+        'Authentication required: COSENSE_MCP_PAT or COSENSE_SID is needed for Smart Context',
         {
           Operation: 'get_smart_context',
           Project: projectName,

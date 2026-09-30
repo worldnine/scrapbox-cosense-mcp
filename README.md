@@ -59,7 +59,7 @@ When you run several instances of this server for different projects, set the va
       "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "notes",
-        "COSENSE_PAT": "your-personal-access-token",
+        "COSENSE_MCP_PAT": "your-personal-access-token",
         "COSENSE_TOOL_SUFFIX": "notes",
         "COSENSE_ENABLE_DELETE": "true"
       }
@@ -69,7 +69,7 @@ When you run several instances of this server for different projects, set the va
       "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "archive",
-        "COSENSE_PAT": "your-personal-access-token",
+        "COSENSE_MCP_PAT": "your-personal-access-token",
         "COSENSE_TOOL_SUFFIX": "archive"
       }
     }
@@ -105,7 +105,7 @@ Note that `insert_lines` and `edit_lines` behave differently when the target lin
    {
      "env": {
        "COSENSE_PROJECT_NAME": "your_project_name",
-       "COSENSE_PAT": "your_personal_access_token"
+       "COSENSE_MCP_PAT": "your_personal_access_token"
      }
    }
    ```
@@ -123,7 +123,7 @@ If you prefer manual configuration over the plugin:
 ```bash
 claude mcp add scrapbox-cosense-mcp \
   -e COSENSE_PROJECT_NAME=your_project \
-  -e COSENSE_PAT=your_personal_access_token \
+  -e COSENSE_MCP_PAT=your_personal_access_token \
   -- npx -y scrapbox-cosense-mcp
 ```
 
@@ -146,7 +146,7 @@ Add to your config file:
       "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "your_project_name",
-        "COSENSE_PAT": "your_personal_access_token"
+        "COSENSE_MCP_PAT": "your_personal_access_token"
       }
     }
   }
@@ -175,10 +175,10 @@ Public projects can be read without a credential. Private projects, editing, and
 
 | Variable | Description |
 |----------|-------------|
-| `COSENSE_PAT` | Personal Access Token (recommended). Issue one at `https://scrapbox.io/settings/personal-access-tokens`. Writes go through the edit API |
-| `COSENSE_SID` | Session ID (`connect.sid` cookie). Takes precedence over `COSENSE_PAT`, so an existing setup keeps working as it is; remove it to switch to the token. Writes go through the WebSocket API |
+| `COSENSE_MCP_PAT` | Personal Access Token (recommended). Issue one at `https://scrapbox.io/settings/personal-access-tokens`. Writes go through the edit API |
+| `COSENSE_SID` | Session ID (`connect.sid` cookie). Takes precedence over `COSENSE_MCP_PAT`, so an existing setup keeps working as it is; remove it to switch to the token. Writes go through the WebSocket API |
 
-A Service Account access key (Business plan, starts with `cs_`) also goes in `COSENSE_PAT`.
+A Service Account access key (Business plan, starts with `cs_`) also goes in `COSENSE_MCP_PAT`.
 
 ### Optional
 

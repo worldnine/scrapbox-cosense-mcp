@@ -94,7 +94,7 @@ describe('handleCreatePage', () => {
 
       expect(result.isError).toBe(true);
       expect(result.content[0]?.text).toContain('Error: Authentication required');
-      expect(result.content[0]?.text).toContain('COSENSE_PAT or COSENSE_SID is needed for creating pages');
+      expect(result.content[0]?.text).toContain('COSENSE_MCP_PAT or COSENSE_SID is needed for creating pages');
       expect(mockedPatch).not.toHaveBeenCalled();
     });
 
