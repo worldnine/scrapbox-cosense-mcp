@@ -1,7 +1,8 @@
-import { patch } from '@cosense/std/websocket';
+import { writePage } from '../../page-writer.js';
+import { resolveCredential } from '../../utils/auth.js';
 import type { BaseLine } from '@cosense/types/rest';
 import { convertMarkdownToScrapbox } from '../../utils/markdown-converter.js';
-import { formatError, stringifyError } from '../../utils/format.js';
+import { formatError } from '../../utils/format.js';
 import { checkProjectAllowed } from '../../utils/project.js';
 
 export interface InsertLinesParams {
@@ -31,8 +32,8 @@ export async function handleInsertLines(
       }, params.compact);
     }
 
-    if (!cosenseSid) {
-      return formatError('Authentication required: COSENSE_SID is needed for page editing', {
+    if (!resolveCredential(projectName, cosenseSid)) {
+      return formatError('Authentication required: COSENSE_PAT or COSENSE_SID is needed for page editing', {
         Operation: 'insert_lines',
         Project: projectName,
         Page: params.pageTitle,
@@ -50,9 +51,9 @@ export async function handleInsertLines(
       convertedText = await convertMarkdownToScrapbox(params.text, { convertNumberedLists });
     }
 
-    // WebSocket経由でページを更新
+    // ページを更新する（PAT は編集 API、SID は websocket。page-writer.ts）
     let foundTarget = false;
-    const result = await patch(projectName, params.pageTitle, (lines: BaseLine[]) => {
+    const result = await writePage(projectName, params.pageTitle, (lines: BaseLine[]) => {
       // 対象行を検索（完全一致）
       const targetIndex = lines.findIndex((line: BaseLine) =>
         line.text === params.targetLineText
@@ -74,13 +75,11 @@ export async function handleInsertLines(
         ...newLines,
         ...lines.slice(insertIndex)
       ];
-    }, {
-      sid: cosenseSid
-    });
+    }, cosenseSid);
 
     // patchのResult型を正しく判定
     if (!result.ok) {
-      throw new Error(`WebSocket patch failed: ${stringifyError(result.err)}`);
+      throw new Error(`Page write failed: ${result.err}`);
     }
 
     // 成功時のレスポンス

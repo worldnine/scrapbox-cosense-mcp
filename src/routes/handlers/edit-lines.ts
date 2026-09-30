@@ -1,7 +1,8 @@
-import { patch } from '@cosense/std/websocket';
+import { writePage } from '../../page-writer.js';
+import { resolveCredential } from '../../utils/auth.js';
 import type { BaseLine } from '@cosense/types/rest';
 import { convertMarkdownToScrapbox } from '../../utils/markdown-converter.js';
-import { formatError, stringifyError } from '../../utils/format.js';
+import { formatError } from '../../utils/format.js';
 import { checkProjectAllowed } from '../../utils/project.js';
 
 export interface EditLinesParams {
@@ -32,8 +33,8 @@ export async function handleEditLines(
   }
 
   try {
-    if (!cosenseSid) {
-      return formatError('Authentication required: COSENSE_SID is needed for editing pages', {
+    if (!resolveCredential(projectName, cosenseSid)) {
+      return formatError('Authentication required: COSENSE_PAT or COSENSE_SID is needed for editing pages', {
         Operation: 'edit_lines',
         Project: projectName,
         Page: params.pageTitle,
@@ -56,7 +57,7 @@ export async function handleEditLines(
     const targetLines = params.targetLineText.split('\n');
     let replacedCount = 0;
 
-    const result = await patch(projectName, params.pageTitle, (lines: BaseLine[]) => {
+    const result = await writePage(projectName, params.pageTitle, (lines: BaseLine[]) => {
       // patchがコンフリクトでリトライした場合に前回の結果が残らないようリセットする
       replacedCount = 0;
       // ブロックの開始行インデックスを前から走査・非重複で収集する。
@@ -96,12 +97,10 @@ export async function handleEditLines(
       }
       replacedCount = matchedStarts.length;
       return next as BaseLine[];
-    }, {
-      sid: cosenseSid,
-    });
+    }, cosenseSid);
 
     if (!result.ok) {
-      throw new Error(`WebSocket patch failed: ${stringifyError(result.err)}`);
+      throw new Error(`Page write failed: ${result.err}`);
     }
 
     if (replacedCount === 0) {

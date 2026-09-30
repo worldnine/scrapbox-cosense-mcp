@@ -1,6 +1,7 @@
-import { patch } from '@cosense/std/websocket';
+import { writePage } from '../../page-writer.js';
+import { resolveCredential } from '../../utils/auth.js';
 import type { BaseLine } from '@cosense/types/rest';
-import { formatError, stringifyError } from '../../utils/format.js';
+import { formatError } from '../../utils/format.js';
 import { checkProjectAllowed } from '../../utils/project.js';
 
 export interface DeleteLinesParams {
@@ -29,8 +30,8 @@ export async function handleDeleteLines(
   }
 
   try {
-    if (!cosenseSid) {
-      return formatError('Authentication required: COSENSE_SID is needed for editing pages', {
+    if (!resolveCredential(projectName, cosenseSid)) {
+      return formatError('Authentication required: COSENSE_PAT or COSENSE_SID is needed for editing pages', {
         Operation: 'delete_lines',
         Project: projectName,
         Page: params.pageTitle,
@@ -44,7 +45,7 @@ export async function handleDeleteLines(
     let deletedLineCount = 0;
     let wouldDeleteTitle = false;
 
-    const result = await patch(projectName, params.pageTitle, (lines: BaseLine[]) => {
+    const result = await writePage(projectName, params.pageTitle, (lines: BaseLine[]) => {
       // patch がコンフリクトでリトライした場合に前回の結果が残らないようリセットする
       deletedMatchCount = 0;
       deletedLineCount = 0;
@@ -100,12 +101,10 @@ export async function handleDeleteLines(
       deletedMatchCount = matchedStarts.length;
       deletedLineCount = indicesToDelete.size;
       return next;
-    }, {
-      sid: cosenseSid,
-    });
+    }, cosenseSid);
 
     if (!result.ok) {
-      throw new Error(`WebSocket patch failed: ${stringifyError(result.err)}`);
+      throw new Error(`Page write failed: ${result.err}`);
     }
 
     if (wouldDeleteTitle) {

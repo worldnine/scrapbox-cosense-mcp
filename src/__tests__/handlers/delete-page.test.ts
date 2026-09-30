@@ -232,7 +232,7 @@ describe('handleDeletePage', () => {
       });
 
       expect(result.isError).toBe(true);
-      expect(result.content?.[0]?.text).toContain('WebSocket patch failed');
+      expect(result.content?.[0]?.text).toContain('Page write failed');
     });
 
     test('WebSocket APIで例外が発生した場合にエラーレスポンスを返すこと', async () => {
