@@ -22,14 +22,14 @@ npm run inspector    # Debug with MCP Inspector
 | `get_page` | Retrieve page content, metadata, and links | - |
 | `list_pages` | List pages with sorting and pagination (max 1000) | - |
 | `search_pages` | Keyword search (API limit: 100 results) | - |
-| `create_page` | Create new page. Rejects if page already exists | SID |
+| `create_page` | Create new page. Rejects if page already exists | PAT/SID |
 | `get_page_url` | Generate URL from page title | - |
-| `insert_lines` | Insert text after a target line (exact match). Appends to end if not found | SID |
-| `edit_lines` | Replace target line(s) (exact match, multi-line block supported). Errors if not found. `matchAll` replaces every occurrence | SID |
-| `delete_lines` | Delete target line(s) (exact match, multi-line block supported). Refuses to delete the title line. Errors if not found. `matchAll` deletes every occurrence | SID |
-| `delete_page` | Delete a page by emptying every line. Registered only when `COSENSE_ENABLE_DELETE=true`. Errors if the page does not exist. `dryRun` previews | SID |
-| `rewrite_page` | Replace a page's entire content. Registered only when `COSENSE_ENABLE_DELETE=true`. Errors if the page does not exist or content is empty. `dryRun` previews before/after | SID |
-| `get_smart_context` | Get page + linked pages (1-hop/2-hop) in AI-optimized format | SID |
+| `insert_lines` | Insert text after a target line (exact match). Appends to end if not found | PAT/SID |
+| `edit_lines` | Replace target line(s) (exact match, multi-line block supported). Errors if not found. `matchAll` replaces every occurrence | PAT/SID |
+| `delete_lines` | Delete target line(s) (exact match, multi-line block supported). Refuses to delete the title line. Errors if not found. `matchAll` deletes every occurrence | PAT/SID |
+| `delete_page` | Delete a page. Registered only when `COSENSE_ENABLE_DELETE=true`. Errors if the page does not exist. `dryRun` previews | PAT/SID |
+| `rewrite_page` | Replace a page's entire content. Registered only when `COSENSE_ENABLE_DELETE=true`. Errors if the page does not exist or content is empty. `dryRun` previews before/after | PAT/SID |
+| `get_smart_context` | Get page + linked pages (1-hop/2-hop) in AI-optimized format | PAT/SID |
 
 ### CLI
 
@@ -53,7 +53,9 @@ All tools are also available as CLI subcommands (`get`, `list`, `search`, `creat
 
 ### Directory Structure
 
-- `src/cosense.ts` — Scrapbox REST API client
+- `src/cosense.ts` — Scrapbox REST API client (reads)
+- `src/page-writer.ts` — `writePage`: writes through the edit API (PAT / Service Account) or the websocket (SID)
+- `src/utils/auth.ts` — Credential resolution (`resolveCredential`) and request headers
 - `src/routes/handlers/` — One handler module per tool
 - `src/utils/format.ts` — Response formatting, `stringifyError`, `formatError`
 - `src/utils/sort.ts` — Sorting with pinned page filtering
@@ -65,7 +67,12 @@ All tools are also available as CLI subcommands (`get`, `list`, `search`, `creat
 
 ### Design Decisions
 
-- **WebSocket API (`@cosense/std`)** is used for all page writes (`create_page` / `insert_lines` / `edit_lines` / `delete_lines` / `delete_page` / `rewrite_page`) because the REST API has no page creation/editing endpoints
+- **All page writes go through `writePage` (`src/page-writer.ts`)**, which picks the path by credential: a PAT or Service Account uses the edit API (`/api/pages/v2/<project>/page-edit-for-ai/preview` → `submit`), a SID uses the websocket `patch()` of `@cosense/std`. The edit API refuses cookie-authenticated writes (`CrossOriginWriteNotAllowedError`, and `/api/users/me` no longer returns a CSRF token), and the websocket accepts only cookie auth, so neither path can serve both. Handlers pass a `patch`-shaped update callback and never know which path runs
+- **Credential precedence is `COSENSE_PAT` → `COSENSE_SID` → `~/.cosense/settings.json`** (the file `cosense login` of the official CLI writes; the project's Service Account first, then the PAT). Explicit environment variables beat the file shared with the official CLI, so running `cosense login` never silently switches an existing SID setup to the other write path
+- **`writePage` keeps `patch()`'s contract on the edit API**: returning the same array writes nothing, `[]` deletes the page (`{ deleted: true }`), a non-persistent page is created by inserting every line without `pageId`, and a 409 `NotFastForward` re-reads the page and calls the callback again (up to 3 times). Callbacks must reset their state on every call
+- **The edit-API diff pairs removed and added lines 1:1 as `_update` within one changed region**, top to bottom, so line IDs (and authorship) survive; leftovers become `_delete` or `_insert` before the next kept line (`_end` at the bottom). Inserts are anchored on kept lines only, so they never point at a line deleted in the same request
+- **Page reads use `/api/pages/v2/`**. It returns the same body as v1 minus `relatedPages`, which this server never used and which is most of v1's payload. `list_pages` fetches every page, so the difference adds up
+- **Tests point HOME at an empty directory** (`src/__tests__/setup-env.ts`) and unset `COSENSE_PAT`, so they never read the developer's real credentials. `auth.ts` reads `process.env.HOME` before `os.homedir()` because jest gives each test its own copy of `process.env`, which the native `os.homedir()` does not see
 - **`create_page` rejects existing pages** (`persistent === true`). Without this check, `patch()` silently replaces all content since it's a diff-update API
 - **`insert_lines` uses exact match**. Partial match risks inserting at unintended lines
 - **`edit_lines` / `delete_lines` default to `matchAll: false`**. Repeated lines (bullet markers, blank lines) are common, so replacing/deleting every occurrence by default would exceed what the caller asked for
@@ -80,7 +87,7 @@ All tools are also available as CLI subcommands (`get`, `list`, `search`, `creat
 - **`COSENSE_PROJECT_ALLOW_LIST` is checked in every handler**, right after the project name is resolved, via `checkProjectAllowed()` in `src/utils/project.ts`. Handlers are the only point shared by the MCP dispatcher, the CLI, and direct calls, so a check in the dispatcher alone would miss the other two. The helper returns an error message instead of throwing because four handlers resolve the project name outside their `try`. `src/__tests__/handlers/project-allow-list.test.ts` enumerates every handler file, so adding a tool without the check fails the test
 - **The implicit allowance of the default project reads `process.env.COSENSE_PROJECT_NAME`, not the handler's `defaultProjectName` argument**. The CLI passes `--project=NAME` as `defaultProjectName` too, so comparing against the argument would let every CLI call through
 - **An allow list that is set but empty (`""`, `",,,"`) restricts to the default project** rather than falling back to unrestricted. Whoever set the variable meant to restrict, and only an unset variable means "no fence"
-- **`patch()` returns `Result<string, PushError>`**, not throw. Must check `result.ok`
+- **`writePage()` returns `{ ok: true } | { ok: false; err: string }`**, not throw (the websocket `patch()` returns a `Result` the same way). Must check `result.ok`
 - **`user` is the page's creator and `lastUpdateUser` its last editor** (as `@cosense/types` defines them). Every output builds the creator/editor lines through `formatEditorLines` in `src/utils/format.ts`, which omits a line when the name is unknown instead of printing `undefined`
 - **Default sort is `updated`**. Aligned across API, display, and user expectations
 - **Keep the request count low; Cosense is a free API, not ours to load.** `list_pages` and the startup resource list use the page-list API as is and never fetch each page (that used to send 100–1000+ concurrent requests per call). Page reads use `/api/pages/v2/`, which returns the same body as v1 minus `relatedPages` — unused here, and most of v1's payload (364 KB against 13.7 KB for villagepump's 井戸端). Creator and editor names come from the project member list (`/api/projects/:project/users`, cached per process for 5 minutes, failures included), because the page and page-list APIs return user IDs only since January 2026; `get_page` therefore costs one extra request only when the cache is cold, and `--compact` outputs never look names up. The E2E tests run only with `COSENSE_E2E=true`, because running them whenever credentials sit in the shell hit the Smart Context rate limit (429) during development
@@ -90,7 +97,8 @@ All tools are also available as CLI subcommands (`get`, `list`, `search`, `creat
 See README.md. Key variables:
 
 - `COSENSE_PROJECT_NAME` — Target project (required)
-- `COSENSE_SID` — Session ID for private projects and write operations
+- `COSENSE_PAT` — Personal Access Token (recommended) for private projects, writes, and Smart Context. Writes go through the edit API
+- `COSENSE_SID` — Session ID (`connect.sid`), used when `COSENSE_PAT` is unset. Writes go through the websocket. Without either, the credential saved by `cosense login` is used
 - `COSENSE_TOOL_SUFFIX` — Tool name suffix for multiple server instances
 - `COSENSE_CONVERT_NUMBERED_LISTS` — Convert numbered lists to bullet lists
 - `COSENSE_ENABLE_DELETE` — Register `delete_page`/`rewrite_page` and the `delete`/`rewrite` CLI commands (opt-in)
