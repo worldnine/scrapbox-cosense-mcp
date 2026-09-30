@@ -283,6 +283,36 @@ describe('writePage', () => {
     expect(postBodies().map(p => p.body.previewId).filter(Boolean)).toEqual(['p1', 'p2']);
   });
 
+  test('読んでから preview までに他の人が書いていれば（commitId が違えば）、送らずにやり直す', async () => {
+    let reads = 0;
+    let previews = 0;
+    mockedFetch.mockImplementation(((_url: string, init?: RequestInit) => {
+      if (init?.method !== 'POST') {
+        reads++;
+        return Promise.resolve(json({ ...existingPage, commitId: reads === 1 ? 'c1' : 'c2' }));
+      }
+      const body = JSON.parse(init.body as string);
+      if (body.previewId) return Promise.resolve(json({}));
+      previews++;
+      // 1回目の preview の時点では、すでに誰かが c2 を書いている
+      return Promise.resolve(json({ previewId: `p${previews}`, pagePreview: { commitId: 'c2' } }));
+    }) as typeof fetch);
+
+    const result = await writePage(project, title, lines => [...lines, { text: 'c' }]);
+
+    expect(result).toEqual({ ok: true });
+    expect(reads).toBe(2);
+    // submit したのは、読み直した後の preview だけ
+    expect(postBodies().filter(p => p.url === submitUrl).map(p => p.body)).toEqual([{ previewId: 'p2' }]);
+  });
+
+  test('commitId が同じなら、そのまま submit する', async () => {
+    respond({ ...existingPage, commitId: 'c1' }, [json({ previewId: 'p1', pagePreview: { commitId: 'c1' } }), json({})]);
+    const result = await writePage(project, title, lines => [...lines, { text: 'c' }]);
+    expect(result).toEqual({ ok: true });
+    expect(postBodies().map(p => p.url)).toEqual([previewUrl, submitUrl]);
+  });
+
   test('衝突が続けば3回で諦める', async () => {
     const conflict = () => json({ error: 'NotFastForward' }, 409);
     respond(existingPage, [conflict(), conflict(), conflict()]);
