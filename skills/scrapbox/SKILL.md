@@ -36,7 +36,8 @@ Cosense ページの取得・検索・作成・編集・削除・書き換え。
 | 変数名 | 説明 | 必須 |
 |---|---|---|
 | `COSENSE_PROJECT_NAME` | 対象プロジェクト名（`--project` で上書き可） | はい |
-| `COSENSE_SID` | セッションID（プライベートプロジェクト、create/insert/edit/delete-lines/delete/rewrite/context 操作に必要） | 条件付き |
+| `COSENSE_PAT` | Personal Access Token（おすすめ）。非公開プロジェクトと、create/insert/edit/delete-lines/delete/rewrite/contextに必要 | 条件付き |
+| `COSENSE_SID` | セッションID（`connect.sid`）。`COSENSE_PAT`が無いときに使う | いいえ |
 | `COSENSE_ENABLE_DELETE` | `true` のときだけ `delete` / `rewrite` サブコマンドが使える | いいえ |
 | `COSENSE_PROJECT_ALLOW_LIST` | `--project` で指定できるプロジェクトをカンマ区切りで制限する。`COSENSE_PROJECT_NAME` は常に許可。未設定なら無制限 | いいえ |
 
@@ -48,15 +49,16 @@ Cosense ページの取得・検索・作成・編集・削除・書き換え。
 {
   "env": {
     "COSENSE_PROJECT_NAME": "your-project-name",
-    "COSENSE_SID": "s:your-session-id"
+    "COSENSE_PAT": "your-personal-access-token"
   }
 }
 ```
 
 全プロジェクト共通で使う場合は `~/.claude/settings.json` に設定することもできます。
 
-### SID の取得方法
+### PATの取得方法
 
-1. ブラウザで Cosense にログイン
-2. 開発者ツール → Application → Cookies
-3. `connect.sid` の値をコピー
+1. https://scrapbox.io/settings/personal-access-tokens でトークンを発行
+2. `COSENSE_PAT`に設定
+
+公式CLIの`cosense login`を済ませていれば、`~/.cosense/settings.json`のトークンを使うので設定は要らない。SIDを使う場合の取り方は[認証](https://github.com/worldnine/scrapbox-cosense-mcp/blob/main/docs/authentication.md)を参照。
