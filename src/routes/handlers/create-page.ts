@@ -52,7 +52,7 @@ export async function handleCreatePage(
     // 実際にページを作成する（PAT は編集 API、SID は websocket。page-writer.ts）
     if (createActually) {
       if (!resolveCredential(cosenseSid)) {
-        return formatError('Authentication required: COSENSE_PAT or COSENSE_SID is needed for creating pages', {
+        return formatError('Authentication required: COSENSE_MCP_PAT or COSENSE_SID is needed for creating pages', {
           Operation: 'create_page',
           Project: projectName,
           Title: title,

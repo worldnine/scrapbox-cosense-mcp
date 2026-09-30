@@ -36,8 +36,8 @@ Cosense ページの取得・検索・作成・編集・削除・書き換え。
 | 変数名 | 説明 | 必須 |
 |---|---|---|
 | `COSENSE_PROJECT_NAME` | 対象プロジェクト名（`--project` で上書き可） | はい |
-| `COSENSE_PAT` | Personal Access Token（おすすめ）。非公開プロジェクトと、create/insert/edit/delete-lines/delete/rewrite/contextに必要 | 条件付き |
-| `COSENSE_SID` | セッションID（`connect.sid`）。`COSENSE_PAT`より優先する。PATに移るときは外す | いいえ |
+| `COSENSE_MCP_PAT` | Personal Access Token（おすすめ）。非公開プロジェクトと、create/insert/edit/delete-lines/delete/rewrite/contextに必要 | 条件付き |
+| `COSENSE_SID` | セッションID（`connect.sid`）。`COSENSE_MCP_PAT`より優先する。PATに移るときは外す | いいえ |
 | `COSENSE_ENABLE_DELETE` | `true` のときだけ `delete` / `rewrite` サブコマンドが使える | いいえ |
 | `COSENSE_PROJECT_ALLOW_LIST` | `--project` で指定できるプロジェクトをカンマ区切りで制限する。`COSENSE_PROJECT_NAME` は常に許可。未設定なら無制限 | いいえ |
 
@@ -49,7 +49,7 @@ Cosense ページの取得・検索・作成・編集・削除・書き換え。
 {
   "env": {
     "COSENSE_PROJECT_NAME": "your-project-name",
-    "COSENSE_PAT": "your-personal-access-token"
+    "COSENSE_MCP_PAT": "your-personal-access-token"
   }
 }
 ```
@@ -59,6 +59,6 @@ Cosense ページの取得・検索・作成・編集・削除・書き換え。
 ### PATの取得方法
 
 1. https://scrapbox.io/settings/personal-access-tokens でトークンを発行
-2. `COSENSE_PAT`に設定
+2. `COSENSE_MCP_PAT`に設定
 
-Service Accountのアクセスキー（`cs_`で始まる）も`COSENSE_PAT`に入れる。公式CLIの`cosense login`で保存したトークンは読まないので、このサーバーには別に設定する。SIDを使う場合の取り方は[認証](https://github.com/worldnine/scrapbox-cosense-mcp/blob/main/docs/authentication.md)を参照。
+Service Accountのアクセスキー（`cs_`で始まる）も`COSENSE_MCP_PAT`に入れる。公式CLIの`cosense login`で保存したトークンや、公式CLIの`COSENSE_PAT`は読まないので、このサーバーには別に設定する。SIDを使う場合の取り方は[認証](https://github.com/worldnine/scrapbox-cosense-mcp/blob/main/docs/authentication.md)を参照。

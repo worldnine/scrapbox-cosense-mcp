@@ -149,8 +149,8 @@ Related Page
       expect(mockedCosense.getSmartContext).not.toHaveBeenCalled();
     });
 
-    it('COSENSE_SIDが無くてもCOSENSE_PATがあれば取得する', async () => {
-      process.env.COSENSE_PAT = 'test-pat';
+    it('COSENSE_SIDが無くてもCOSENSE_MCP_PATがあれば取得する', async () => {
+      process.env.COSENSE_MCP_PAT = 'test-pat';
       try {
         mockedCosense.getSmartContext.mockResolvedValue(mockOkResult);
 
@@ -163,7 +163,7 @@ Related Page
           mockProjectName, 'Test Page', 1, undefined
         );
       } finally {
-        delete process.env.COSENSE_PAT;
+        delete process.env.COSENSE_MCP_PAT;
       }
     });
 

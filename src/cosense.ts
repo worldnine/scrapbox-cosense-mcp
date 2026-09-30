@@ -457,7 +457,7 @@ type SmartContextResult =
  * @param projectName プロジェクト名
  * @param title ページタイトル
  * @param hopCount リンクのホップ数（1 or 2）
- * @param sid セッションID。PAT（`COSENSE_PAT` や `~/.cosense/settings.json`）があれば無くてよい
+ * @param sid セッションID。PAT（`COSENSE_MCP_PAT` や `~/.cosense/settings.json`）があれば無くてよい
  * @returns 成功時はテキスト、失敗時はエラーメッセージ
  */
 async function getSmartContext(

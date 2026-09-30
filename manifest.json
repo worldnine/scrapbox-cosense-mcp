@@ -14,7 +14,7 @@
       "args": ["${__dirname}/build/index.js"],
       "env": {
         "COSENSE_PROJECT_NAME": "${user_config.project_name}",
-        "COSENSE_PAT": "${user_config.pat}",
+        "COSENSE_MCP_PAT": "${user_config.pat}",
         "COSENSE_SID": "${user_config.sid}",
         "COSENSE_PAGE_LIMIT": "${user_config.page_limit}",
         "COSENSE_SORT_METHOD": "${user_config.sort_method}",
@@ -31,7 +31,7 @@
     },
     "pat": {
       "type": "string",
-      "title": "Personal Access Token (COSENSE_PAT)",
+      "title": "Personal Access Token (COSENSE_MCP_PAT)",
       "description": "Issue one at scrapbox.io/settings/personal-access-tokens. Needed for private projects and for editing. A Service Account access key (starts with cs_) also works. Leave empty for read-only use of public projects.",
       "required": false,
       "sensitive": true

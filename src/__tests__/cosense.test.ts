@@ -70,8 +70,8 @@ describe('cosense API functions', () => {
       );
     });
 
-    test('SIDが無ければCOSENSE_PATのヘッダを付けること', async () => {
-      process.env.COSENSE_PAT = 'test-pat';
+    test('SIDが無ければCOSENSE_MCP_PATのヘッダを付けること', async () => {
+      process.env.COSENSE_MCP_PAT = 'test-pat';
       try {
         mockedFetch.mockResolvedValue({
           ok: true,
@@ -85,12 +85,12 @@ describe('cosense API functions', () => {
           { headers: { 'x-personal-access-token': 'test-pat' } },
         );
       } finally {
-        delete process.env.COSENSE_PAT;
+        delete process.env.COSENSE_MCP_PAT;
       }
     });
 
-    test('SIDとCOSENSE_PATの両方があればSIDのcookieを付けること', async () => {
-      process.env.COSENSE_PAT = 'test-pat';
+    test('SIDとCOSENSE_MCP_PATの両方があればSIDのcookieを付けること', async () => {
+      process.env.COSENSE_MCP_PAT = 'test-pat';
       try {
         mockedFetch.mockResolvedValue({
           ok: true,
@@ -104,7 +104,7 @@ describe('cosense API functions', () => {
           { headers: { Cookie: `connect.sid=${mockSid}` } },
         );
       } finally {
-        delete process.env.COSENSE_PAT;
+        delete process.env.COSENSE_MCP_PAT;
       }
     });
 
@@ -458,7 +458,7 @@ describe('cosense API functions', () => {
 
   describe('getSmartContext', () => {
     afterEach(() => {
-      delete process.env.COSENSE_PAT;
+      delete process.env.COSENSE_MCP_PAT;
     });
 
     test('SIDのcookieを付けて取得すること', async () => {
@@ -473,8 +473,8 @@ describe('cosense API functions', () => {
       );
     });
 
-    test('SIDが無くてもCOSENSE_PATで取得すること', async () => {
-      process.env.COSENSE_PAT = 'test-pat';
+    test('SIDが無くてもCOSENSE_MCP_PATで取得すること', async () => {
+      process.env.COSENSE_MCP_PAT = 'test-pat';
       mockedFetch.mockResolvedValue({ ok: true, text: () => Promise.resolve('context') } as Response);
 
       const result = await getSmartContext(mockProjectName, 'Test Page', 2);

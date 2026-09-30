@@ -31,7 +31,7 @@ export async function handleDeleteLines(
 
   try {
     if (!resolveCredential(cosenseSid)) {
-      return formatError('Authentication required: COSENSE_PAT or COSENSE_SID is needed for editing pages', {
+      return formatError('Authentication required: COSENSE_MCP_PAT or COSENSE_SID is needed for editing pages', {
         Operation: 'delete_lines',
         Project: projectName,
         Page: params.pageTitle,

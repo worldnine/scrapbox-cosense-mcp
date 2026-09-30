@@ -144,15 +144,15 @@ describe('writePage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env.COSENSE_PAT = 'test-pat';
+    process.env.COSENSE_MCP_PAT = 'test-pat';
   });
 
   afterEach(() => {
-    delete process.env.COSENSE_PAT;
+    delete process.env.COSENSE_MCP_PAT;
   });
 
   test('資格情報が無ければ書かずにエラーを返す', async () => {
-    delete process.env.COSENSE_PAT;
+    delete process.env.COSENSE_MCP_PAT;
     const result = await writePage(project, title, lines => lines);
     expect(result).toEqual({ ok: false, err: expect.stringContaining('Authentication required') });
     expect(mockedFetch).not.toHaveBeenCalled();
@@ -160,7 +160,7 @@ describe('writePage', () => {
   });
 
   test('SIDなら websocket の patch に任せる', async () => {
-    delete process.env.COSENSE_PAT;
+    delete process.env.COSENSE_MCP_PAT;
     mockedPatch.mockResolvedValue({ ok: true, val: 'commit' } as never);
     const update = (lines: BaseLine[]) => lines;
 
@@ -182,7 +182,7 @@ describe('writePage', () => {
   });
 
   test('SIDの patch が失敗すれば、以前と同じ文言でエラーを返す', async () => {
-    delete process.env.COSENSE_PAT;
+    delete process.env.COSENSE_MCP_PAT;
     mockedPatch.mockResolvedValue({ ok: false, err: { name: 'SocketIOError', message: 'boom' } } as never);
 
     const result = await writePage(project, title, lines => lines, 'test-sid');
@@ -303,7 +303,7 @@ describe('writePage', () => {
   });
 
   test('Service Account なら専用のヘッダを付ける', async () => {
-    process.env.COSENSE_PAT = 'cs_key';
+    process.env.COSENSE_MCP_PAT = 'cs_key';
     respond(existingPage, [json({ previewId: 'p1' }), json({})]);
     await writePage(project, title, lines => [...lines, { text: 'c' }]);
     expect(mockedFetch).toHaveBeenCalledWith(pageUrl, { headers: { 'x-service-account-access-key': 'cs_key' } });

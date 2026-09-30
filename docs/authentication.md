@@ -4,24 +4,26 @@ Public projects can be read without any credential. Private projects, editing, a
 
 | Credential | How to set it | Writes go through |
 |---|---|---|
-| Personal Access Token (recommended) | `COSENSE_PAT` | Edit API |
-| Service Account (Business plan, one project) | `COSENSE_PAT` (the access key starts with `cs_`) | Edit API |
+| Personal Access Token (recommended) | `COSENSE_MCP_PAT` | Edit API |
+| Service Account (Business plan, one project) | `COSENSE_MCP_PAT` (the access key starts with `cs_`) | Edit API |
 | Session ID (`connect.sid` cookie) | `COSENSE_SID` | WebSocket API |
 
-If both are set, `COSENSE_SID` is used, so an existing setup keeps working exactly as before. To switch to a Personal Access Token, set `COSENSE_PAT` and remove `COSENSE_SID`. (`COSENSE_PAT` is the same variable the official CLI reads, so if it is set globally for the CLI, it does not silently change how this server writes.)
+If both are set, `COSENSE_SID` is used, so an existing setup keeps working exactly as before. To switch to a Personal Access Token, set `COSENSE_MCP_PAT` and remove `COSENSE_SID`.
+
+The variable is `COSENSE_MCP_PAT`, not `COSENSE_PAT` that the official CLI reads. A token you export in your shell for the official CLI is inherited by MCP servers, and it would otherwise give this server write access you never set up for it.
 
 The server does not read `~/.cosense/settings.json`, where `cosense login` of the official CLI saves its token. Reading it would let this server write as soon as you log in with the official CLI, even when you gave this server no credential on purpose (for example, to only read public projects). A credential that can write is used only when you set it for this server.
 
 ## Personal Access Token (recommended)
 
 1. Open https://scrapbox.io/settings/personal-access-tokens and issue a token
-2. Set it as `COSENSE_PAT` in your MCP configuration
+2. Set it as `COSENSE_MCP_PAT` in your MCP configuration
 
 A Personal Access Token reaches everything your account can see. It cannot be limited to one project or to reading. Use `COSENSE_PROJECT_ALLOW_LIST` to limit which projects this server may target, and delete the token on the same settings page if it leaks.
 
 ## Service Account (Business plan)
 
-A Service Account belongs to a single project. Register one in the project's settings (**Service Accounts** tab) and set its access key as `COSENSE_PAT`. The key starts with `cs_`, which is how the server tells it apart from a Personal Access Token. It can only reach that project, so pair it with `COSENSE_PROJECT_NAME` for the same project.
+A Service Account belongs to a single project. Register one in the project's settings (**Service Accounts** tab) and set its access key as `COSENSE_MCP_PAT`. The key starts with `cs_`, which is how the server tells it apart from a Personal Access Token. It can only reach that project, so pair it with `COSENSE_PROJECT_NAME` for the same project.
 
 ## Session ID (`connect.sid` cookie)
 
@@ -60,24 +62,26 @@ This is how the server has always authenticated, and it keeps working as it is. 
 
 | 資格情報 | 設定のしかた | 書き込みの経路 |
 |---|---|---|
-| Personal Access Token（おすすめ） | `COSENSE_PAT` | 編集API |
-| Service Account（Business plan、1プロジェクト限定） | `COSENSE_PAT`（アクセスキーは`cs_`で始まる） | 編集API |
+| Personal Access Token（おすすめ） | `COSENSE_MCP_PAT` | 編集API |
+| Service Account（Business plan、1プロジェクト限定） | `COSENSE_MCP_PAT`（アクセスキーは`cs_`で始まる） | 編集API |
 | セッションID（`connect.sid` Cookie） | `COSENSE_SID` | WebSocket API |
 
-両方あれば`COSENSE_SID`を使うので、今の設定はそのまま動きます。Personal Access Tokenに移るときは、`COSENSE_PAT`を入れて`COSENSE_SID`を外してください。（`COSENSE_PAT`は公式CLIも読む変数名です。公式CLIのためにグローバルに設定していても、このサーバーの書き込み方が知らないうちに変わることはありません）
+両方あれば`COSENSE_SID`を使うので、今の設定はそのまま動きます。Personal Access Tokenに移るときは、`COSENSE_MCP_PAT`を入れて`COSENSE_SID`を外してください。
+
+変数名は、公式CLIが読む`COSENSE_PAT`ではなく`COSENSE_MCP_PAT`です。公式CLIのためにシェルでexportしたトークンはMCPサーバーにも受け継がれるので、同じ名前だと、このサーバーに設定したつもりのない書き込みの力を持たせてしまうためです。
 
 公式CLIの`cosense login`がトークンを保存する`~/.cosense/settings.json`は読みません。読むと、このサーバーにわざと資格情報を渡していない場合（公開プロジェクトを読むだけ、など）でも、公式CLIでログインしただけで書き込めるようになってしまうためです。書き込める資格情報は、このサーバーに設定したときだけ使います。
 
 ## Personal Access Token（おすすめ）
 
 1. https://scrapbox.io/settings/personal-access-tokens を開いてトークンを発行する
-2. MCPの設定の`COSENSE_PAT`に入れる
+2. MCPの設定の`COSENSE_MCP_PAT`に入れる
 
 Personal Access Tokenは、自分のアカウントで見られる範囲すべてに届きます。1つのプロジェクトや読み取りだけに絞ることはできません。このサーバーが扱えるプロジェクトは`COSENSE_PROJECT_ALLOW_LIST`で絞れます。トークンが漏れたら、同じ設定画面から消してください。
 
 ## Service Account（Business plan）
 
-Service Accountは1つのプロジェクトに属します。プロジェクトの設定の**Service Accounts**タブで登録し、アクセスキーを`COSENSE_PAT`に入れてください。アクセスキーは`cs_`で始まり、サーバーはそれでPersonal Access Tokenと見分けます。そのプロジェクトにしか届かないので、`COSENSE_PROJECT_NAME`も同じプロジェクトにしてください。
+Service Accountは1つのプロジェクトに属します。プロジェクトの設定の**Service Accounts**タブで登録し、アクセスキーを`COSENSE_MCP_PAT`に入れてください。アクセスキーは`cs_`で始まり、サーバーはそれでPersonal Access Tokenと見分けます。そのプロジェクトにしか届かないので、`COSENSE_PROJECT_NAME`も同じプロジェクトにしてください。
 
 ## セッションID（`connect.sid` Cookie）
 
