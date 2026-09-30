@@ -61,4 +61,4 @@ Cosense ページの取得・検索・作成・編集・削除・書き換え。
 1. https://scrapbox.io/settings/personal-access-tokens でトークンを発行
 2. `COSENSE_PAT`に設定
 
-公式CLIの`cosense login`を済ませていれば、`~/.cosense/settings.json`のトークンを使うので設定は要らない。SIDを使う場合の取り方は[認証](https://github.com/worldnine/scrapbox-cosense-mcp/blob/main/docs/authentication.md)を参照。
+Service Accountのアクセスキー（`cs_`で始まる）も`COSENSE_PAT`に入れる。公式CLIの`cosense login`で保存したトークンは読まないので、このサーバーには別に設定する。SIDを使う場合の取り方は[認証](https://github.com/worldnine/scrapbox-cosense-mcp/blob/main/docs/authentication.md)を参照。

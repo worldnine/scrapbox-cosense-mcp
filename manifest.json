@@ -32,7 +32,7 @@
     "pat": {
       "type": "string",
       "title": "Personal Access Token (COSENSE_PAT)",
-      "description": "Issue one at scrapbox.io/settings/personal-access-tokens. Needed for private projects and for editing. Leave empty for read-only use of public projects.",
+      "description": "Issue one at scrapbox.io/settings/personal-access-tokens. Needed for private projects and for editing. A Service Account access key (starts with cs_) also works. Leave empty for read-only use of public projects.",
       "required": false,
       "sensitive": true
     },

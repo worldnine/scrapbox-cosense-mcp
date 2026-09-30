@@ -244,7 +244,7 @@ Environment Variables:
   COSENSE_PROJECT_NAME           Target project (required for most commands)
   COSENSE_PAT                    Personal Access Token (recommended; reads and writes)
   COSENSE_SID                    Session ID (connect.sid cookie), used when COSENSE_PAT is unset
-                                 Without either, the PAT saved by "cosense login" is used
+                                 A Service Account key (cs_...) also goes in COSENSE_PAT
   COSENSE_CONVERT_NUMBERED_LISTS Convert numbered lists to bullet lists
   COSENSE_ENABLE_DELETE          Set to true to enable delete/rewrite commands
 `;
