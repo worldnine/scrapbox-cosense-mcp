@@ -5,7 +5,9 @@
 ## WebSocket API
 
 ### 概要
-Scrapbox/Cosenseでは、ページの直接編集にWebSocket APIを使用します。REST APIは読み取り専用で、書き込み操作は提供されていません。
+SID（`connect.sid`）で書き込むときの経路です。PATやService Accountで書き込むときは、編集API（`/api/pages/v2/<project>/page-edit-for-ai/preview` → `submit`）を使います（`src/page-writer.ts`）。
+
+編集APIはCookieで認証した書き込みをCSRF対策で拒否し（`CrossOriginWriteNotAllowedError`、2026-09-30に確認）、WebSocket APIはCookie認証しか通りません。そのため、資格情報の種類で経路が決まります。ハンドラは`writePage`を呼び、どちらの経路かは意識しません。
 
 ### 使用ライブラリ
 - **@cosense/std**: WebSocket経由でのページ更新機能を提供
@@ -129,5 +131,6 @@ return [
 ---
 
 ## 更新履歴
+- 2026-09-30: PAT・Service Accountでの書き込みを編集APIに分けた。WebSocket APIはSIDのときだけ使う
 - 2025-07-11: create_page実装でWebSocket API対応を追加
 - 2025-06-15: 初版作成（insert_lines実装時の調査結果）

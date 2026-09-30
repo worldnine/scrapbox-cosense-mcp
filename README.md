@@ -11,12 +11,12 @@ MCP server for [Cosense (formerly Scrapbox)](https://cosen.se).
 | `get_page` | Get page content, metadata, and links | For private projects |
 | `list_pages` | Browse pages with sorting and pagination (max 1000) | For private projects |
 | `search_pages` | Full-text search with keyword highlighting (max 100 results) | For private projects |
-| `create_page` | Create a page via WebSocket API with Markdown/Scrapbox body | Yes |
+| `create_page` | Create a page with a Markdown/Scrapbox body | Yes |
 | `get_page_url` | Generate direct URL for a page | No |
 | `insert_lines` | Insert text after a specified line in a page | Yes |
 | `edit_lines` | Replace exact-match line(s), including a multi-line block (first match, or all with `matchAll`) | Yes |
 | `delete_lines` | Delete exact-match line(s), including a multi-line block (first match, or all with `matchAll`) | Yes |
-| `delete_page` | Delete a page by emptying every line — opt-in, see below | Yes |
+| `delete_page` | Delete a page — opt-in, see below | Yes |
 | `rewrite_page` | Replace a page's entire content — opt-in, see below | Yes |
 | `get_smart_context` | Get a page and its linked pages (1-hop/2-hop) in AI-optimized format | Yes |
 
@@ -34,14 +34,14 @@ MCP server for [Cosense (formerly Scrapbox)](https://cosen.se).
 
 The reasoning: `insert_lines`, `edit_lines`, and `delete_lines` all require an exact match, which is only possible if the caller has actually read the page — they can only destroy lines they already know. `delete_page` and `rewrite_page` act on the entire page regardless of whether the caller has read it, so they get a separate opt-in gate.
 
-`delete_page` empties every one of a page's lines, and Cosense removes a page once all of its lines are empty. There is no undo. Two further guards are built in:
+`delete_page` removes the whole page. There is no undo. Two further guards are built in:
 
 - The page must already exist. A missing page returns an error rather than a silent success. (The REST API returns a title line even for a page that was never created, so the check looks at `persistent`, the same way `create_page` does.)
 - `dryRun: true` reports how many lines would be removed and shows the first five of them, without touching the page.
 
 ### `COSENSE_PROJECT_ALLOW_LIST` limits reachable projects
 
-Every tool accepts a `projectName` override, which is how one server serves several projects. A session ID often reaches more projects than the default one, so without a limit an agent that names the wrong project can read or write there. `COSENSE_PROJECT_ALLOW_LIST` is the opt-in fence: when set, only the listed projects and `COSENSE_PROJECT_NAME` are accepted, and anything else fails before a request is sent. Names are matched exactly, including case, so a spelling variant cannot slip through. Setting the variable to an empty value restricts to the default project alone. Unset keeps the old unrestricted behavior.
+Every tool accepts a `projectName` override, which is how one server serves several projects. A credential (a Personal Access Token or a session ID) often reaches more projects than the default one, so without a limit an agent that names the wrong project can read or write there. `COSENSE_PROJECT_ALLOW_LIST` is the opt-in fence: when set, only the listed projects and `COSENSE_PROJECT_NAME` are accepted, and anything else fails before a request is sent. Names are matched exactly, including case, so a spelling variant cannot slip through. Setting the variable to an empty value restricts to the default project alone. Unset keeps the old unrestricted behavior.
 
 `rewrite_page` replaces a page's entire content (the title is preserved as the first line). It has the same guards, plus two of its own:
 
@@ -59,7 +59,7 @@ When you run several instances of this server for different projects, set the va
       "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "notes",
-        "COSENSE_SID": "s:your-session-id",
+        "COSENSE_PAT": "your-personal-access-token",
         "COSENSE_TOOL_SUFFIX": "notes",
         "COSENSE_ENABLE_DELETE": "true"
       }
@@ -69,7 +69,7 @@ When you run several instances of this server for different projects, set the va
       "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "archive",
-        "COSENSE_SID": "s:your-session-id",
+        "COSENSE_PAT": "your-personal-access-token",
         "COSENSE_TOOL_SUFFIX": "archive"
       }
     }
@@ -87,7 +87,7 @@ Note that `insert_lines` and `edit_lines` behave differently when the target lin
 
 1. Download `scrapbox-cosense-mcp.mcpb` from [GitHub Releases](https://github.com/worldnine/scrapbox-cosense-mcp/releases)
 2. Double-click — Claude Desktop opens an install dialog
-3. Enter your project name (and Session ID for private projects)
+3. Enter your project name (and a [Personal Access Token](./docs/authentication.md) for private projects or editing)
 
 ### Claude Code Plugin
 
@@ -105,7 +105,7 @@ Note that `insert_lines` and `edit_lines` behave differently when the target lin
    {
      "env": {
        "COSENSE_PROJECT_NAME": "your_project_name",
-       "COSENSE_SID": "your_sid"
+       "COSENSE_PAT": "your_personal_access_token"
      }
    }
    ```
@@ -123,7 +123,7 @@ If you prefer manual configuration over the plugin:
 ```bash
 claude mcp add scrapbox-cosense-mcp \
   -e COSENSE_PROJECT_NAME=your_project \
-  -e COSENSE_SID=your_sid \
+  -e COSENSE_PAT=your_personal_access_token \
   -- npx -y scrapbox-cosense-mcp
 ```
 
@@ -146,7 +146,7 @@ Add to your config file:
       "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "your_project_name",
-        "COSENSE_SID": "your_sid"
+        "COSENSE_PAT": "your_personal_access_token"
       }
     }
   }
@@ -168,7 +168,17 @@ npm install && npm run build
 | Variable | Description |
 |----------|-------------|
 | `COSENSE_PROJECT_NAME` | Your Scrapbox/Cosense project name |
-| `COSENSE_SID` | Session ID (`connect.sid` cookie) for private projects — [How to get it](./docs/authentication.md) |
+
+### Authentication
+
+Public projects can be read without a credential. Private projects, editing, and `get_smart_context` need one — see [Authentication](./docs/authentication.md).
+
+| Variable | Description |
+|----------|-------------|
+| `COSENSE_PAT` | Personal Access Token (recommended). Issue one at `https://scrapbox.io/settings/personal-access-tokens`. Writes go through the edit API |
+| `COSENSE_SID` | Session ID (`connect.sid` cookie). Used when `COSENSE_PAT` is unset. Writes go through the WebSocket API |
+
+Without either, the server uses the credential saved by `cosense login` of the official CLI (`~/.cosense/settings.json`), including a project's Service Account.
 
 ### Optional
 
