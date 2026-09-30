@@ -34,7 +34,7 @@
   "dependencies": {
     "@cosense/std": "npm:@jsr/cosense__std@^0.29.8",
     "@cosense/types": "npm:@jsr/cosense__types@^0.10.4",
-    "@modelcontextprotocol/sdk": "0.6.0",
+    "@modelcontextprotocol/sdk": "1.31.0",
     "@whatwg-node/fetch": "^0.10.1",
     "md2sb": "^5.1.2"
   },
