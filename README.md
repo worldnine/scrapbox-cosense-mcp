@@ -233,6 +233,18 @@ See [docs/multiple-projects.md](./docs/multiple-projects.md) for detailed config
 3. Run `npm run lint && npm test`
 4. Create a pull request — CI runs automatically
 
+## Contributors
+
+Thanks to everyone who has contributed to this project:
+
+- [@kmatsunami](https://github.com/kmatsunami) — undefined collaborators handling in `get_page`, JSR dependency resolution ([#20](https://github.com/worldnine/scrapbox-cosense-mcp/pull/20))
+- [@vitalibondar](https://github.com/vitalibondar) — `format` parameter, bare URL doubling fix ([#29](https://github.com/worldnine/scrapbox-cosense-mcp/pull/29))
+- [@qurihara](https://github.com/qurihara) — `edit_lines`, opt-in `delete_page` ([#52](https://github.com/worldnine/scrapbox-cosense-mcp/pull/52), [#57](https://github.com/worldnine/scrapbox-cosense-mcp/pull/57))
+- [@ojimpo](https://github.com/ojimpo) — `COSENSE_PROJECT_ALLOW_LIST` ([#68](https://github.com/worldnine/scrapbox-cosense-mcp/pull/68))
+- [@punkpeye](https://github.com/punkpeye), [@lwsinclair](https://github.com/lwsinclair) — README badges ([#1](https://github.com/worldnine/scrapbox-cosense-mcp/pull/1), [#6](https://github.com/worldnine/scrapbox-cosense-mcp/pull/6))
+
+The full list is on the [contributors graph](https://github.com/worldnine/scrapbox-cosense-mcp/graphs/contributors).
+
 ## License
 
 MIT
