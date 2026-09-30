@@ -40,8 +40,13 @@ export async function writePage(
   }
   if (credential.type === 'sid') {
     const result = await patch(projectName, title, update, { sid: credential.value });
-    // エラーの文言は websocket だけだったころと同じにする（SID で使っている人から見て何も変えない）
-    return result.ok ? { ok: true } : { ok: false, err: `WebSocket patch failed: ${stringifyError(result.err)}` };
+    if (result.ok) return { ok: true };
+    // エラーの文言は websocket だけだったころと同じにする（SID で使っている人から見て何も変えない）。
+    // PAT も入れている人は、期限切れの SID が優先されて失敗し続けることがあるので、そのときだけ案内を足す
+    const hint = process.env.COSENSE_MCP_PAT?.trim()
+      ? ' (COSENSE_SID takes precedence over COSENSE_MCP_PAT; remove COSENSE_SID to write with the token)'
+      : '';
+    return { ok: false, err: `WebSocket patch failed: ${stringifyError(result.err)}${hint}` };
   }
   return writeViaEditApi(projectName, title, update, credential);
 }
