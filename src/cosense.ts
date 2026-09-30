@@ -513,9 +513,7 @@ async function fetchProjectMembers(projectName: string, sid?: string): Promise<M
   const members = new Map<string, ProjectMember>();
   try {
     const url = `https://${API_DOMAIN}/api/projects/${projectName}/users`;
-    const response = sid
-      ? await fetch(url, { headers: { Cookie: `connect.sid=${sid}` } })
-      : await fetch(url);
+    const response = await fetchWithCredential(url, sid);
     if (!response.ok) return members;
     const body = await response.json() as { users?: ProjectMember[] } | ProjectMember[];
     const users = Array.isArray(body) ? body : body.users ?? [];
