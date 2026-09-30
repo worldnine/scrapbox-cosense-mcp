@@ -47,14 +47,57 @@ describe('handleGetPage', () => {
     lines: mockPageResponse.lines,
     created: mockPageResponse.created,
     updated: mockPageResponse.updated,
-    user: mockPageResponse.lastUpdateUser, // lastUpdateUserがcreated userとして扱われる
-    lastUpdateUser: mockPageResponse.user, // userがlast editorとして扱われる
+    user: mockPageResponse.user,
+    lastUpdateUser: mockPageResponse.lastUpdateUser,
     collaborators: mockPageResponse.collaborators,
     links: mockPageResponse.links,
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // 名前を引く処理は素通しにする（名前は mockPageResponse に最初から入れてある）
+    mockedCosense.withUserNames.mockImplementation(async (_project, pages) => pages);
+  });
+
+  describe('作成者・編集者', () => {
+    test('user を作成者、lastUpdateUser を最終編集者として出すこと（@cosense/types の定義どおり）', async () => {
+      mockedCosense.getPage.mockResolvedValue(mockPageResponse);
+      mockedCosense.toReadablePage.mockReturnValue(mockReadablePageResponse);
+
+      const result = await handleGetPage(mockProjectName, mockCosenseSid, { pageTitle: 'Test Page' });
+
+      expect(result.content[0]?.text).toContain('Created user: Test User');
+      expect(result.content[0]?.text).toContain('Last editor: Update User');
+      expect(result.content[0]?.text).toContain('Other editors: Collab User');
+      expect(mockedCosense.withUserNames).toHaveBeenCalledWith(mockProjectName, [mockPageResponse], mockCosenseSid);
+    });
+
+    test('名前が引けなければ、作成者・編集者の行を出さないこと（undefined と出さない）', async () => {
+      const idsOnly = {
+        ...mockPageResponse,
+        user: { id: 'user1' },
+        lastUpdateUser: { id: 'user2' },
+        collaborators: undefined,
+        users: [{ id: 'user1' }],
+      } as unknown as typeof mockPageResponse;
+      mockedCosense.getPage.mockResolvedValue(idsOnly);
+      mockedCosense.toReadablePage.mockReturnValue(mockReadablePageResponse);
+
+      const result = await handleGetPage(mockProjectName, mockCosenseSid, { pageTitle: 'Test Page' });
+
+      expect(result.content[0]?.text).not.toContain('Created user');
+      expect(result.content[0]?.text).not.toContain('Last editor');
+      expect(result.content[0]?.text).not.toContain('undefined');
+    });
+
+    test('compact では名前を出さないので、メンバー一覧を引かないこと', async () => {
+      mockedCosense.getPage.mockResolvedValue(mockPageResponse);
+      mockedCosense.toReadablePage.mockReturnValue(mockReadablePageResponse);
+
+      await handleGetPage(mockProjectName, mockCosenseSid, { pageTitle: 'Test Page', compact: true });
+
+      expect(mockedCosense.withUserNames).not.toHaveBeenCalled();
+    });
   });
 
   describe('正常ケース', () => {
@@ -132,7 +175,8 @@ describe('handleGetPage', () => {
 
       expect(result.isError).toBeUndefined();
       expect(result.content[0]?.text).toContain('Title: Test Page');
-      expect(result.content[0]?.text).toContain('Other editors: ');
+      // 他の編集者がいなければ、その行は出さない
+      expect(result.content[0]?.text).not.toContain('Other editors');
     });
   });
 

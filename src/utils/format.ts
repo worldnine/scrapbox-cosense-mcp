@@ -96,6 +96,31 @@ export interface FormatPageOptions {
   showSnippet?: boolean;
 }
 
+type NamedUser = { id: string; displayName?: string | undefined };
+
+/**
+ * 作成者・最終編集者・他の編集者の行。表示名が無い人の行は出さない。
+ *
+ * 本家は2026年1月から、ページと一覧の API でユーザーを ID だけで返す。名前は
+ * withUserNames（メンバー一覧）で付けてから渡す。`user` が作成者、`lastUpdateUser` が
+ * 最終編集者（@cosense/types の定義どおり）。get_page・リソース読み取り・一覧・検索で共通に使う
+ */
+export function formatEditorLines(page: {
+  user?: NamedUser | undefined;
+  lastUpdateUser?: NamedUser | undefined;
+  collaborators?: NamedUser[] | undefined;
+}): string[] {
+  const lines: string[] = [];
+  if (page.user?.displayName) lines.push(`Created user: ${page.user.displayName}`);
+  if (page.lastUpdateUser?.displayName) lines.push(`Last editor: ${page.lastUpdateUser.displayName}`);
+  const others = (page.collaborators ?? [])
+    .filter(collab => collab.id !== page.user?.id && collab.id !== page.lastUpdateUser?.id)
+    .map(collab => collab.displayName)
+    .filter((name, index, self): name is string => Boolean(name) && self.indexOf(name) === index);
+  if (others.length > 0) lines.push(`Other editors: ${others.join(', ')}`);
+  return lines;
+}
+
 export function formatYmd(date: Date): string {
   const y = date.getFullYear();
   const m = date.getMonth() + 1;
@@ -218,28 +243,7 @@ export function formatPageOutput(
     lines.push(`Sort value: ${options.sortValue}`);
   }
 
-  // 作成者・最終更新者の表示。一覧の API は user を ID だけで返すので、表示名が無ければ出さない
-  if (page.user?.displayName) {
-    lines.push(`Created user: ${page.user.displayName}`);
-  }
-
-  if (page.lastUpdateUser?.displayName) {
-    lines.push(`Last editor: ${page.lastUpdateUser.displayName}`);
-  }
-
-  if (page.collaborators && page.collaborators.length > 0) {
-    const uniqueCollaborators = page.collaborators
-      .filter(collab => 
-        collab.id !== page.user?.id && 
-        collab.id !== page.lastUpdateUser?.id
-      )
-      .map(collab => collab.displayName)
-      .filter((value, index, self) => Boolean(value) && self.indexOf(value) === index);
-
-    if (uniqueCollaborators.length > 0) {
-      lines.push(`Other editors: ${uniqueCollaborators.join(', ')}`);
-    }
-  }
+  lines.push(...formatEditorLines(page));
 
   if (options.showSnippet && page.lines) {
     lines.push('Snippet:');
