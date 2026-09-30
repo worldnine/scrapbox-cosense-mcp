@@ -181,6 +181,14 @@ describe('writePage', () => {
     expect(mockedFetch).not.toHaveBeenCalled();
   });
 
+  test('SIDの patch が失敗し、PATも入っていれば、SIDが優先されていることを添える', async () => {
+    mockedPatch.mockResolvedValue({ ok: false, err: { name: 'NotLoggedInError', message: 'expired' } } as never);
+
+    const result = await writePage(project, title, lines => lines, 'test-sid');
+
+    expect(!result.ok && result.err).toMatch(/^WebSocket patch failed: .*expired.*COSENSE_SID takes precedence over COSENSE_MCP_PAT/);
+  });
+
   test('SIDの patch が失敗すれば、以前と同じ文言でエラーを返す', async () => {
     delete process.env.COSENSE_MCP_PAT;
     mockedPatch.mockResolvedValue({ ok: false, err: { name: 'SocketIOError', message: 'boom' } } as never);
