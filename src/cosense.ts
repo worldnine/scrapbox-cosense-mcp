@@ -1,6 +1,16 @@
 import { fetch } from "@whatwg-node/fetch";
 import { sortPages } from './utils/sort.js';
+import { credentialHeaders, resolveCredential } from './utils/auth.js';
 const API_DOMAIN = process.env.API_DOMAIN || "scrapbox.io";
+
+/**
+ * プロジェクトに合う資格情報（PAT・Service Account・SID）を付けて GET する。
+ * 資格情報が無ければ何も付けない（公開プロジェクトはそのまま読める）。
+ */
+function fetchWithCredential(url: string, projectName: string, sid?: string) {
+  const headers = credentialHeaders(resolveCredential(projectName, sid));
+  return Object.keys(headers).length > 0 ? fetch(url, { headers }) : fetch(url);
+}
 
 // /api/pages/:projectname/search/query の型定義
 type SearchQueryResponse = {
@@ -99,11 +109,7 @@ async function getPage(
   try {
     const url = `https://${API_DOMAIN}/api/pages/v2/${projectName}/${encodeURIComponent(pageName)}`;
 
-    const response = sid
-      ? await fetch(url, {
-          headers: { Cookie: `connect.sid=${sid}` },
-        })
-      : await fetch(url);
+    const response = await fetchWithCredential(url, projectName, sid);
 
     if (!response.ok) {
       return null;
@@ -274,11 +280,7 @@ async function listPages(
       params: Object.fromEntries(params.entries())
     };
 
-    const response = sid
-      ? await fetch(url, {
-          headers: { Cookie: `connect.sid=${sid}` },
-        })
-      : await fetch(url);
+    const response = await fetchWithCredential(url, projectName, sid);
     
     if (!response.ok) {
       return {
@@ -368,9 +370,7 @@ async function searchPages(
     searchQuery: query,
   };
 
-  const response = sid
-    ? await fetch(url, { headers: { Cookie: `connect.sid=${sid}` } })
-    : await fetch(url);
+  const response = await fetchWithCredential(url, projectName, sid);
 
   if (!response.ok) {
     return {
@@ -457,21 +457,19 @@ type SmartContextResult =
  * @param projectName プロジェクト名
  * @param title ページタイトル
  * @param hopCount リンクのホップ数（1 or 2）
- * @param sid セッションID（必須）
+ * @param sid セッションID。PAT（`COSENSE_PAT` や `~/.cosense/settings.json`）があれば無くてよい
  * @returns 成功時はテキスト、失敗時はエラーメッセージ
  */
 async function getSmartContext(
   projectName: string,
   title: string,
   hopCount: 1 | 2,
-  sid: string,
+  sid?: string,
 ): Promise<SmartContextResult> {
   try {
     const url = `https://${API_DOMAIN}/api/smart-context/export-${hopCount}hop-links/${projectName}.txt?title=${encodeURIComponent(title)}`;
 
-    const response = await fetch(url, {
-      headers: { Cookie: `connect.sid=${sid}` },
-    });
+    const response = await fetchWithCredential(url, projectName, sid);
 
     if (!response.ok) {
       return { ok: false, error: `API error: ${response.status} ${response.statusText}` };

@@ -1,4 +1,4 @@
-import { getPage, listPages, searchPages, createPageUrl, toReadablePage, withUserNames, clearMembersCache } from '@/cosense.js';
+import { getPage, listPages, searchPages, createPageUrl, toReadablePage, withUserNames, clearMembersCache, getSmartContext } from '@/cosense.js';
 import { fetch } from '@whatwg-node/fetch';
 
 // fetchをモック
@@ -68,6 +68,25 @@ describe('cosense API functions', () => {
       expect(mockedFetch).toHaveBeenCalledWith(
         expect.stringContaining(`/api/pages/v2/${mockProjectName}/Test%20Page`),
       );
+    });
+
+    test('COSENSE_PATがあればSIDの代わりにPATのヘッダを付けること', async () => {
+      process.env.COSENSE_PAT = 'test-pat';
+      try {
+        mockedFetch.mockResolvedValue({
+          ok: true,
+          json: () => Promise.resolve(mockPageResponse),
+        } as Response);
+
+        await getPage(mockProjectName, 'Test Page', mockSid);
+
+        expect(mockedFetch).toHaveBeenCalledWith(
+          expect.stringContaining(`/api/pages/${mockProjectName}/Test%20Page`),
+          { headers: { 'x-personal-access-token': 'test-pat' } },
+        );
+      } finally {
+        delete process.env.COSENSE_PAT;
+      }
     });
 
     test('APIエラーの場合にnullを返すこと', async () => {
@@ -415,6 +434,37 @@ describe('cosense API functions', () => {
       const result = toReadablePage(responseWithoutLastUpdate);
 
       expect(result.lastUpdateUser).toBeUndefined();
+    });
+  });
+
+  describe('getSmartContext', () => {
+    afterEach(() => {
+      delete process.env.COSENSE_PAT;
+    });
+
+    test('SIDのcookieを付けて取得すること', async () => {
+      mockedFetch.mockResolvedValue({ ok: true, text: () => Promise.resolve('context') } as Response);
+
+      const result = await getSmartContext(mockProjectName, 'Test Page', 1, mockSid);
+
+      expect(result).toEqual({ ok: true, text: 'context' });
+      expect(mockedFetch).toHaveBeenCalledWith(
+        expect.stringContaining(`/api/smart-context/export-1hop-links/${mockProjectName}.txt?title=Test%20Page`),
+        { headers: { Cookie: `connect.sid=${mockSid}` } },
+      );
+    });
+
+    test('SIDが無くてもCOSENSE_PATで取得すること', async () => {
+      process.env.COSENSE_PAT = 'test-pat';
+      mockedFetch.mockResolvedValue({ ok: true, text: () => Promise.resolve('context') } as Response);
+
+      const result = await getSmartContext(mockProjectName, 'Test Page', 2);
+
+      expect(result).toEqual({ ok: true, text: 'context' });
+      expect(mockedFetch).toHaveBeenCalledWith(
+        expect.stringContaining(`/api/smart-context/export-2hop-links/${mockProjectName}.txt`),
+        { headers: { 'x-personal-access-token': 'test-pat' } },
+      );
     });
   });
 });
