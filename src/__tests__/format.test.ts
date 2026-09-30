@@ -132,6 +132,20 @@ describe('format utilities', () => {
       expect(result).toContain('Other editors: Collab User');
     });
 
+    test('表示名の無い作成者・編集者は出さないこと（一覧の API は ID だけを返す）', () => {
+      const result = formatPageOutput({
+        title: 'Test Page',
+        user: { id: 'user1' },
+        lastUpdateUser: { id: 'user2' },
+        collaborators: [{ id: 'user3' }],
+      } as unknown as Parameters<typeof formatPageOutput>[0], 0);
+
+      expect(result).not.toContain('Created user');
+      expect(result).not.toContain('Last editor');
+      expect(result).not.toContain('Other editors');
+      expect(result).not.toContain('undefined');
+    });
+
     test('skipオプションを正しく適用すること', () => {
       const result = formatPageOutput(mockExtendedPage, 2, { skip: 10 });
       expect(result).toContain('Page number: 13'); // 10 + 2 + 1

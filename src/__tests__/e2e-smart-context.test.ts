@@ -6,10 +6,13 @@ const exec = promisify(execFile);
 const CLI = resolve(__dirname, '../../build/index.js');
 
 // E2Eテスト: 実際のCosense APIを叩く
-// COSENSE_SID と COSENSE_PROJECT_NAME が設定されている場合のみ実行
-const hasCreds = process.env.COSENSE_SID && process.env.COSENSE_PROJECT_NAME;
+// COSENSE_E2E=true を付け、COSENSE_SID と COSENSE_PROJECT_NAME もあるときだけ実行する。
+// 資格情報がシェルにあるだけで走ると、npm test を回すたびに Smart Context（重い 2hop を含む）を
+// 何度も叩き、Cosense 側の回数制限（429）に当たる。本家に負担をかけないよう、明示したときだけにする
+const runE2E = process.env.COSENSE_E2E === 'true'
+  && process.env.COSENSE_SID && process.env.COSENSE_PROJECT_NAME;
 
-const describeE2E = hasCreds ? describe : describe.skip;
+const describeE2E = runE2E ? describe : describe.skip;
 
 describeE2E('get_smart_context E2E', () => {
   const timeout = 30000;

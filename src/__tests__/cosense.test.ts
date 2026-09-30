@@ -1,4 +1,4 @@
-import { getPage, listPages, searchPages, createPageUrl, toReadablePage } from '@/cosense.js';
+import { getPage, listPages, searchPages, createPageUrl, toReadablePage, withUserNames } from '@/cosense.js';
 import { fetch } from '@whatwg-node/fetch';
 
 // fetchをモック
@@ -49,7 +49,7 @@ describe('cosense API functions', () => {
 
       expect(result).toEqual(mockPageResponse);
       expect(mockedFetch).toHaveBeenCalledWith(
-        expect.stringContaining(`/api/pages/${mockProjectName}/Test%20Page`),
+        expect.stringContaining(`/api/pages/v2/${mockProjectName}/Test%20Page`),
         expect.objectContaining({
           headers: { Cookie: `connect.sid=${mockSid}` },
         })
@@ -66,7 +66,7 @@ describe('cosense API functions', () => {
 
       expect(result).toEqual(mockPageResponse);
       expect(mockedFetch).toHaveBeenCalledWith(
-        expect.stringContaining(`/api/pages/${mockProjectName}/Test%20Page`),
+        expect.stringContaining(`/api/pages/v2/${mockProjectName}/Test%20Page`),
       );
     });
 
@@ -113,52 +113,22 @@ describe('cosense API functions', () => {
           title: 'Page 1',
           created: 1700000000,
           updated: 1700001000,
+          descriptions: ['Content 1'],
         },
         {
           title: 'Page 2',
           created: 1700002000,
           updated: 1700003000,
+          descriptions: ['Content 2'],
         },
       ],
     };
 
-    test('正常にページリストを取得できること', async () => {
+    test('一覧のAPIを1回だけ呼び、ページごとの詳細は取り直さないこと', async () => {
       mockedFetch.mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockListResponse),
       } as Response);
-
-      // getPageのモック（詳細情報取得用）
-      mockedFetch.mockImplementation((url) => {
-        if (url.toString().includes('/api/pages/')) {
-          if (url.toString().includes('Page%201')) {
-            return Promise.resolve({
-              ok: true,
-              json: () => Promise.resolve({
-                ...mockListResponse.pages[0],
-                lines: [{ id: 'line1', text: 'Content 1' }],
-                user: { id: 'user1', displayName: 'User 1' },
-                collaborators: [],
-              }),
-            } as Response);
-          }
-          if (url.toString().includes('Page%202')) {
-            return Promise.resolve({
-              ok: true,
-              json: () => Promise.resolve({
-                ...mockListResponse.pages[1],
-                lines: [{ id: 'line2', text: 'Content 2' }],
-                user: { id: 'user2', displayName: 'User 2' },
-                collaborators: [],
-              }),
-            } as Response);
-          }
-        }
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve(mockListResponse),
-        } as Response);
-      });
 
       const result = await listPages(mockProjectName, mockSid, {
         limit: 10,
@@ -168,7 +138,13 @@ describe('cosense API functions', () => {
 
       expect(result.pages).toHaveLength(2);
       expect(result.projectName).toBe(mockProjectName);
-      expect(mockedFetch).toHaveBeenCalled();
+      // 冒頭の行は一覧の API が返すものをそのまま使う
+      expect(result.pages[0]?.descriptions).toEqual(['Content 1']);
+      expect(mockedFetch).toHaveBeenCalledTimes(1);
+      expect(mockedFetch).toHaveBeenCalledWith(
+        expect.stringContaining(`/api/pages/${mockProjectName}?`),
+        expect.any(Object)
+      );
     });
 
     test('デフォルトパラメータが正しく適用されること', async () => {
@@ -204,6 +180,55 @@ describe('cosense API functions', () => {
 
       expect(result.pages).toEqual([]);
       expect(result.debug?.error).toContain('API error: 500 Internal Server Error');
+    });
+  });
+
+  describe('withUserNames', () => {
+    const members = {
+      projectId: 'project1',
+      users: [
+        { id: 'u1', name: 'alice', displayName: 'Alice', photo: 'a.png', email: 'alice@example.com' },
+        { id: 'u2', name: 'bob', displayName: 'Bob', photo: 'b.png', email: 'bob@example.com' },
+        { id: 'u3', name: 'carol', displayName: 'Carol', photo: 'c.png', email: 'carol@example.com' },
+      ],
+    };
+    const pages = [
+      { title: 'Page 1', user: { id: 'u1' }, lastUpdateUser: { id: 'u2' }, users: [{ id: 'u1' }, { id: 'u3' }, { id: 'unknown' }] },
+      { title: 'Page 2', user: { id: 'u2' }, lastUpdateUser: { id: 'u2' }, users: [{ id: 'u2' }] },
+    ] as unknown as Parameters<typeof withUserNames>[1];
+
+    test('メンバー一覧を1回だけ引き、作成者・最終編集者・他の編集者に名前を付けること', async () => {
+      mockedFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve(members) } as Response);
+
+      const result = await withUserNames(mockProjectName, pages, mockSid);
+
+      expect(mockedFetch).toHaveBeenCalledTimes(1);
+      expect(mockedFetch).toHaveBeenCalledWith(
+        `https://scrapbox.io/api/projects/${mockProjectName}/users`,
+        { headers: { Cookie: `connect.sid=${mockSid}` } },
+      );
+      expect(result[0]?.user?.displayName).toBe('Alice');
+      expect(result[0]?.lastUpdateUser?.displayName).toBe('Bob');
+      // メンバー一覧に無い ID は落とす
+      expect(result[0]?.collaborators?.map(c => c.displayName)).toEqual(['Alice', 'Carol']);
+      expect(result[1]?.user?.displayName).toBe('Bob');
+      // メールアドレスは持ち込まない
+      expect(JSON.stringify(result)).not.toContain('@example.com');
+    });
+
+    test('メンバー一覧が引けなければ、ページをそのまま返すこと', async () => {
+      mockedFetch.mockResolvedValue({ ok: false, status: 403 } as Response);
+
+      const result = await withUserNames(mockProjectName, pages, mockSid);
+
+      expect(result).toBe(pages);
+    });
+
+    test('ページが無ければ問い合わせないこと', async () => {
+      const result = await withUserNames(mockProjectName, [], mockSid);
+
+      expect(result).toEqual([]);
+      expect(mockedFetch).not.toHaveBeenCalled();
     });
   });
 

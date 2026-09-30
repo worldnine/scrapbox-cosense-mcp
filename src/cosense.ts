@@ -49,7 +49,8 @@ type SearchQueryResponse = {
   };
 };
 
-// /api/pages/:projectname/:pagetitle
+// /api/pages/v2/:projectname/:pagetitle
+// v1 との違いは relatedPages（関連ページリスト）を返さないことだけ。使っていない上に応答の大半を占めるため v2 を使う
 type GetPageResponse = {
   id: string;
   title: string;
@@ -63,12 +64,6 @@ type GetPageResponse = {
   created: number;
   updated: number;
   links: string[];
-  relatedPages: {
-    links1hop: {
-      title: string;
-      descriptions: string[];
-    }[];
-  };
   user: {              // 追加: 最新の編集者情報
     id: string;
     name: string;
@@ -100,8 +95,7 @@ async function getPage(
   sid?: string,
 ): Promise<GetPageResponse | null> {
   try {
-    const url = `https://${API_DOMAIN}/api/pages/${projectName}/${encodeURIComponent(pageName)}`;
-    
+    const url = `https://${API_DOMAIN}/api/pages/v2/${projectName}/${encodeURIComponent(pageName)}`;
 
     const response = sid
       ? await fetch(url, {
@@ -215,6 +209,8 @@ type ListPagesResponse = {
     views?: number | undefined;
     linked?: number | undefined;
     pin?: number | undefined;
+    /** 冒頭の最大5行（ページのカードに出る本文） */
+    descriptions?: string[] | undefined;
     user?: {
       id: string;
       name: string;
@@ -227,6 +223,15 @@ type ListPagesResponse = {
       displayName: string;
       photo: string;
     } | undefined;
+    /** このページを編集した人。一覧の API は ID だけを返す */
+    users?: { id: string }[] | undefined;
+    /** users を名前に引き直したもの（withUserNames が付ける） */
+    collaborators?: {
+      id: string;
+      name: string;
+      displayName: string;
+      photo: string;
+    }[] | undefined;
   }[];
 };
 
@@ -287,37 +292,24 @@ async function listPages(
       };
     }
 
-    const pages = await response.json();
-    const pagesWithDetails = await Promise.all(
-      (pages as ListPagesResponse).pages.map(async (page) => {
-        const pageDetails = await getPage(projectName, page.title, sid);
-        if (pageDetails) {
-          return {
-            ...page,
-            user: pageDetails.user,
-            lastUpdateUser: pageDetails.lastUpdateUser,
-            created: pageDetails.created,
-            updated: pageDetails.updated,
-            collaborators: pageDetails.collaborators,
-            descriptions: pageDetails.lines?.slice(0, 5).map(line => line.text) || []
-          };
-        }
-        return page;
-      })
-    );
+    // 一覧の API は冒頭5行（descriptions）・作成日・更新日・ピン・閲覧数などを最初から返す。
+    // 以前はページごとに詳細を取り直していたが、1回の一覧が数百〜千件の要求になり、
+    // サーバー起動のたびにも100件が一斉に飛んでいた。一覧に無いのは作成者と編集者だけで、
+    // それは get_page で見られる
+    const pages = await response.json() as ListPagesResponse;
 
     // ソートとフィルタリングを適用
-    const sortedPages = sortPages(pagesWithDetails, { 
+    const sortedPages = sortPages(pages.pages, { 
       sort: sort ?? undefined, 
       excludePinned: excludePinned ?? undefined 
     });
 
     return {
-      ...(pages as ListPagesResponse),
+      ...pages,
       pages: sortedPages,
       debug: {
         ...debugInfo,
-        originalCount: pagesWithDetails.length,
+        originalCount: pages.pages.length,
         filteredCount: sortedPages.length,
         appliedSort: sort || 'created',
         excludedPinned: excludePinned || false
@@ -489,8 +481,59 @@ async function getSmartContext(
   }
 }
 
+type ProjectMember = { id: string; name: string; displayName: string; photo: string };
+
+/**
+ * プロジェクトのメンバーを ID で引ける形にする。引けなければ空（資格情報なしの公開プロジェクトなど）。
+ *
+ * `/api/projects/:project` ではなく `/users` を使うのは、こちらが PAT でも通るため（公式 CLI と同じ）。
+ * 応答にはメールアドレスも入っているが、名前と写真だけを取り出す。
+ */
+async function getProjectMembers(projectName: string, sid?: string): Promise<Map<string, ProjectMember>> {
+  const members = new Map<string, ProjectMember>();
+  try {
+    const url = `https://${API_DOMAIN}/api/projects/${projectName}/users`;
+    const response = sid
+      ? await fetch(url, { headers: { Cookie: `connect.sid=${sid}` } })
+      : await fetch(url);
+    if (!response.ok) return members;
+    const body = await response.json() as { users?: ProjectMember[] } | ProjectMember[];
+    const users = Array.isArray(body) ? body : body.users ?? [];
+    for (const { id, name, displayName, photo } of users) {
+      if (id && displayName) members.set(id, { id, name, displayName, photo });
+    }
+  } catch {
+    // 名前が引けなくても一覧は返せるので、ここでは諦める
+  }
+  return members;
+}
+
+/**
+ * 一覧のページに、作成者・最終編集者・他の編集者の名前を付ける。
+ *
+ * 一覧の API はユーザーを ID だけで返す（2026年1月に本家がページの API から名前を外した）。
+ * 本家の web と同じく、名前はメンバー一覧から引く。ページごとに詳細を取り直すのと違い、
+ * 何ページあっても要求は1回で済む。メンバー一覧が引けなければ、ページはそのまま返す。
+ */
+async function withUserNames<T extends ListPagesResponse['pages'][number]>(
+  projectName: string,
+  pages: T[],
+  sid?: string,
+): Promise<T[]> {
+  if (pages.length === 0) return pages;
+  const members = await getProjectMembers(projectName, sid);
+  if (members.size === 0) return pages;
+  const named = (ref: { id: string } | undefined) => (ref ? members.get(ref.id) : undefined);
+  return pages.map(page => ({
+    ...page,
+    user: named(page.user) ?? page.user,
+    lastUpdateUser: named(page.lastUpdateUser) ?? page.lastUpdateUser,
+    collaborators: (page.users ?? []).map(named).filter((m): m is ProjectMember => m !== undefined),
+  }));
+}
+
 // 型のエクスポート
 export type { ListPagesResponse };
 
 // 関数のエクスポート
-export { getPage, listPages, listPagesWithSort, toReadablePage, createPageUrl, searchPages, getSmartContext };
+export { getPage, listPages, listPagesWithSort, toReadablePage, createPageUrl, searchPages, getSmartContext, withUserNames };
