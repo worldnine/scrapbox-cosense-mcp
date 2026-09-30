@@ -1,6 +1,6 @@
 {
   "name": "scrapbox-cosense-mcp",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "MCP server for cosense",
   "private": false,
   "license": "MIT",
