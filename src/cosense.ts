@@ -82,6 +82,8 @@ type GetPageResponse = {
     displayName: string;
     photo: string;
   }[];
+  /** このページを編集した人。API は ID だけを返す（名前は withUserNames で付ける） */
+  users?: { id: string }[] | undefined;
   persistent?: boolean | undefined;
   debug?: {
     error?: string;
@@ -489,7 +491,27 @@ type ProjectMember = { id: string; name: string; displayName: string; photo: str
  * `/api/projects/:project` ではなく `/users` を使うのは、こちらが PAT でも通るため（公式 CLI と同じ）。
  * 応答にはメールアドレスも入っているが、名前と写真だけを取り出す。
  */
-async function getProjectMembers(projectName: string, sid?: string): Promise<Map<string, ProjectMember>> {
+// メンバー一覧を覚えておく時間。get_page は呼ばれる回数が多く、毎回引くと要求が倍になる。
+// 引けなかった結果（空）も覚える。資格情報なしで非公開プロジェクトを見るたびに無駄打ちしないため
+const MEMBERS_TTL_MS = 5 * 60 * 1000;
+// 取得中の Promise を覚えるので、同時に来た呼び出しも同じ1回の要求を待つ
+const membersCache = new Map<string, { members: Promise<Map<string, ProjectMember>>; expiresAt: number }>();
+
+/** テスト用: 覚えておいたメンバー一覧を捨てる */
+function clearMembersCache(): void {
+  membersCache.clear();
+}
+
+function getProjectMembers(projectName: string, sid?: string): Promise<Map<string, ProjectMember>> {
+  const key = `${projectName}\n${sid ?? ''}`;
+  const cached = membersCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) return cached.members;
+  const members = fetchProjectMembers(projectName, sid);
+  membersCache.set(key, { members, expiresAt: Date.now() + MEMBERS_TTL_MS });
+  return members;
+}
+
+async function fetchProjectMembers(projectName: string, sid?: string): Promise<Map<string, ProjectMember>> {
   const members = new Map<string, ProjectMember>();
   try {
     const url = `https://${API_DOMAIN}/api/projects/${projectName}/users`;
@@ -509,13 +531,19 @@ async function getProjectMembers(projectName: string, sid?: string): Promise<Map
 }
 
 /**
- * 一覧のページに、作成者・最終編集者・他の編集者の名前を付ける。
+ * ページ（一覧の各ページや get_page のページ）に、作成者・最終編集者・他の編集者の名前を付ける。
  *
- * 一覧の API はユーザーを ID だけで返す（2026年1月に本家がページの API から名前を外した）。
+ * ページと一覧の API はユーザーを ID だけで返す（2026年1月に本家が名前を外した）。
  * 本家の web と同じく、名前はメンバー一覧から引く。ページごとに詳細を取り直すのと違い、
  * 何ページあっても要求は1回で済む。メンバー一覧が引けなければ、ページはそのまま返す。
  */
-async function withUserNames<T extends ListPagesResponse['pages'][number]>(
+type UserRefs = {
+  user?: { id: string } | undefined;
+  lastUpdateUser?: { id: string } | undefined;
+  users?: { id: string }[] | undefined;
+};
+
+async function withUserNames<T extends UserRefs>(
   projectName: string,
   pages: T[],
   sid?: string,
@@ -536,4 +564,4 @@ async function withUserNames<T extends ListPagesResponse['pages'][number]>(
 export type { ListPagesResponse };
 
 // 関数のエクスポート
-export { getPage, listPages, listPagesWithSort, toReadablePage, createPageUrl, searchPages, getSmartContext, withUserNames };
+export { getPage, listPages, listPagesWithSort, toReadablePage, createPageUrl, searchPages, getSmartContext, withUserNames, clearMembersCache };

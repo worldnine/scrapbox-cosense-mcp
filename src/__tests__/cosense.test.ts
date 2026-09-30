@@ -1,4 +1,4 @@
-import { getPage, listPages, searchPages, createPageUrl, toReadablePage, withUserNames } from '@/cosense.js';
+import { getPage, listPages, searchPages, createPageUrl, toReadablePage, withUserNames, clearMembersCache } from '@/cosense.js';
 import { fetch } from '@whatwg-node/fetch';
 
 // fetchをモック
@@ -197,6 +197,10 @@ describe('cosense API functions', () => {
       { title: 'Page 2', user: { id: 'u2' }, lastUpdateUser: { id: 'u2' }, users: [{ id: 'u2' }] },
     ] as unknown as Parameters<typeof withUserNames>[1];
 
+    beforeEach(() => {
+      clearMembersCache();
+    });
+
     test('メンバー一覧を1回だけ引き、作成者・最終編集者・他の編集者に名前を付けること', async () => {
       mockedFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve(members) } as Response);
 
@@ -222,6 +226,54 @@ describe('cosense API functions', () => {
       const result = await withUserNames(mockProjectName, pages, mockSid);
 
       expect(result).toBe(pages);
+    });
+
+    test('メンバー一覧は覚えておき、2回目からは問い合わせないこと', async () => {
+      mockedFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve(members) } as Response);
+
+      await withUserNames(mockProjectName, pages, mockSid);
+      const second = await withUserNames(mockProjectName, pages, mockSid);
+
+      expect(mockedFetch).toHaveBeenCalledTimes(1);
+      expect(second[0]?.user?.displayName).toBe('Alice');
+    });
+
+    test('同時に呼ばれても、問い合わせは1回だけで、どちらにも名前が付くこと', async () => {
+      mockedFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve(members) } as Response);
+
+      const [a, b] = await Promise.all([
+        withUserNames(mockProjectName, pages, mockSid),
+        withUserNames(mockProjectName, pages, mockSid),
+      ]);
+
+      expect(mockedFetch).toHaveBeenCalledTimes(1);
+      expect(a[0]?.user?.displayName).toBe('Alice');
+      expect(b[0]?.user?.displayName).toBe('Alice');
+    });
+
+    test('引けなかった結果も覚えておき、無駄に問い合わせ直さないこと', async () => {
+      mockedFetch.mockResolvedValue({ ok: false, status: 403 } as Response);
+
+      await withUserNames(mockProjectName, pages, mockSid);
+      await withUserNames(mockProjectName, pages, mockSid);
+
+      expect(mockedFetch).toHaveBeenCalledTimes(1);
+    });
+
+    test('数分たてば問い合わせ直すこと', async () => {
+      const now = jest.spyOn(Date, 'now');
+      try {
+        now.mockReturnValue(1_000_000);
+        mockedFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve(members) } as Response);
+        await withUserNames(mockProjectName, pages, mockSid);
+
+        now.mockReturnValue(1_000_000 + 5 * 60 * 1000 + 1);
+        await withUserNames(mockProjectName, pages, mockSid);
+
+        expect(mockedFetch).toHaveBeenCalledTimes(2);
+      } finally {
+        now.mockRestore();
+      }
     });
 
     test('ページが無ければ問い合わせないこと', async () => {
