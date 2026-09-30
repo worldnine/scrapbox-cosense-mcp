@@ -1,7 +1,8 @@
-import { patch } from '@cosense/std/websocket';
+import { writePage } from '../../page-writer.js';
+import { resolveCredential } from '../../utils/auth.js';
 import { getPage } from '../../cosense.js';
 import { convertMarkdownToScrapbox } from '../../utils/markdown-converter.js';
-import { formatError, stringifyError } from '../../utils/format.js';
+import { formatError } from '../../utils/format.js';
 import { checkProjectAllowed } from '../../utils/project.js';
 import { isDeleteEnabled } from './delete-page.js';
 
@@ -45,9 +46,9 @@ export async function handleRewritePage(
       );
     }
 
-    if (!cosenseSid) {
+    if (!resolveCredential(projectName, cosenseSid)) {
       return formatError(
-        'Authentication required: COSENSE_SID is needed for rewriting pages',
+        'Authentication required: COSENSE_PAT or COSENSE_SID is needed for rewriting pages',
         errorDetails(),
         params.compact
       );
@@ -124,14 +125,12 @@ export async function handleRewritePage(
       };
     }
 
-    const result = await patch(projectName, params.pageTitle, () => {
+    const result = await writePage(projectName, params.pageTitle, () => {
       return newLines.map(text => ({ text }));
-    }, {
-      sid: cosenseSid,
-    });
+    }, cosenseSid);
 
     if (!result.ok) {
-      throw new Error(`WebSocket patch failed: ${stringifyError(result.err)}`);
+      throw new Error(`Page write failed: ${result.err}`);
     }
 
     if (params.compact) {
