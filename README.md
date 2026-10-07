@@ -183,6 +183,11 @@ npm install && npm run build
 | `COSENSE_EXCLUDE_PINNED` | `false` | Exclude pinned pages from initial resource list |
 | `COSENSE_ENABLE_DELETE` | `false` | Register the `delete_page` and `rewrite_page` tools (and the `delete` / `rewrite` CLI commands). Without it, none are available |
 | `COSENSE_PROJECT_ALLOW_LIST` | — | Comma-separated project names that `projectName` / `--project` may target. `COSENSE_PROJECT_NAME` is always allowed. Unset means no restriction; set to an empty value means the default project only |
+| `TRANSPORT` | stdio | Set to `http` to serve Streamable HTTP at `/mcp` instead of stdio. Without authentication the server refuses to start unless `MCP_ALLOW_UNAUTHENTICATED=true` (local use only) |
+| `PORT` | `3000` | Port for the HTTP transport |
+| `MCP_HTTP_HOST` | `127.0.0.1` | Address the HTTP transport listens on. For anything other than localhost, also set `MCP_ALLOWED_HOSTS` |
+| `MCP_ALLOWED_HOSTS` | — | Comma-separated `Host` header values the HTTP transport accepts (DNS rebinding protection) |
+| `MCP_ALLOW_UNAUTHENTICATED` | — | `true` lets the HTTP transport start with no authentication |
 
 ## CLI Usage
 
