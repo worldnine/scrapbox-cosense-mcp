@@ -49,6 +49,8 @@ Every tool accepts a `projectName` override, which is how one server serves seve
 - Empty content is rejected — removing a page is `delete_page`'s job.
 - `dryRun: true` reports the before/after line counts and previews without touching the page.
 
+`rewrite_page` replaces the whole page. If another edit lands while a rewrite is in flight, the rewrite re-applies on the 409 retry and the concurrent edit is lost silently.
+
 When you run several instances of this server for different projects, set the variable on each instance that should be allowed to delete:
 
 ```json
