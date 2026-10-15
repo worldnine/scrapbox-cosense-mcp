@@ -487,11 +487,25 @@ const createServer = (): Server => {
 };
 
 async function main() {
+  if (process.env.TRANSPORT === "http") {
+    const { startHttpServer } = await import("./http-server.js");
+    const allowedHosts = process.env.MCP_ALLOWED_HOSTS?.split(",").map((h) => h.trim()).filter(Boolean);
+    startHttpServer(createServer, {
+      port: parseInt(process.env.PORT || "3000", 10),
+      ...(process.env.MCP_HTTP_HOST ? { host: process.env.MCP_HTTP_HOST } : {}),
+      allowedHosts,
+      allowUnauthenticated: process.env.MCP_ALLOW_UNAUTHENTICATED === "true",
+    });
+    return;
+  }
   const server = createServer();
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }
 
-main().catch(() => {
+main().catch((error) => {
+  // 起動拒否の理由（認証なしでの起動など）が見えるよう、stderr に出す。
+  // stdio では stdout を使えないので console.error にしてある。
+  console.error(error instanceof Error ? error.message : error);
   process.exit(1);
 });

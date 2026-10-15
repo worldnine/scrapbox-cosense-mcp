@@ -36,10 +36,14 @@
     "@cosense/types": "npm:@jsr/cosense__types@^0.10.4",
     "@modelcontextprotocol/sdk": "1.31.0",
     "@whatwg-node/fetch": "^0.10.1",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
     "md2sb": "^5.1.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.11.24",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
