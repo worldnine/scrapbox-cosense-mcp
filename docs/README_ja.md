@@ -11,12 +11,12 @@
 | `get_page` | ページコンテンツ、メタデータ、リンクを取得 | プライベートプロジェクトのみ |
 | `list_pages` | ソート・ページネーション付きでページ一覧を取得（最大1000件） | プライベートプロジェクトのみ |
 | `search_pages` | キーワード検索（検索語句ハイライト付き、最大100件） | プライベートプロジェクトのみ |
-| `create_page` | WebSocket APIでページを作成（Markdown/Scrapbox本文対応） | 必要 |
+| `create_page` | ページを作成（Markdown/Scrapbox本文対応） | 必要 |
 | `get_page_url` | ページの直接URLを生成 | 不要 |
 | `insert_lines` | ページの指定行の後にテキストを挿入 | 必要 |
 | `edit_lines` | 完全一致した行（複数行ブロックも可）を置換（既定は最初の1件、`matchAll` で全件） | 必要 |
 | `delete_lines` | 完全一致した行（複数行ブロックも可）を削除（既定は最初の1件、`matchAll` で全件） | 必要 |
-| `delete_page` | 全行を空にしてページを削除（オプトイン制。下記参照） | 必要 |
+| `delete_page` | ページを削除（オプトイン制。下記参照） | 必要 |
 | `rewrite_page` | ページ全体を新しい内容に置換（オプトイン制。下記参照） | 必要 |
 
 `create_page` と `insert_lines` と `edit_lines` と `rewrite_page` は `format` パラメータ（`"markdown"` または `"scrapbox"`）でコンテンツ変換を制御できます。
@@ -33,7 +33,7 @@
 
 考え方の基準は「呼び出し側が既存内容を知っていることの証明」です。`insert_lines` / `edit_lines` / `delete_lines` は完全一致が前提のため、実際にページを読んでいないと成功せず、壊せるのは「自分が見た行」だけです。一方 `delete_page` / `rewrite_page` は読んでいない内容も丸ごと破壊できるため、別途オプトインのゲートを設けています。
 
-`delete_page` はページの全行を空にします。Cosenseは全ての行が空になったページを自動的に削除します。取り消しはできません。さらに2つの安全策を入れてあります。
+`delete_page` はページ全体を削除します。取り消しはできません。さらに2つの安全策を入れてあります。
 
 - 対象のページが存在していることを確認します。存在しない場合は、黙って成功せずにエラーを返します。CosenseのREST APIは未作成のページに対してもタイトル行を返すため、行数ではなく `persistent` で判定しています。`create_page` の既存ページ判定と同じやり方です。
 - `dryRun: true` を指定すると、削除される行数と冒頭5行を報告するだけで、ページには一切触れません。
@@ -43,6 +43,8 @@
 - 対象のページが存在しない場合はエラーになります。`create_page` とは `persistent` の判定を逆にして、タイトルのタイポが新規ページを黙って生む事故を防ぎます。
 - 空の内容は拒否します。ページを消すのは `delete_page` の役割です。
 - `dryRun: true` を指定すると、置換前後の行数とプレビューを報告するだけで、ページには一切触れません。
+
+`rewrite_page` はページ全体を置き換えます。書き換えの途中で別の編集が入ると、409 の再試行で書き換えが再適用され、その同時編集は黙って失われます。
 
 プロジェクトごとに複数のインスタンスを動かしている場合は、削除を許すインスタンスにだけこの変数を設定してください。
 
@@ -54,7 +56,7 @@
       "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "notes",
-        "COSENSE_SID": "s:your-session-id",
+        "COSENSE_MCP_PAT": "your-personal-access-token",
         "COSENSE_TOOL_SUFFIX": "notes",
         "COSENSE_ENABLE_DELETE": "true"
       }
@@ -64,7 +66,7 @@
       "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "archive",
-        "COSENSE_SID": "s:your-session-id",
+        "COSENSE_MCP_PAT": "your-personal-access-token",
         "COSENSE_TOOL_SUFFIX": "archive"
       }
     }
@@ -82,7 +84,7 @@
 
 1. [GitHub Releases](https://github.com/worldnine/scrapbox-cosense-mcp/releases) から `scrapbox-cosense-mcp.mcpb` をダウンロード
 2. ダブルクリック — Claude Desktopのインストールダイアログが開きます
-3. プロジェクト名（プライベートプロジェクトの場合はセッションID）を入力
+3. プロジェクト名（非公開プロジェクトや編集には[Personal Access Token](./authentication.md)も）を入力
 
 ### 方法B: Claude Code プラグイン
 
@@ -100,7 +102,7 @@
    {
      "env": {
        "COSENSE_PROJECT_NAME": "your_project_name",
-       "COSENSE_SID": "your_sid"
+       "COSENSE_MCP_PAT": "your_personal_access_token"
      }
    }
    ```
@@ -118,7 +120,7 @@ MCPサーバー設定が自動適用され、`/cosense` スキルも利用可能
 ```bash
 claude mcp add scrapbox-cosense-mcp \
   -e COSENSE_PROJECT_NAME=your_project \
-  -e COSENSE_SID=your_sid \
+  -e COSENSE_MCP_PAT=your_personal_access_token \
   -- npx -y scrapbox-cosense-mcp
 ```
 
@@ -141,7 +143,7 @@ claude mcp add scrapbox-cosense-mcp \
       "args": ["-y", "scrapbox-cosense-mcp"],
       "env": {
         "COSENSE_PROJECT_NAME": "your_project_name",
-        "COSENSE_SID": "your_sid"
+        "COSENSE_MCP_PAT": "your_personal_access_token"
       }
     }
   }
@@ -163,7 +165,17 @@ npm install && npm run build
 | 変数 | 説明 |
 |------|------|
 | `COSENSE_PROJECT_NAME` | Scrapbox/Cosenseのプロジェクト名 |
-| `COSENSE_SID` | プライベートプロジェクト用のセッションID（`connect.sid` Cookie）— [取得方法](./authentication.md) |
+
+### 認証
+
+公開プロジェクトは資格情報なしで読めます。非公開プロジェクト、編集、`get_smart_context`には資格情報が必要です。詳しくは[認証](./authentication.md)を参照してください。
+
+| 変数 | 説明 |
+|------|------|
+| `COSENSE_MCP_PAT` | Personal Access Token（おすすめ）。`https://scrapbox.io/settings/personal-access-tokens`で発行する。書き込みは編集APIを通る |
+| `COSENSE_SID` | セッションID（`connect.sid` Cookie）。`COSENSE_MCP_PAT`より優先するので、今の設定はそのまま動く。PATに移るときは外す。書き込みはWebSocket APIを通る |
+
+Service Account（Business plan）のアクセスキー（`cs_`で始まる）も`COSENSE_MCP_PAT`に入れます。
 
 ### オプション
 
