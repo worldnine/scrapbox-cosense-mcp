@@ -69,6 +69,23 @@ describe('HTTP transport', () => {
       expect(res.status).toBe(404);
     });
 
+    it('answers a malformed JSON body with a JSON-RPC parse error, not an HTML stack trace', async () => {
+      const res = await fetch(`${base}/mcp`, { method: 'POST', headers, body: '{bad' });
+      expect(res.status).toBe(400);
+      expect(res.headers.get('content-type')).toContain('application/json');
+      expect((await res.json()).error.code).toBe(-32700);
+    });
+
+    it('answers an oversized body with 413 as JSON-RPC', async () => {
+      const res = await fetch(`${base}/mcp`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'x', params: { pad: 'x'.repeat(200_000) } }),
+      });
+      expect(res.status).toBe(413);
+      expect((await res.json()).error.message).toMatch(/too large/);
+    });
+
     it('rejects a Host header that is not localhost (DNS rebinding)', async () => {
       // fetch は Host を上書きさせてくれないので、node:http で直接送る
       const status = await new Promise<number>((resolve, reject) => {

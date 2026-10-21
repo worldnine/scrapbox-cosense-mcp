@@ -28,7 +28,14 @@ jobs:
     - name: Check for hardcoded secrets
       run: |
         echo "Scanning for potential secrets..."
-        if grep -rPn "\bpassword\b|\bsecret\b|\bapi_key\b|\bapi_token\b|\baccess_token\b|\bprivate_key\b" src/ --include="*.ts" --include="*.js" | grep -v "// @ts-ignore" | grep -vi "test" | grep -v "DUMMY"; then
+        # 「秘密らしい名前に、文字列リテラルを代入している」行だけを拾う。
+        # 単語が出てくるだけでは拾わない: OAuth の実装には access_token（トークン応答の必須フィールド名）や
+        # type="password"（HTML の入力欄）が必ず出てくるため。
+        # 引用符は 16 進で書く（\x22 = ", \x27 = ', \x60 = `）。シェルのクォートと衝突しないように。
+        # 拾えるもの: password = "..." / api_key: string = '...' / { access_token: "..." }
+        # 拾えないもの: access_token: accessToken（変数の代入）/ type="password"
+        PATTERN='\b(password|secret|api_key|api_token|access_token|private_key)\b[\x22\x27]?(\s*:\s*[A-Za-z<>\[\]| ]+)?\s*[:=]\s*[\x22\x27\x60][^\x22\x27\x60]{6,}[\x22\x27\x60]'
+        if grep -rPn "$PATTERN" src/ --include="*.ts" --include="*.js" | grep -v "// @ts-ignore" | grep -vi "test" | grep -v "DUMMY"; then
           echo "❌ Found potential secrets in code"
           exit 1
         else

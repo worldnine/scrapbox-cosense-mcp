@@ -56,6 +56,29 @@ This is how the server has always authenticated, and it keeps working as it is. 
 
 ---
 
+## HTTP transport authentication (OAuth 2.1)
+
+This is about who may connect **to the MCP server** over HTTP, and is separate from the Cosense credential above. Remote clients such as Claude.ai and ChatGPT only accept OAuth 2.1 for MCP servers, so that is the only mechanism the HTTP transport offers.
+
+```
+TRANSPORT=http
+MCP_PUBLIC_URL=https://mcp.example.com   # the origin clients reach this server at
+MCP_OAUTH_PASSPHRASE=<12+ characters>
+MCP_OAUTH_STORE=/data/oauth-store.json   # optional, see below
+```
+
+- The authorization server runs inside the same process. Clients register themselves (RFC 7591), send you to a consent screen on this server, and you approve by typing `MCP_OAUTH_PASSPHRASE`.
+- Without a valid access token, `/mcp` answers `401` with a `WWW-Authenticate` header that points to the protected resource metadata (RFC 9728).
+- Tokens are bound to this server (`resource`, RFC 8707): a token issued for another resource is rejected.
+- Access tokens last an hour and refresh tokens 30 days (`MCP_OAUTH_ACCESS_TTL`, `MCP_OAUTH_REFRESH_TTL`).
+- **Set `MCP_OAUTH_STORE`.** Registered clients and tokens are only hashed on disk; without a store they live in memory, and every restart makes each client authorize again.
+- The URL users enter in the client must be exactly `<MCP_PUBLIC_URL origin>/mcp`. A mismatch sends the client into a re-authorization loop.
+- Behind a reverse proxy, set `MCP_TRUST_PROXY` so the sign-in rate limit (10 attempts per 15 minutes per client IP) sees the real address.
+- The server refuses to start the HTTP transport with neither OAuth nor `MCP_ALLOW_UNAUTHENTICATED=true`.
+
+Which user a grant belongs to is decided by a `ConsentAuthenticator` (`src/auth/authenticator.ts`). The built-in one compares the passphrase and returns a single user. To authenticate people differently, pass another implementation as `OAuthConfig.authenticator`; its user ID ends up in `AuthInfo.extra.userId`.
+
+
 # 認証
 
 公開プロジェクトは資格情報なしで読めます。非公開プロジェクト、編集、`get_smart_context`には、次のどれかが必要です。
@@ -111,3 +134,25 @@ Service Accountは1つのプロジェクトに属します。プロジェクト�
 
 - `connect.sid` の値は安全に管理してください。ブラウザのログインそのもので、ブラウザでできることは何でもできます
 - Cookieは期限切れになることがあります。認証エラーが発生したら新しいCookieを取得してください
+
+## HTTP transportの認証（OAuth 2.1）
+
+Cosenseへの資格情報とは別の話で、HTTPで公開したMCPサーバーに**誰が接続してよいか**を決める仕組みです。Claude.aiやChatGPTのようなリモートのクライアントは、MCPサーバーにOAuth 2.1しか使えません。そのため、HTTP transportの認証手段もこれ1つにしています。
+
+```
+TRANSPORT=http
+MCP_PUBLIC_URL=https://mcp.example.com   # クライアントがこのサーバーに届く origin
+MCP_OAUTH_PASSPHRASE=<12文字以上>
+MCP_OAUTH_STORE=/data/oauth-store.json   # 任意。下を参照
+```
+
+- 認可サーバーは同じプロセスの中で動きます。クライアントが自分で登録（RFC 7591）し、このサーバーの同意画面に案内します。`MCP_OAUTH_PASSPHRASE` を入力して承認します
+- 有効なアクセストークンが無いと、`/mcp` は `401` と `WWW-Authenticate` ヘッダを返します。ヘッダはProtected Resource Metadata（RFC 9728）を指します
+- トークンはこのサーバー宛てに束縛されます（`resource`、RFC 8707）。別のリソース向けに発行されたトークンは拒否します
+- アクセストークンは1時間、リフレッシュトークンは30日です（`MCP_OAUTH_ACCESS_TTL`、`MCP_OAUTH_REFRESH_TTL`）
+- **`MCP_OAUTH_STORE` は設定してください。** 登録済みクライアントとトークンは、ハッシュでしかディスクに残りません。ストアが無いとメモリだけになり、再起動のたびに全クライアントが再認可になります
+- 利用者がクライアントに入力するURLは、`<MCP_PUBLIC_URL の origin>/mcp` と完全に一致させてください。ずれると再認可のループに入ります
+- リバースプロキシの背後では `MCP_TRUST_PROXY` を設定してください。ログイン試行のレート制限（接続元IPごとに15分で10回）が、実際のIPを見られるようになります
+- OAuthも `MCP_ALLOW_UNAUTHENTICATED=true` も無いと、HTTP transportは起動を拒否します
+
+認可がどの利用者のものかは、`ConsentAuthenticator`（`src/auth/authenticator.ts`）が決めます。組み込みの実装はパスフレーズを照合して、利用者を1人だけ返します。人ごとに認証を変えたい場合は、別の実装を `OAuthConfig.authenticator` に渡してください。返した利用者IDは `AuthInfo.extra.userId` に入ります。
