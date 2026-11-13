@@ -489,11 +489,16 @@ const createServer = (): Server => {
 async function main() {
   if (process.env.TRANSPORT === "http") {
     const { startHttpServer } = await import("./http-server.js");
+    const { resolveOAuthConfig } = await import("./auth/config.js");
+    const oauth = resolveOAuthConfig();
+    const trustProxy = process.env.MCP_TRUST_PROXY;
     const allowedHosts = process.env.MCP_ALLOWED_HOSTS?.split(",").map((h) => h.trim()).filter(Boolean);
     startHttpServer(createServer, {
       port: parseInt(process.env.PORT || "3000", 10),
       ...(process.env.MCP_HTTP_HOST ? { host: process.env.MCP_HTTP_HOST } : {}),
       allowedHosts,
+      ...(oauth ? { oauth } : {}),
+      ...(trustProxy ? { trustProxy: /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy } : {}),
       allowUnauthenticated: process.env.MCP_ALLOW_UNAUTHENTICATED === "true",
     });
     return;

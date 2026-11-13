@@ -199,6 +199,12 @@ A Service Account access key (Business plan, starts with `cs_`) also goes in `CO
 | `PORT` | `3000` | Port for the HTTP transport |
 | `MCP_HTTP_HOST` | `127.0.0.1` | Address the HTTP transport listens on. For anything other than localhost, also set `MCP_ALLOWED_HOSTS` |
 | `MCP_ALLOWED_HOSTS` | — | Comma-separated `Host` header values the HTTP transport accepts (DNS rebinding protection) |
+| `MCP_PUBLIC_URL` | — | Public origin of the HTTP transport (e.g. `https://mcp.example.com`). Together with `MCP_OAUTH_PASSPHRASE` it turns on OAuth 2.1; setting only one is an error. See [HTTP transport authentication](./docs/authentication.md#http-transport-authentication-oauth-21) |
+| `MCP_OAUTH_PASSPHRASE` | — | Passphrase (12+ characters) typed on the consent screen when a client connects |
+| `MCP_OAUTH_STORE` | — | File that persists registered clients and tokens. Unset means they live in memory and every restart forces clients to re-authorize |
+| `MCP_OAUTH_ACCESS_TTL` / `MCP_OAUTH_REFRESH_TTL` | `3600` / `2592000` | Access / refresh token lifetime in seconds |
+| `MCP_OAUTH_RESOURCE_NAME` | `Cosense MCP` | Name shown on the consent screen and in the metadata |
+| `MCP_TRUST_PROXY` | — | Value for Express's `trust proxy` when running behind a reverse proxy (a hop count or an address). Needed for the sign-in rate limit to see the real client IP |
 | `MCP_ALLOW_UNAUTHENTICATED` | — | `true` lets the HTTP transport start with no authentication |
 
 ## CLI Usage
