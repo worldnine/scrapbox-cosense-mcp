@@ -117,6 +117,33 @@ describe('CosenseOAuthProvider', () => {
     await expect(provider.exchangeAuthorizationCode(client, code)).rejects.toThrow(/Invalid or expired/);
   });
 
+  it('交換後に同じpendingを再承認すると、交換済みと別の新しいコードを返し、既存トークンは失効しない', async () => {
+    const { provider } = build();
+    const pendingId = await startAuthorization(provider, { state: 'again' });
+    const first = new URL(provider.approve(pendingId, { passphrase: PASSPHRASE }, 'ip')).searchParams.get('code')!;
+    const tokens = await provider.exchangeAuthorizationCode(client, first);
+
+    const second = new URL(provider.approve(pendingId, { passphrase: PASSPHRASE }, 'ip')).searchParams.get('code')!;
+    expect(second).not.toBe(first);
+
+    // 新しいコードは交換でき、最初に発行したトークンも生きたまま
+    const next = await provider.exchangeAuthorizationCode(client, second);
+    expect(next.access_token).not.toBe(tokens.access_token);
+    await expect(provider.verifyAccessToken(tokens.access_token)).resolves.toBeDefined();
+    await expect(provider.verifyAccessToken(next.access_token)).resolves.toBeDefined();
+  });
+
+  it('交換後の再承認のあとでも、旧コードの再送は拒否され再利用検出が働く', async () => {
+    const { provider } = build();
+    const pendingId = await startAuthorization(provider);
+    const first = new URL(provider.approve(pendingId, { passphrase: PASSPHRASE }, 'ip')).searchParams.get('code')!;
+    const tokens = await provider.exchangeAuthorizationCode(client, first);
+    provider.approve(pendingId, { passphrase: PASSPHRASE }, 'ip');
+
+    await expect(provider.exchangeAuthorizationCode(client, first)).rejects.toThrow(/Invalid or expired/);
+    await expect(provider.verifyAccessToken(tokens.access_token)).rejects.toThrow(/invalid or expired/i);
+  });
+
   it('再送信でもパスフレーズは毎回検証する', async () => {
     const { provider } = build();
     const pendingId = await startAuthorization(provider);

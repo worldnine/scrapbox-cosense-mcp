@@ -213,11 +213,19 @@ export class CosenseOAuthProvider implements OAuthServerProvider {
 
     // 同じ承認を二重に送っても行き止まりにしない。ブラウザの再送信や、リダイレクトが
     // 見えなかった利用者の押し直しで「期限切れ」を出すのは、こちらの都合でしかない。
-    // pending は TTL で消えるまで残し、認可コードも使い回す（コードの単発性は
+    // pending は TTL で消えるまで残し、未交換の認可コードは使い回す（コードの単発性は
     // トークンエンドポイント側で担保されている）。
+    // ただし使い回すのは「まだ有効なコード」だけ。交換済み（this.codes から消えている）や
+    // 期限切れのコードを返すと、クライアントがそれを /token に再送した時点で再利用検出が
+    // 働き、正規に発行したトークンまで失効してしまう。その場合は新しいコードを発行する。
     // ただし再利用できるのは「同じ利用者が押し直した」ときだけ。別のパスフレーズで
     // 承認されたら、前の利用者向けに出したコードを渡してしまわないよう作り直す。
-    const reusable = pending.issuedCode !== undefined && pending.issuedFor === user.id;
+    const issued = pending.issuedCode !== undefined ? this.codes.get(pending.issuedCode) : undefined;
+    const reusable =
+      pending.issuedCode !== undefined &&
+      pending.issuedFor === user.id &&
+      issued !== undefined &&
+      issued.expiresAt > nowSec();
     const code = reusable ? pending.issuedCode! : generateToken();
 
     if (!reusable) {
