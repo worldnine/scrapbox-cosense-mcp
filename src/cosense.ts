@@ -1,5 +1,6 @@
 import { fetch } from "@whatwg-node/fetch";
 import { credentialHeaders, resolveCredential } from './utils/auth.js';
+import { mergePinnedPages } from './utils/sort.js';
 const API_DOMAIN = process.env.API_DOMAIN || "scrapbox.io";
 
 /**
@@ -417,8 +418,19 @@ async function listPagesWithSort(
   },
   sid?: string
 ): Promise<ListPagesResponse> {
-  // 並べ替えとページ位置の適用はAPIに任せ、取得した一部だけを並べ直さない
-  return listPages(projectName, sid, options);
+  if (options.excludePinned) return listPages(projectName, sid, options);
+
+  const { skip, limit, sort = 'updated' } = options;
+  // APIはピン留めを先頭に返すため、多めに取得して同じ基準で混ぜ込む
+  // 要求は1回、上限は1000件。ピン留め数+skip+limitが取得件数を超えると、
+  // 必要なピン留め以外のページが足りず、上位やページ位置が不正確になりうる
+  const result = await listPages(projectName, sid, {
+    sort,
+    skip: 0,
+    limit: Math.min(skip + limit + 100, 1000),
+  });
+  const pages = mergePinnedPages(result.pages, sort).slice(skip, skip + limit);
+  return { ...result, pages, skip, limit: pages.length };
 }
 
 type SmartContextResult =

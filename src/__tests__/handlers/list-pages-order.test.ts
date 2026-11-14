@@ -65,3 +65,15 @@ test.each([{ batch: [] }, { batch: pages.map(page => ({ ...page, pin: 1 })) }])(
     expect(mockedFetch).toHaveBeenCalledTimes(1);
   }
 );
+
+test.each([false, true])('sort未指定の一覧表示でもピン留めを更新順に混ぜること（compact=%s）', async compact => {
+  respond([{ ...pages[2]!, pin: 1 }, pages[0]!, pages[1]!]);
+  const result = await handleListPages('test-project', undefined, { limit: 3, compact });
+  const text = result.content[0]?.text ?? '';
+  expect(text.indexOf('テスト')).toBeLessThan(text.indexOf('手順4の確認'));
+  expect(text.indexOf('手順4の確認')).toBeLessThan(text.indexOf('test2026/09/14'));
+  expect(text).not.toContain('Not specified');
+  expect(mockedFetch.mock.calls.filter(call =>
+    new URL(String(call[0])).pathname === '/api/pages/test-project'
+  )).toHaveLength(1);
+});
