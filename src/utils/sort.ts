@@ -33,7 +33,7 @@ export function sortPages(pages: ScrapboxPage[], options: SortOptions = {}): Scr
         case 'title':
           return a.title.localeCompare(b.title);
         default:
-          return (b.created || 0) - (a.created || 0);
+          return (b.updated || 0) - (a.updated || 0);
       }
     };
 
