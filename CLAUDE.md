@@ -63,7 +63,9 @@ All tools are also available as CLI subcommands (`get`, `list`, `search`, `creat
 - `src/utils/markdown-converter.ts` — Markdown → Scrapbox conversion (uses `md2sb`)
 - `src/types/` — API response and MCP request/response type definitions
 - `src/cli.ts` — CLI entry point (args → CLI mode, no args → MCP server)
-- `src/index.ts` — Server entry point
+- `src/index.ts` — Server entry point (`createServer()`; `TRANSPORT=http` switches stdio to HTTP)
+- `src/http-server.ts` — Streamable HTTP transport: per-session servers, session ownership, JSON-RPC errors for bad bodies
+- `src/auth/` — OAuth 2.1 authorization server for the HTTP transport (`config.ts` reads `MCP_*`, `provider.ts` the flow, `store.ts` clients/tokens, `authenticator.ts` the `ConsentAuthenticator`)
 
 ### Design Decisions
 
@@ -89,6 +91,11 @@ All tools are also available as CLI subcommands (`get`, `list`, `search`, `creat
 - **`writePage()` returns `{ ok: true } | { ok: false; err: string }`**, not throw (the websocket `patch()` returns a `Result` the same way). Must check `result.ok`
 - **`user` is the page's creator and `lastUpdateUser` its last editor** (as `@cosense/types` defines them). Every output builds the creator/editor lines through `formatEditorLines` in `src/utils/format.ts`, which omits a line when the name is unknown instead of printing `undefined`
 - **Default sort is `updated`**. Aligned across API, display, and user expectations
+- **The HTTP transport refuses to start without authentication** unless `MCP_ALLOW_UNAUTHENTICATED=true`, and OAuth needs both `MCP_PUBLIC_URL` and `MCP_OAUTH_PASSPHRASE` (one alone is a startup error). An auth setting that is written down but not in effect must never reach the network
+- **OAuth 2.1 is the only client authentication over HTTP, and the authorization server runs in the same process.** Claude.ai and ChatGPT accept nothing else for MCP servers (a static bearer token was considered and dropped in #77), and few external IdPs accept Dynamic Client Registration. Registration is open to anyone who knows the URL, so the consent screen asks for `MCP_OAUTH_PASSPHRASE`
+- **Who gets through the consent screen is decided by a `ConsentAuthenticator`** (`src/auth/authenticator.ts`). Upstream has one implementation (the passphrase); the interface exists so a multi-user fork can swap it without touching `provider.ts`. Keep it when refactoring
+- **An MCP session is bound to the grant that opened it** (`grantId`, which survives refresh-token rotation, so a session does not drop every hour). A request with another grant's token gets 404 for that session, not 403, so the session's existence does not leak
+- **Every HTTP client acts with the one Cosense credential in the server's environment**, the same `COSENSE_MCP_PAT`/`COSENSE_SID` resolution as stdio. The docs recommend a PAT for HTTP (a SID expires, and every tool call fails until someone replaces it), but a SID is not forbidden (#77)
 - **Keep the request count low; Cosense is a free API, not ours to load.** `list_pages` and the startup resource list use the page-list API as is and never fetch each page (that used to send 100–1000+ concurrent requests per call). Page reads use `/api/pages/v2/`, which returns the same body as v1 minus `relatedPages` — unused here, and most of v1's payload (364 KB against 13.7 KB for villagepump's 井戸端). Creator and editor names come from the project member list (`/api/projects/:project/users`, cached per process for 5 minutes, failures included), because the page and page-list APIs return user IDs only since January 2026; `get_page` therefore costs one extra request only when the cache is cold, and `--compact` outputs never look names up. The E2E tests run only with `COSENSE_E2E=true`, because running them whenever credentials sit in the shell hit the Smart Context rate limit (429) during development
 
 ### Environment Variables
@@ -102,6 +109,10 @@ See README.md. Key variables:
 - `COSENSE_CONVERT_NUMBERED_LISTS` — Convert numbered lists to bullet lists
 - `COSENSE_ENABLE_DELETE` — Register `delete_page`/`rewrite_page` and the `delete`/`rewrite` CLI commands (opt-in)
 - `COSENSE_PROJECT_ALLOW_LIST` — Comma-separated projects that `projectName`/`--project` may target. `COSENSE_PROJECT_NAME` is always allowed. Unset = unrestricted; set but empty = default project only (opt-in)
+- `TRANSPORT=http` — Serve Streamable HTTP at `/mcp` (`PORT`, `MCP_HTTP_HOST`) instead of stdio
+- `MCP_PUBLIC_URL` + `MCP_OAUTH_PASSPHRASE` — Turn on OAuth 2.1 for the HTTP transport. `MCP_OAUTH_STORE` persists clients and tokens
+- `MCP_ALLOWED_HOSTS` / `MCP_TRUST_PROXY` — `Host` allow list (replaces the localhost default) and Express `trust proxy` (a hop count or address; the string `true` makes Express throw at startup) for running behind a reverse proxy
+- `MCP_ALLOW_UNAUTHENTICATED` — Let the HTTP transport start without authentication (local use only)
 
 ## CI/CD & Release
 

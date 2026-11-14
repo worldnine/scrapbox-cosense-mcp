@@ -189,12 +189,46 @@ Service Account（Business plan）のアクセスキー（`cs_`で始まる）�
 | `COSENSE_CONVERT_NUMBERED_LISTS` | `false` | Markdown変換時に数字付きリストを箇条書きに変換 |
 | `COSENSE_EXCLUDE_PINNED` | `false` | 初期リソース一覧からピン留めページを除外 |
 | `COSENSE_ENABLE_DELETE` | `false` | `delete_page` / `rewrite_page` ツール（および `delete` / `rewrite` サブコマンド）を有効にする。設定しなければどれも使えない |
+| `COSENSE_PROJECT_ALLOW_LIST` | — | `projectName`/`--project`で指定できるプロジェクト（カンマ区切り）。`COSENSE_PROJECT_NAME`は常に許可。未設定なら制限なし、空の値なら既定のプロジェクトだけ |
+| `TRANSPORT` | stdio | `http`にすると、stdioの代わりに`/mcp`でStreamable HTTPを提供する。認証が無いと、`MCP_ALLOW_UNAUTHENTICATED=true`（ローカル専用）でない限り起動を拒否する |
+| `PORT` | `3000` | HTTP transportのポート |
+| `MCP_HTTP_HOST` | `127.0.0.1` | HTTP transportが待ち受けるアドレス。localhost以外にするときは`MCP_ALLOWED_HOSTS`も設定する |
+| `MCP_ALLOWED_HOSTS` | — | HTTP transportが受け付ける`Host`ヘッダの値（カンマ区切り、DNSリバインディング対策） |
+| `MCP_PUBLIC_URL` | — | HTTP transportの公開origin（例: `https://mcp.example.com`）。`MCP_OAUTH_PASSPHRASE`と両方そろうとOAuth 2.1が有効になる。片方だけだとエラー |
+| `MCP_OAUTH_PASSPHRASE` | — | クライアントの接続時に同意画面で入力するパスフレーズ（12文字以上） |
+| `MCP_OAUTH_STORE` | — | 登録済みクライアントとトークンを保存するファイル。未設定ならメモリだけで、再起動のたびにクライアントの再認可が要る |
+| `MCP_OAUTH_ACCESS_TTL` / `MCP_OAUTH_REFRESH_TTL` | `3600` / `2592000` | アクセストークン/リフレッシュトークンの有効期間（秒） |
+| `MCP_OAUTH_RESOURCE_NAME` | `Cosense MCP` | 同意画面とメタデータに出る名前 |
+| `MCP_TRUST_PROXY` | — | リバースプロキシの背後で動かすときの、Expressの`trust proxy`の値（プロキシの段数かアドレス）。ログイン試行のレート制限が実際の接続元IPを見るために要る |
+| `MCP_ALLOW_UNAUTHENTICATED` | — | `true`にすると、HTTP transportを認証なしで起動できる |
 
 ## 複数プロジェクト対応
 
 すべてのツールでオプションの `projectName` パラメータを指定して、異なるプロジェクトにアクセスできます。異なる認証情報を持つ複数のプライベートプロジェクトには、`COSENSE_TOOL_SUFFIX` を使った複数サーバーインスタンスが推奨です。
 
 詳細は [docs/multiple-projects.md](./multiple-projects.md) を参照してください。
+
+## HTTP transport
+
+`TRANSPORT=http`にすると、`/mcp`でStreamable HTTPを提供します。Claude.aiやChatGPTのようなリモートのクライアントからつなげます。クライアントはサーバー自身が提供するOAuth 2.1でログインします。認証が無いと起動を拒否します。
+
+```bash
+TRANSPORT=http \
+COSENSE_PROJECT_NAME=your_project \
+COSENSE_MCP_PAT=your_personal_access_token \
+MCP_PUBLIC_URL=https://mcp.example.com \
+MCP_OAUTH_PASSPHRASE=your_passphrase_of_12_or_more_chars \
+MCP_OAUTH_STORE=/data/oauth-store.json \
+npx -y scrapbox-cosense-mcp
+```
+
+クライアントには`https://mcp.example.com/mcp`を入力し、同意画面でパスフレーズを入力します。
+
+- **Cosenseの資格情報にはPersonal Access Tokenを使ってください。** セッションIDはブラウザのログインそのもので、期限が切れます。切れると、入れ替えるまでツールの呼び出しがすべて失敗します。`COSENSE_SID`は`COSENSE_MCP_PAT`より優先されるので、サーバーの環境には入れないでください
+- 同意画面を通ったクライアントは、どれもこの1つの資格情報で動きます。届くプロジェクトは`COSENSE_PROJECT_ALLOW_LIST`で絞ってください
+- リバースプロキシの背後で動かすときは、`MCP_ALLOWED_HOSTS`と`MCP_TRUST_PROXY`も見てください
+
+詳しくは[認証](./authentication.md)の「HTTP transportの認証（OAuth 2.1）」を参照してください。
 
 ## 開発
 
@@ -220,7 +254,7 @@ Service Account（Business plan）のアクセスキー（`cs_`で始まる）�
 - [@kmatsunami](https://github.com/kmatsunami) — `get_page` の collaborators 未定義時の対応、JSR依存の解決 ([#20](https://github.com/worldnine/scrapbox-cosense-mcp/pull/20))
 - [@vitalibondar](https://github.com/vitalibondar) — `format` パラメータの追加、裸のURLが二重になる不具合の修正 ([#29](https://github.com/worldnine/scrapbox-cosense-mcp/pull/29))
 - [@qurihara](https://github.com/qurihara) — `edit_lines`、オプトイン制の `delete_page` ([#52](https://github.com/worldnine/scrapbox-cosense-mcp/pull/52), [#57](https://github.com/worldnine/scrapbox-cosense-mcp/pull/57))
-- [@ojimpo](https://github.com/ojimpo) — `COSENSE_PROJECT_ALLOW_LIST` ([#68](https://github.com/worldnine/scrapbox-cosense-mcp/pull/68))
+- [@ojimpo](https://github.com/ojimpo) — `COSENSE_PROJECT_ALLOW_LIST`、OAuth 2.1つきのHTTP transport ([#68](https://github.com/worldnine/scrapbox-cosense-mcp/pull/68), [#76](https://github.com/worldnine/scrapbox-cosense-mcp/pull/76), [#78](https://github.com/worldnine/scrapbox-cosense-mcp/pull/78), [#81](https://github.com/worldnine/scrapbox-cosense-mcp/pull/81))
 - [@punkpeye](https://github.com/punkpeye), [@lwsinclair](https://github.com/lwsinclair) — READMEのバッジ ([#1](https://github.com/worldnine/scrapbox-cosense-mcp/pull/1), [#6](https://github.com/worldnine/scrapbox-cosense-mcp/pull/6))
 
 全体は [contributors グラフ](https://github.com/worldnine/scrapbox-cosense-mcp/graphs/contributors) にあります。

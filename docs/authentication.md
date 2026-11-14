@@ -71,12 +71,25 @@ MCP_OAUTH_STORE=/data/oauth-store.json   # optional, see below
 - Without a valid access token, `/mcp` answers `401` with a `WWW-Authenticate` header that points to the protected resource metadata (RFC 9728).
 - Tokens are bound to this server (`resource`, RFC 8707): a token issued for another resource is rejected.
 - Access tokens last an hour and refresh tokens 30 days (`MCP_OAUTH_ACCESS_TTL`, `MCP_OAUTH_REFRESH_TTL`).
-- **Set `MCP_OAUTH_STORE`.** Registered clients and tokens are only hashed on disk; without a store they live in memory, and every restart makes each client authorize again.
+- **Set `MCP_OAUTH_STORE`.** Tokens are only hashed on disk, but registered clients are written as they are, client secrets included, so keep the file private; without a store they live in memory, and every restart makes each client authorize again.
 - The URL users enter in the client must be exactly `<MCP_PUBLIC_URL origin>/mcp`. A mismatch sends the client into a re-authorization loop.
 - Behind a reverse proxy, set `MCP_TRUST_PROXY` so the sign-in rate limit (10 attempts per 15 minutes per client IP) sees the real address.
 - The server refuses to start the HTTP transport with neither OAuth nor `MCP_ALLOW_UNAUTHENTICATED=true`.
 
 Which user a grant belongs to is decided by a `ConsentAuthenticator` (`src/auth/authenticator.ts`). The built-in one compares the passphrase and returns a single user. To authenticate people differently, pass another implementation as `OAuthConfig.authenticator`; its user ID ends up in `AuthInfo.extra.userId`.
+
+### The Cosense credential on an HTTP server
+
+Use a Personal Access Token (`COSENSE_MCP_PAT`). A session ID is your browser login itself, and it expires; from then on every tool call fails until you replace it by hand. Deleting a token, on the other hand, does not log you out of the browser. `COSENSE_SID` takes precedence when both are set, so leave it out of the server's environment.
+
+Every client that gets through the consent screen acts with this one credential. Limit the reachable projects with `COSENSE_PROJECT_ALLOW_LIST`.
+
+### Behind a reverse proxy
+
+`MCP_PUBLIC_URL` must use https (except on `localhost`), so a public server usually listens on `127.0.0.1` behind a reverse proxy that terminates TLS. Two settings depend on how the proxy forwards requests:
+
+- **`MCP_ALLOWED_HOSTS`**: by default the server accepts only `localhost`, `127.0.0.1`, and `[::1]` in the `Host` header (DNS rebinding protection). If the proxy passes the public host name, every request — the consent screen and `/health` included — answers `403 Invalid Host` until you set `MCP_ALLOWED_HOSTS=mcp.example.com`. The variable replaces the default, so add `localhost` or `127.0.0.1` too if anything also reaches the server directly.
+- **`MCP_TRUST_PROXY`**: without it every request seems to come from the proxy, so the sign-in rate limit (10 attempts per 15 minutes per client IP) is shared by everyone, and ten wrong passphrases from anyone lock the owner out as well. Set the number of proxies in front (`1` for one) or their address (`loopback` when the proxy runs on the same machine). `true` does not work (the server stops at startup with `invalid IP address: true`), and it would not be safe anyway: it trusts any `X-Forwarded-For` a client sends, so anyone could dodge the limit.
 
 
 # 認証
@@ -150,9 +163,22 @@ MCP_OAUTH_STORE=/data/oauth-store.json   # 任意。下を参照
 - 有効なアクセストークンが無いと、`/mcp` は `401` と `WWW-Authenticate` ヘッダを返します。ヘッダはProtected Resource Metadata（RFC 9728）を指します
 - トークンはこのサーバー宛てに束縛されます（`resource`、RFC 8707）。別のリソース向けに発行されたトークンは拒否します
 - アクセストークンは1時間、リフレッシュトークンは30日です（`MCP_OAUTH_ACCESS_TTL`、`MCP_OAUTH_REFRESH_TTL`）
-- **`MCP_OAUTH_STORE` は設定してください。** 登録済みクライアントとトークンは、ハッシュでしかディスクに残りません。ストアが無いとメモリだけになり、再起動のたびに全クライアントが再認可になります
+- **`MCP_OAUTH_STORE` は設定してください。** トークンは、ハッシュでしかディスクに残りません。登録済みクライアントはクライアントシークレットも含めてそのまま残るので、ファイルは人に見せないでください。ストアが無いとメモリだけになり、再起動のたびに全クライアントが再認可になります
 - 利用者がクライアントに入力するURLは、`<MCP_PUBLIC_URL の origin>/mcp` と完全に一致させてください。ずれると再認可のループに入ります
 - リバースプロキシの背後では `MCP_TRUST_PROXY` を設定してください。ログイン試行のレート制限（接続元IPごとに15分で10回）が、実際のIPを見られるようになります
 - OAuthも `MCP_ALLOW_UNAUTHENTICATED=true` も無いと、HTTP transportは起動を拒否します
 
 認可がどの利用者のものかは、`ConsentAuthenticator`（`src/auth/authenticator.ts`）が決めます。組み込みの実装はパスフレーズを照合して、利用者を1人だけ返します。人ごとに認証を変えたい場合は、別の実装を `OAuthConfig.authenticator` に渡してください。返した利用者IDは `AuthInfo.extra.userId` に入ります。
+
+### HTTPで公開するときのCosenseの資格情報
+
+Personal Access Token（`COSENSE_MCP_PAT`）を使ってください。セッションIDはブラウザのログインそのもので、期限が切れます。切れると、手で入れ替えるまでツールの呼び出しがすべて失敗します。トークンなら、消してもブラウザはログアウトしません。両方あると`COSENSE_SID`が優先されるので、サーバーの環境には入れないでください。
+
+同意画面を通ったクライアントは、どれもこの1つの資格情報で動きます。届くプロジェクトは`COSENSE_PROJECT_ALLOW_LIST`で絞ってください。
+
+### リバースプロキシの背後で動かすとき
+
+`MCP_PUBLIC_URL`はhttpsでなければならない（`localhost`を除く）ので、公開するサーバーはふつう`127.0.0.1`で待ち受け、TLSを終端するリバースプロキシの背後に置きます。プロキシの転送のしかたによって、次の2つの設定が要ります。
+
+- **`MCP_ALLOWED_HOSTS`**: 既定では、`Host`ヘッダが`localhost`、`127.0.0.1`、`[::1]`のものしか受け付けません（DNSリバインディング対策）。プロキシが公開のホスト名をそのまま渡す場合、`MCP_ALLOWED_HOSTS=mcp.example.com`を設定するまで、同意画面や`/health`も含めてすべての要求が`403 Invalid Host`になります。この変数は既定を置き換えるので、サーバーに直接つなぐものもあるなら`localhost`か`127.0.0.1`も足してください
+- **`MCP_TRUST_PROXY`**: 設定しないと、すべての要求がプロキシから来たように見えます。ログイン試行のレート制限（接続元IPごとに15分で10回）を全員で共有することになり、誰かがパスフレーズを10回間違えると、持ち主も締め出されます。前にあるプロキシの数（1台なら`1`）か、プロキシのアドレス（同じマシンなら`loopback`）を設定してください。`true`は使えません（起動時に`invalid IP address: true`で止まります）。仮に通っても、クライアントが送る`X-Forwarded-For`を何でも信じることになり、誰でも制限をすり抜けられます

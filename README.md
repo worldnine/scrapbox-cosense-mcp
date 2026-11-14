@@ -239,6 +239,28 @@ To limit which projects an agent can reach, set `COSENSE_PROJECT_ALLOW_LIST` (co
 
 See [docs/multiple-projects.md](./docs/multiple-projects.md) for detailed configuration examples.
 
+## HTTP Transport
+
+`TRANSPORT=http` serves Streamable HTTP at `/mcp`, so remote clients such as Claude.ai and ChatGPT can connect. Clients sign in with OAuth 2.1, which the server provides itself; without authentication it refuses to start.
+
+```bash
+TRANSPORT=http \
+COSENSE_PROJECT_NAME=your_project \
+COSENSE_MCP_PAT=your_personal_access_token \
+MCP_PUBLIC_URL=https://mcp.example.com \
+MCP_OAUTH_PASSPHRASE=your_passphrase_of_12_or_more_chars \
+MCP_OAUTH_STORE=/data/oauth-store.json \
+npx -y scrapbox-cosense-mcp
+```
+
+In the client, enter `https://mcp.example.com/mcp`, then type the passphrase on the consent screen.
+
+- **Use a Personal Access Token for Cosense.** A session ID is your browser login itself and expires; from then on every tool call fails until you replace it. `COSENSE_SID` takes precedence over `COSENSE_MCP_PAT`, so leave it out of the server's environment.
+- Every client that gets through the consent screen uses this one credential. Limit the reachable projects with `COSENSE_PROJECT_ALLOW_LIST`.
+- Behind a reverse proxy, also look at `MCP_ALLOWED_HOSTS` and `MCP_TRUST_PROXY`.
+
+See [HTTP transport authentication](./docs/authentication.md#http-transport-authentication-oauth-21) for the details.
+
 ## Development
 
 | Command | Description |
@@ -263,7 +285,7 @@ Thanks to everyone who has contributed to this project:
 - [@kmatsunami](https://github.com/kmatsunami) — undefined collaborators handling in `get_page`, JSR dependency resolution ([#20](https://github.com/worldnine/scrapbox-cosense-mcp/pull/20))
 - [@vitalibondar](https://github.com/vitalibondar) — `format` parameter, bare URL doubling fix ([#29](https://github.com/worldnine/scrapbox-cosense-mcp/pull/29))
 - [@qurihara](https://github.com/qurihara) — `edit_lines`, opt-in `delete_page` ([#52](https://github.com/worldnine/scrapbox-cosense-mcp/pull/52), [#57](https://github.com/worldnine/scrapbox-cosense-mcp/pull/57))
-- [@ojimpo](https://github.com/ojimpo) — `COSENSE_PROJECT_ALLOW_LIST` ([#68](https://github.com/worldnine/scrapbox-cosense-mcp/pull/68))
+- [@ojimpo](https://github.com/ojimpo) — `COSENSE_PROJECT_ALLOW_LIST`, HTTP transport with OAuth 2.1 ([#68](https://github.com/worldnine/scrapbox-cosense-mcp/pull/68), [#76](https://github.com/worldnine/scrapbox-cosense-mcp/pull/76), [#78](https://github.com/worldnine/scrapbox-cosense-mcp/pull/78), [#81](https://github.com/worldnine/scrapbox-cosense-mcp/pull/81))
 - [@punkpeye](https://github.com/punkpeye), [@lwsinclair](https://github.com/lwsinclair) — README badges ([#1](https://github.com/worldnine/scrapbox-cosense-mcp/pull/1), [#6](https://github.com/worldnine/scrapbox-cosense-mcp/pull/6))
 
 The full list is on the [contributors graph](https://github.com/worldnine/scrapbox-cosense-mcp/graphs/contributors).
