@@ -1,6 +1,6 @@
 import { fetch } from "@whatwg-node/fetch";
-import { sortPages } from './utils/sort.js';
 import { credentialHeaders, resolveCredential } from './utils/auth.js';
+import { mergePinnedPages } from './utils/sort.js';
 const API_DOMAIN = process.env.API_DOMAIN || "scrapbox.io";
 
 /**
@@ -261,7 +261,7 @@ async function listPages(
   options: { limit?: number | undefined; skip?: number | undefined; sort?: string | undefined; excludePinned?: boolean | undefined } = {}
 ): Promise<ListPagesResponse & { debug?: DebugInfo }> {
   try {
-    const { sort, excludePinned } = options;
+    const { excludePinned } = options;
     
     // クエリパラメータの構築
     const sortValue = options.sort || 'updated';
@@ -302,20 +302,19 @@ async function listPages(
     // それは get_page で見られる
     const pages = await response.json() as ListPagesResponse;
 
-    // ソートとフィルタリングを適用
-    const sortedPages = sortPages(pages.pages, { 
-      sort: sort ?? undefined, 
-      excludePinned: excludePinned ?? undefined 
-    });
+    // APIの並び順を保ち、必要な場合だけピン留めを除外する
+    const filteredPages = excludePinned
+      ? pages.pages.filter(page => !page.pin)
+      : pages.pages;
 
     return {
       ...pages,
-      pages: sortedPages,
+      pages: filteredPages,
       debug: {
         ...debugInfo,
         originalCount: pages.pages.length,
-        filteredCount: sortedPages.length,
-        appliedSort: sort || 'created',
+        filteredCount: filteredPages.length,
+        appliedSort: sortValue,
         excludedPinned: excludePinned || false
       }
     };
@@ -419,33 +418,19 @@ async function listPagesWithSort(
   },
   sid?: string
 ): Promise<ListPagesResponse> {
-  const skip = options.skip || 0;
-  const limit = options.limit;
-  const fetchSize = limit + skip + 100; // skip + limit + 余裕を持って取得
+  if (options.excludePinned) return listPages(projectName, sid, options);
 
-  // 1. より多くのページを一度に取得
-  const response = await listPages(projectName, sid, {
-    limit: fetchSize,
-    skip: 0, // 最初から取得して後でskipを適用
-    excludePinned: options.excludePinned ?? false
+  const { skip, limit, sort = 'updated' } = options;
+  // APIはピン留めを先頭に返すため、多めに取得して同じ基準で混ぜ込む
+  // 要求は1回、上限は1000件。ピン留め数+skip+limitが取得件数を超えると、
+  // 必要なピン留め以外のページが足りず、上位やページ位置が不正確になりうる
+  const result = await listPages(projectName, sid, {
+    sort,
+    skip: 0,
+    limit: Math.min(skip + limit + 100, 1000),
   });
-
-  // 2. 取得したページをメモリ上でソート
-  const sortedPages = sortPages(response.pages, { 
-    sort: options.sort ?? undefined, 
-    excludePinned: options.excludePinned ?? undefined 
-  });
-
-  // 3. skip位置から必要な件数を切り出し
-  const resultPages = sortedPages.slice(skip, skip + limit);
-
-  // 4. 結果を返す
-  return {
-    ...response,
-    pages: resultPages,
-    limit: resultPages.length,
-    skip: skip
-  };
+  const pages = mergePinnedPages(result.pages, sort).slice(skip, skip + limit);
+  return { ...result, pages, skip, limit: pages.length };
 }
 
 type SmartContextResult =

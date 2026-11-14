@@ -120,22 +120,6 @@ describe('handleListPages', () => {
         projectName: mockProjectName,
         pages: pagesWithPinned,
       } as any);
-      // 2回目: ループ終了（空配列）
-      mockedCosense.listPages.mockResolvedValueOnce({
-        limit: 30,
-        count: 3,
-        skip: 3,
-        projectName: mockProjectName,
-        pages: [],
-      } as any);
-      // 3回目: メタデータ取得（limit: 1）
-      mockedCosense.listPages.mockResolvedValueOnce({
-        limit: 1,
-        count: 3,
-        skip: 0,
-        projectName: mockProjectName,
-        pages: [pagesWithPinned[0]],
-      } as any);
 
       const params = { excludePinned: true, limit: 10 };
       const result = await handleListPages(mockProjectName, mockCosenseSid, params);
@@ -145,6 +129,7 @@ describe('handleListPages', () => {
       expect(text).toContain('Pages fetched: 2');
       // Total pagesは未ピン留め件数と全件数の両方を表示
       expect(text).toContain('2 unpinned (3 total)');
+      expect(mockedCosense.listPages).toHaveBeenCalledTimes(1);
     });
   });
 

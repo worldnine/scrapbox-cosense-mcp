@@ -1,14 +1,9 @@
-import { getPage, listPages, searchPages, createPageUrl, toReadablePage, withUserNames, clearMembersCache, getSmartContext } from '@/cosense.js';
+import { getPage, listPages, listPagesWithSort, searchPages, createPageUrl, toReadablePage, withUserNames, clearMembersCache, getSmartContext } from '@/cosense.js';
 import { fetch } from '@whatwg-node/fetch';
 
 // fetchをモック
 jest.mock('@whatwg-node/fetch');
 const mockedFetch = fetch as jest.MockedFunction<typeof fetch>;
-
-// sortPagesモジュールをモック
-jest.mock('@/utils/sort.js', () => ({
-  sortPages: jest.fn((pages) => pages), // 単純にそのまま返すモック
-}));
 
 describe('cosense API functions', () => {
   const mockProjectName = 'test-project';
@@ -205,6 +200,135 @@ describe('cosense API functions', () => {
         expect.stringContaining('sort=updated'),
         expect.any(Object)
       );
+    });
+
+    test('sort未指定でもAPIの更新順を保ちデバッグ情報もupdatedになること', async () => {
+      const pages = [
+        { title: 'テスト', created: 1, updated: 300 },
+        { title: '手順4の確認', created: 200, updated: 200 },
+        { title: 'test2026/09/14', created: 100, updated: 100 },
+      ];
+      mockedFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ ...mockListResponse, pages }),
+      } as Response);
+
+      const result = await listPages(mockProjectName, mockSid, { limit: 3 });
+
+      expect(result.pages).toEqual(pages);
+      expect(result.debug?.appliedSort).toBe('updated');
+      expect(mockedFetch).toHaveBeenCalledTimes(1);
+    });
+
+    test.each([undefined, 'updated', 'created', 'accessed', 'linked', 'views', 'title'])(
+      'sort=%sで先頭のピン留めを基準の位置に混ぜて1回だけ取得すること', async (sort) => {
+        const key = sort === 'title' ? 'updated' : sort ?? 'updated';
+        const page = (title: string, value: number, pin = 0) => ({ title, [key]: value, pin });
+        const pages = [page('D', 10, 1), page('B', 30, -1), page('A', 40), page('C', 20)];
+        mockedFetch.mockResolvedValue({
+          ok: true,
+          json: async () => ({ ...mockListResponse, count: 5000, pages }),
+        } as Response);
+
+        const result = await listPagesWithSort(mockProjectName, { sort, skip: 0, limit: 4 }, mockSid);
+
+        expect(result.pages.map(page => page.title)).toEqual(['A', 'B', 'C', 'D']);
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+        const url = new URL(String(mockedFetch.mock.calls[0]?.[0]));
+        expect(Object.fromEntries(url.searchParams)).toEqual({
+          sort: sort ?? 'updated', skip: '0', limit: '104',
+        });
+        expect(result.count).toBe(5000);
+        expect(result.limit).toBe(4);
+        expect(result.skip).toBe(0);
+      }
+    );
+
+    test('ピン留めを混ぜた後にskipとlimitを適用すること', async () => {
+      const pages = [
+        { title: '固定末尾', pin: 1, updated: 10 },
+        { title: '固定中間', pin: 1, updated: 30 },
+        { title: '先頭', pin: 0, updated: 40 },
+        { title: '中間', updated: 20 },
+      ];
+      mockedFetch.mockResolvedValue({
+        ok: true, json: async () => ({ ...mockListResponse, pages }),
+      } as Response);
+      const result = await listPagesWithSort(mockProjectName, { skip: 1, limit: 2 }, mockSid);
+      expect(result.pages.map(page => page.title)).toEqual(['固定中間', '中間']);
+      expect(result.skip).toBe(1);
+      expect(result.limit).toBe(2);
+      const url = new URL(String(mockedFetch.mock.calls[0]?.[0]));
+      expect(Object.fromEntries(url.searchParams)).toEqual({ sort: 'updated', skip: '0', limit: '103' });
+      expect(mockedFetch).toHaveBeenCalledTimes(1);
+    });
+
+    test('大きいskipでも取得上限1000を守り追加要求をしないこと', async () => {
+      mockedFetch.mockResolvedValue({
+        ok: true, json: async () => mockListResponse,
+      } as Response);
+      const result = await listPagesWithSort(mockProjectName, { skip: 1200, limit: 2 }, mockSid);
+      const url = new URL(String(mockedFetch.mock.calls[0]?.[0]));
+      expect(Object.fromEntries(url.searchParams)).toEqual({ sort: 'updated', skip: '0', limit: '1000' });
+      expect(result.pages).toEqual([]);
+      expect(result.skip).toBe(1200);
+      expect(mockedFetch).toHaveBeenCalledTimes(1);
+    });
+
+    test('ピン留め以外のAPI順は同値や欠けた値があっても並べ直さないこと', async () => {
+      const pages = [
+        { title: '固定', pin: 1, updated: 100 },
+        { title: 'Z', updated: 200 },
+        { title: 'Y' },
+        { title: 'A', updated: 200 },
+      ];
+      mockedFetch.mockResolvedValue({
+        ok: true, json: async () => ({ ...mockListResponse, pages }),
+      } as Response);
+      const result = await listPagesWithSort(mockProjectName, { skip: 0, limit: 4 }, mockSid);
+      expect(result.pages.filter(page => !page.pin)).toEqual(pages.slice(1));
+    });
+
+    test.each([{ pages: [] }, { pages: [{ title: '固定', pin: 1, updated: 10 }] }])(
+      '空の列やピン留めだけの列も処理できること（%j）', async ({ pages }) => {
+        mockedFetch.mockResolvedValue({
+          ok: true, json: async () => ({ ...mockListResponse, pages }),
+        } as Response);
+        const result = await listPagesWithSort(mockProjectName, { skip: 0, limit: 4 }, mockSid);
+        expect(result.pages).toEqual(pages);
+        expect(mockedFetch).toHaveBeenCalledTimes(1);
+      }
+    );
+
+    test('listPagesWithSortのピン留め除外はAPIの順と取得位置を保つこと', async () => {
+      const pages = [{ title: '固定', pin: 1 }, { title: 'Z' }, { title: 'A' }];
+      mockedFetch.mockResolvedValue({
+        ok: true, json: async () => ({ ...mockListResponse, skip: 4, pages }),
+      } as Response);
+      const result = await listPagesWithSort(mockProjectName, {
+        sort: 'title', skip: 4, limit: 3, excludePinned: true,
+      }, mockSid);
+      expect(result.pages).toEqual(pages.slice(1));
+      expect(result.skip).toBe(4);
+      const url = new URL(String(mockedFetch.mock.calls[0]?.[0]));
+      expect(Object.fromEntries(url.searchParams)).toEqual({ sort: 'title', skip: '4', limit: '3' });
+      expect(mockedFetch).toHaveBeenCalledTimes(1);
+    });
+
+    test('ピン留め除外でもAPIの返却順を保つこと', async () => {
+      const pages = [
+        { title: '固定', pin: 1 },
+        { title: 'Z', created: 1, updated: 300 },
+        { title: 'A', created: 200, updated: 100 },
+      ];
+      mockedFetch.mockResolvedValue({
+        ok: true, json: async () => ({ ...mockListResponse, pages }),
+      } as Response);
+
+      const result = await listPages(mockProjectName, mockSid, { excludePinned: true });
+
+      expect(result.pages).toEqual(pages.slice(1));
+      expect(mockedFetch).toHaveBeenCalledTimes(1);
     });
 
     test('APIエラーの場合にエラー情報を含むレスポンスを返すこと', async () => {

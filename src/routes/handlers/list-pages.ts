@@ -19,7 +19,7 @@ export async function handleListPages(
 ) {
   try {
     const {
-      sort,
+      sort = 'updated',
       limit = 1000,
       skip = 0,  // デフォルト値を設定
       excludePinned = false,
@@ -43,24 +43,26 @@ export async function handleListPages(
       const targetLimit = limit || 10;
       let unpinnedPages: ListPagesResponse['pages'] = [];
       let currentSkip = skip || 0;
+      let firstResponse: ListPagesResponse | undefined;
       
       while (unpinnedPages.length < targetLimit) {
         const fetchedPages = await listPages(projectName, cosenseSid, {
-          ...(sort !== undefined && { sort }),
-          limit: targetLimit * 3,
+          sort,
+          limit: Math.min(targetLimit * 3, 1000),
           skip: currentSkip
         });
         
+        firstResponse ??= fetchedPages;
         const newUnpinned = fetchedPages.pages.filter(page => !page.pin || page.pin === 0);
         unpinnedPages = unpinnedPages.concat(newUnpinned);
         
-        if (fetchedPages.pages.length === 0) break;
         currentSkip += fetchedPages.pages.length;
+        if (fetchedPages.pages.length === 0 || currentSkip >= fetchedPages.count) break;
       }
       
       const actualPages = unpinnedPages.slice(0, targetLimit);
       pages = {
-        ...await listPages(projectName, cosenseSid, { limit: 1 }),
+        ...firstResponse!,
         pages: actualPages,
         limit: actualPages.length,
         skip: skip || 0
@@ -69,7 +71,7 @@ export async function handleListPages(
       pages = await listPagesWithSort(
         projectName,
         {
-          ...(sort !== undefined && { sort }),
+          sort,
           limit: limit || 10,
           skip,
         },
@@ -128,7 +130,7 @@ export async function handleListPages(
       {
         Operation: 'list_pages',
         Project: params.projectName || defaultProjectName,
-        Sort: params.sort || 'default',
+        Sort: params.sort || 'updated',
         Limit: String(params.limit || 'default'),
         Skip: String(params.skip || '0'),
         Timestamp: new Date().toISOString(),
