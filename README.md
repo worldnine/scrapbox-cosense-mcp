@@ -261,6 +261,8 @@ In the client, enter `https://mcp.example.com/mcp`, then type the passphrase on 
 
 See [HTTP transport authentication](./docs/authentication.md#http-transport-authentication-oauth-21) for the details.
 
+To share one server among several people — each with their own Cosense session ID, invitations, and an admin screen — see the fork [ojimpo/cosense-mcp](https://github.com/ojimpo/cosense-mcp).
+
 ## Development
 
 | Command | Description |
