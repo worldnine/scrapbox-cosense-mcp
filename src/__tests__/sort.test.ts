@@ -95,11 +95,9 @@ describe('sortPages', () => {
   });
 
   describe('デフォルト動作', () => {
-    test('ソート方法未指定時はcreated順になること', () => {
+    test('ソート方法未指定時はupdated順になること', () => {
       const result = sortPages(mockPages);
-      expect(result[0]?.title).toBe('Page B'); // created: 2000
-      expect(result[1]?.title).toBe('Page C'); // created: 1500
-      expect(result[2]?.title).toBe('Page A'); // created: 1000
+      expect(result.map(page => page.title)).toEqual(['Page C', 'Page A', 'Page B']);
     });
 
     test('空配列を渡しても正常に動作すること', () => {
@@ -109,9 +107,9 @@ describe('sortPages', () => {
   });
 
   describe('不正な値の処理', () => {
-    test('存在しないソート方法を指定した場合はデフォルト(created)になること', () => {
+    test('存在しないソート方法を指定した場合はデフォルト(updated)になること', () => {
       const result = sortPages(mockPages, { sort: 'invalid' });
-      expect(result[0]?.title).toBe('Page B'); // created: 2000
+      expect(result[0]?.title).toBe('Page C');
     });
 
     test('undefined値が含まれていても正常にソートされること', () => {

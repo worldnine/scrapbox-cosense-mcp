@@ -24,7 +24,7 @@ import { createRequire } from "node:module";
 // package.json を唯一のバージョン情報源にする（リリース時のズレ防止）
 const require = createRequire(import.meta.url);
 const { version } = require("../package.json") as { version: string };
-import { listPages, getPage, toReadablePage, withUserNames } from "./cosense.js";
+import { listPagesWithSort, getPage, toReadablePage, withUserNames } from "./cosense.js";
 import { isDeleteEnabled } from "./routes/handlers/delete-page.js";
 import { formatYmd, formatEditorLines } from './utils/format.js';
 import { setupRoutes } from './routes/index.js';
@@ -73,19 +73,19 @@ if (!projectName) {
 }
 
 
-// resourcesの初期化（100件取得してソート）
+// resourcesの初期化（最大100件を表示）
 const resources = await (async () => {
   try {
-    // 常に100件取得
-    const result = await listPages(
-      projectName, 
-      cosenseSid,
+    // ピン留めを含む場合は一覧ツールと同じ基準で混ぜ込む
+    const result = await listPagesWithSort(
+      projectName,
       {
         limit: FETCH_PAGE_LIMIT,  // 固定で100件
         skip: 0,
         sort: initialSortMethod,
         excludePinned: process.env.COSENSE_EXCLUDE_PINNED === 'true'
-      }
+      },
+      cosenseSid
     );
 
     // ソート済みのページから必要な件数だけを使用
