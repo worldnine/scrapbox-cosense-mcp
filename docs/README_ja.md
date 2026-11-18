@@ -230,6 +230,8 @@ npx -y scrapbox-cosense-mcp
 
 詳しくは[認証](./authentication.md)の「HTTP transportの認証（OAuth 2.1）」を参照してください。
 
+1つのサーバーを複数人で使う仕組み（各自のSID、招待、管理画面など）は、フォークの[ojimpo/cosense-mcp](https://github.com/ojimpo/cosense-mcp)にあります。
+
 ## 開発
 
 | コマンド | 説明 |
